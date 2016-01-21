@@ -85,8 +85,12 @@ after some datacrunching; post-processed dataset submissions welcome!
 
   * https://catalog.ldc.upenn.edu/LDC2013T18 payment required
 
+  * http://research.microsoft.com/en-us/downloads/38cf15fd-b8df-477e-a4e4-a4680caa75af/
+Microsoft Research Video Description Corpus
+
   * http://research.microsoft.com/en-US/downloads/4495da01-db8c-4041-a7f6-7984a4f6a905/default.aspx
 Microsoft Research WikiQA Corpus
+
 
 Algorithm References
 --------------------
