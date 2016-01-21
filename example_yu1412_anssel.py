@@ -13,21 +13,47 @@ Prerequisites:
     * Get glove.6B.50d.txt from http://nlp.stanford.edu/projects/glove/
 
 Performance on anssel-yodaqa:
-    * Completely unbalanced
+    * Completely unbalanced, C=1
         Train Accuracy: 0.899176 (y=0 0.983992, y=1 0.334139)
         Train MRR: 0.626233  (on training set, y=0 is subsampled!)
         Test Accuracy: 0.926688 (y=0 0.965770, y=1 0.095908)
         Test MRR: 0.218704
-    * sklearn balancing (class_weight='auto')
+    * sklearn balancing (class_weight='auto'), C=1
         Train Accuracy: 0.816569 (y=0 0.812480, y=1 0.843807)
         Train MRR: 0.620643  (on training set, y=0 is subsampled!)
         Test Accuracy: 0.714450 (y=0 0.727787, y=1 0.430946)
         Test MRR: 0.235821
-    * Manual balancing (balance_dataset())
+    * Our balancing (balance_dataset()), C=1
         Train Accuracy: raw 0.837037 (y=0 0.821142, y=1 0.852932), bal 0.837037
         Train MRR: 0.627617  (on training set, y=0 is subsampled!)
         Test Accuracy: raw 0.709681 (y=0 0.723455, y=1 0.416880), bal 0.570168
         Test MRR: 0.245249
+    * Our balancing, C=0.1 (stronger regularization):
+        Train Accuracy: raw 0.800009 (y=0 0.789987, y=1 0.810031), bal 0.800009
+        Train MRR: 0.578199  (on training set, y=0 is subsampled!)
+        Test Accuracy: raw 0.709796 (y=0 0.721891, y=1 0.452685), bal 0.587288
+        Test MRR: 0.257044
+    * Our balancing, C=0.05
+        Train Accuracy: raw 0.787538 (y=0 0.778060, y=1 0.797016), bal 0.787538
+        Train MRR: 0.555112  (on training set, y=0 is subsampled!)
+        Test Accuracy: raw 0.709107 (y=0 0.720869, y=1 0.459079), bal 0.589974
+        Test MRR: 0.281093
+    * Our balancing, C=0.01
+        Train Accuracy: raw 0.746315 (y=0 0.740148, y=1 0.752483), bal 0.746315
+        Train MRR: 0.516240  (on training set, y=0 is subsampled!)
+        Test Accuracy: raw 0.699454 (y=0 0.709318, y=1 0.489770), bal 0.599544
+        Test MRR: 0.301773
+    * Our balancing, C=0.005
+        Train Accuracy: raw 0.733028 (y=0 0.726090, y=1 0.739966), bal 0.733028
+        Train MRR: 0.493889  (on training set, y=0 is subsampled!)
+        Test Accuracy: raw 0.691755 (y=0 0.701197, y=1 0.491049), bal 0.596123
+        Test MRR: 0.296532
+    * Our balancing, C=0.001
+        Train Accuracy: raw 0.709129 (y=0 0.708176, y=1 0.710081), bal 0.709129
+        Train MRR: 0.468256  (on training set, y=0 is subsampled!)
+        Test Accuracy: raw 0.674059 (y=0 0.683090, y=1 0.482097), bal 0.582593
+        Test MRR: 0.269031
+
 """
 
 from __future__ import print_function
@@ -80,7 +106,7 @@ if __name__ == "__main__":
     s0train, Xtrain, ytrain = load_set(glove, 'anssel-yodaqa/curatedv1-training.csv', balance=(args.balance == 1))
     s0test, Xtest, ytest = load_set(glove, 'anssel-yodaqa/curatedv1-val.csv', subsample0=1)
 
-    logreg = linear_model.LogisticRegression(verbose=1, n_jobs=7)
+    logreg = linear_model.LogisticRegression(C=0.01, verbose=1, n_jobs=7)
     logreg.fit(Xtrain, ytrain)
     eval_set(logreg, s0train, Xtrain, ytrain, 'Train')
     eval_set(logreg, s0test, Xtest, ytest, 'Test')
