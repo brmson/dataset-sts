@@ -34,8 +34,14 @@ def load_anssel_yodaqa(dsfile, subsample0=3):
                 i += 1
                 continue
             labels.append(label)
-            s0.append(word_tokenize(l['qtext'].decode('utf8')))
-            s1.append(word_tokenize(l['atext'].decode('utf8')))
+            try:
+                qtext = l['qtext'].decode('utf8')
+                atext = l['atext'].decode('utf8')
+            except AttributeError:  # python3 has no .decode()
+                qtext = l['qtext']
+                atext = l['atext']
+            s0.append(word_tokenize(qtext))
+            s1.append(word_tokenize(atext))
             i += 1
     return (s0, s1, np.array(labels))
 
