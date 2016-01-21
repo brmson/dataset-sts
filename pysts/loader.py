@@ -119,11 +119,15 @@ def balance_dataset(ds):
 
     This makes sense only for datasets with crisp 0/1 labels! """
     # FIXME: we assume 1-labelled < 0-labelled
-    y = np.array([d[2] for d in ds])
+    y = ds[2]
     class1 = np.where(y == 1)[0]
     n_imbal = np.sum(y == 0) - np.sum(y == 1)
 
-    ds2 = list(ds)
+    s0 = list(ds[0])
+    s1 = list(ds[1])
+    labels = list(ds[2])
     for i in np.random.choice(class1, size=n_imbal):
-        ds2.append(ds[i])
-    return ds2
+        s0.append(ds[0][i])
+        s1.append(ds[1][i])
+        labels.append(ds[2][i])
+    return (s0, s1, np.array(labels))
