@@ -19,11 +19,15 @@ Performance on anssel-yodaqa:
         Test Accuracy: 0.926688 (y=0 0.965770, y=1 0.095908)
         Test MRR: 0.218704
     * sklearn balancing (class_weight='auto')
+        Train Accuracy: 0.816569 (y=0 0.812480, y=1 0.843807)
+        Train MRR: 0.620643  (on training set, y=0 is subsampled!)
+        Test Accuracy: 0.714450 (y=0 0.727787, y=1 0.430946)
+        Test MRR: 0.235821
     * Manual balancing (balance_dataset())
-        Train Accuracy: 0.841345 (y=0 0.820824, y=1 0.861866)
-        Train MRR: 0.622557  (on training set, y=0 is subsampled!)
-        Test Accuracy: 0.573783 (y=0 0.729471, y=1 0.418095)
-        Test MRR: 0.245059
+        Train Accuracy: raw 0.837037 (y=0 0.821142, y=1 0.852932), bal 0.837037
+        Train MRR: 0.627617  (on training set, y=0 is subsampled!)
+        Test Accuracy: raw 0.709681 (y=0 0.723455, y=1 0.416880), bal 0.570168
+        Test MRR: 0.245249
 """
 
 from __future__ import print_function
