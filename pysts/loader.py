@@ -15,8 +15,8 @@ from nltk.tokenize import word_tokenize
 import numpy as np
 
 
-def load_anssel_yodaqa(dsfile, subsample0=3):
-    """ load a dataset in the anssel-yodaqa csv format;
+def load_anssel(dsfile, subsample0=3):
+    """ load a dataset in the anssel csv format;
 
     subsample0=N denotes that only every N-th 0-labelled sample
     should be loaded; so e.g. N=3 reduces 80k negatives to 28k

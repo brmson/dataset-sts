@@ -68,7 +68,7 @@ import pysts.eval as ev
 
 
 def load_set(glove, fname, balance=True, subsample0=3):
-    s0, s1, labels = loader.load_anssel_yodaqa(fname, subsample0=subsample0)
+    s0, s1, labels = loader.load_anssel(fname, subsample0=subsample0)
     print('(%s) Loaded dataset: %d' % (fname, len(s0)))
 
     if balance:
