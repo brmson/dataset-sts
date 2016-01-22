@@ -10,6 +10,7 @@ may want to load the sick2014 dataset from sts (relevancy) or entailment
 
 from __future__ import print_function
 
+import codecs
 import csv
 from nltk.tokenize import word_tokenize
 import numpy as np
@@ -87,7 +88,7 @@ def load_sts(dsfile):
     s0 = []
     s1 = []
     labels = []
-    with open(dsfile) as f:
+    with codecs.open(dsfile, encoding='utf8') as f:
         for line in f:
             line = line.rstrip()
             label, s0x, s1x = line.split('\t')
