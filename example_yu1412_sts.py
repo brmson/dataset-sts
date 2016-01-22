@@ -11,7 +11,7 @@ while using bag-of-words average for the two sentenes.
 Prerequisites:
     * Get glove.6B.300d.txt from http://nlp.stanford.edu/projects/glove/
 
-Performance (3000 iters):
+Performance (200 iters):
     9092/9092 [==============================] - 2s - loss: 1.4630 - acc: 0.4040 - val_loss: 2.1378 - val_acc: 0.1737
     Train Pearson: 0.835212
     Train Spearman: 0.796621
