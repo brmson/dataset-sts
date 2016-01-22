@@ -39,7 +39,7 @@ class GloVe:
         else:
             return gtokens.mean(axis=0)
 
-    def map_set(self, ss, ndim=None):
+    def map_set(self, ss, ndim=2):
         """ apply map_tokens on a whole set of sentences """
         return [self.map_tokens(s, ndim=ndim) for s in ss]
 
