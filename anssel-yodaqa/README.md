@@ -38,3 +38,12 @@ That's why we are introducing a new one.
 
 See also the WikiQA corpus, which has too restrictive licence but manually
 labelled pairs.
+
+Licence
+-------
+
+Derived from the ``curated-train`` YodaQA dataset
+
+	htts://github.com/brmson/dataset-factoid-curated
+
+and sentences from Wikipedia, Wikipedia is CC-BY-SA if that's relevant.

@@ -26,3 +26,8 @@ pseudo-XML files to a much more trivial CSV format compatible with anssel-yodaqa
 In harmony with the other papers, we use the filtered version that keeps
 only samples with less than 40 tokens.  "train-all" is a larger dataset with
 noisy labels (automatically rather than manually labelled).
+
+Licence
+-------
+
+Derived from TREC questions, which are public domain.
