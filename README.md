@@ -53,7 +53,7 @@ Package Overview
 
   * [ ] RTE Datasets (TODO)
 
-  * [X] Answer Sentence Selection - original Wang dataset
+  * [X] **anssel-wang/** Answer Sentence Selection - original Wang dataset
 
   * [X] **anssel-yodaqa/** Answer Sentence Selection - YodaQA-based
 
