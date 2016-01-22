@@ -44,12 +44,8 @@ Package Overview
 
 ### Datasets
 
-TODO: We should explain also the nature of the datasets - size, their exact
-*f_b* definition, or whether contradictions occur.
-
-  * [X] **sts/** SemEval STS Task - multiple years, each covers a bunch of topics
-    (all years are also linked to a common directory to easily load them
-    all at once)
+  * [X] **sts/** SemEval STS Task - multiple years, each covers a bunch of
+    topics that share the same precise similarity metric definition
 
   * [X] **sick2014/** SemEval SICK2014 Task
 
@@ -68,6 +64,9 @@ TODO: We should explain also the nature of the datasets - size, their exact
   * [ ] COCO image-sentence ranking experiments
 
 So, this is for now as much a TODO list as an overview.
+
+TODO: We should explain also the nature of the datasets - size, their exact
+*f_b* definition, or whether contradictions occur.
 
 ### Software tools
 
