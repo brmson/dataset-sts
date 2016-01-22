@@ -10,6 +10,15 @@ while using bag-of-words average for the two sentenes.
 
 Prerequisites:
     * Get glove.6B.50d.txt from http://nlp.stanford.edu/projects/glove/
+
+Performance (3000 iters):
+    9092/9092 [==============================] - 0s - loss: 1.5190 - acc: 0.3543 - val_loss: 1.9104 - val_acc: 0.1753
+    Train Pearson: 0.655718
+    Train Spearman: 0.586274
+    Train MSE: 1.233807
+    Test Pearson: 0.236014
+    Test Spearman: 0.228541
+    Test MSE: 2.705417
 """
 
 from __future__ import print_function
