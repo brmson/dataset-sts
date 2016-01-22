@@ -5,16 +5,11 @@ http://arxiv.org/abs/1412.1632 of training (M, b) such that:
 
     f(q, a) = sigmoid(q * M * a.T + b)
 
-We use sklearn's logistic regression to train (flattened) M and b,
-while using q.
+We use a trivial keras model to train an embedding projection M
+while using bag-of-words average for the two sentenes.
 
 Prerequisites:
     * Get glove.6B.50d.txt from http://nlp.stanford.edu/projects/glove/
-
-FIXME:
-    * Instead of treating y-score as continuous, try categorical approach
-      with label encoding from Tree LSTM paper (Tai, Socher, Manning)
-      (as in eval_sick)
 """
 
 from __future__ import print_function
@@ -24,7 +19,10 @@ import numpy as np
 from sklearn.metrics import mean_squared_error as mse
 from scipy.stats import pearsonr
 from scipy.stats import spearmanr
-from sklearn import linear_model
+
+from keras.models import Sequential
+from keras.layers.core import Activation, Dense, Dropout, Flatten, Merge, RepeatVector
+from keras.regularizers import l2
 
 import pysts.embedding as emb
 import pysts.loader as loader
@@ -39,18 +37,34 @@ def load_set(glove, globmask):
     # print('(%s) s1[-1000]: %d tokens' % (globmask, np.sort([np.shape(s) for s in s1], axis=0)[-1000]))
     # s0 = glove.pad_set(s0, 40)
     # s1 = glove.pad_set(s1, 40)
-    # return (np.hstack((s0, s1)), labels)
 
     # for averaging:
     s0 = glove.map_set(s0, ndim=1)
     s1 = glove.map_set(s1, ndim=1)
-    # To train the projection matrix M, we expand X to pairwise element multiplications instead of just concatenating s0, s1
-    X = np.array([np.ravel(np.outer(s0[i], s1[i])) for i in range(len(s0))])
-    return (X, labels)
+    return ([np.array(s0), np.array(s1)], labels)
 
 
-def eval_set(logreg, X, y, name):
-    ypred = logreg.predict_proba(X)[:, 1]
+def prep_model(glove, dropout=0.1, l2reg=1e-3):
+    # XXX: this is a bit hacky to combine dot-product with six-wise output
+    model0 = Sequential()  # s0
+    model0.add(Dropout(dropout, input_shape=(glove.N,)))
+    model0.add(Dense(input_dim=glove.N, output_dim=glove.N, W_regularizer=l2(l2reg)))  # M matrix
+    model0.add(RepeatVector(6))  # [nclass]
+    model1 = Sequential()  # s1
+    model1.add(Dropout(dropout, input_shape=(glove.N,)))
+    model1.add(RepeatVector(6))  # [nclass]
+
+    model = Sequential()
+    model.add(Merge([model0, model1], mode='dot', dot_axes=([2], [2])))
+    model.add(Flatten())  # 6x6 matrix with cross-activations -> 36 vector
+    model.add(Dense(6, W_regularizer=l2(l2reg)))  # 36 vector -> 6 vector, ugh
+    model.add(Activation('softmax'))
+    return model
+
+
+def eval_set(model, X, y, name):
+    ycat = model.predict_proba(X)
+    ypred = loader.sts_categorical2labels(ycat)
     print('%s Pearson: %f' % (name, pearsonr(ypred, y)[0],))
     print('%s Spearman: %f' % (name, spearmanr(ypred, y)[0],))
     print('%s MSE: %f' % (name, mse(ypred, y),))
@@ -61,9 +75,9 @@ if __name__ == "__main__":
     Xtrain, ytrain = load_set(glove, 'sts/all/201[0-4]*')
     Xtest, ytest = load_set(glove, 'sts/all/2015*')
 
-    logreg = linear_model.LogisticRegression(solver='sag', verbose=1)
-    # XXX: we do a horrible cheat here as sklearn logreg is categorical
-    # logreg.fit(Xtrain, ytrain)
-    logreg.fit(Xtrain, ytrain > 0.5, sample_weight=np.abs(0.5-ytrain))
-    eval_set(logreg, Xtrain, ytrain, 'Train')
-    eval_set(logreg, Xtest, ytest, 'Test')
+    model = prep_model(glove)
+    model.compile(loss='categorical_crossentropy', optimizer='adam')
+    model.fit(Xtrain, loader.sts_labels2categorical(ytrain), batch_size=80, nb_epoch=30, show_accuracy=True,
+              validation_data=(Xtest, loader.sts_labels2categorical(ytest)))
+    eval_set(model, Xtrain, ytrain, 'Train')
+    eval_set(model, Xtest, ytest, 'Test')

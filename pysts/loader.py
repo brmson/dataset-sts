@@ -47,7 +47,7 @@ def load_anssel(dsfile, subsample0=3):
 
 
 def load_sick2014(dsfile, mode='relatedness'):
-    """ load a dataset in the sick2014 tsv .txt format, with labels normalized to [0,1];
+    """ load a dataset in the sick2014 tsv .txt format;
 
     mode='relatedness': use the sts relatedness score as label
     mode='entailment': use -1 (contr.), 0 (neutral), 1 (ent.) as label """
@@ -64,7 +64,7 @@ def load_sick2014(dsfile, mode='relatedness'):
             line = line.rstrip()
             pair_ID, sentence_A, sentence_B, relatedness_score, entailment_judgement = line.split('\t')
             if mode == 'relatedness':
-                label = float(relatedness_score) / 5
+                label = float(relatedness_score)
             elif mode == 'entailment':
                 if entailment_judgement == 'CONTRADICTION':
                     label = -1
@@ -83,7 +83,7 @@ def load_sick2014(dsfile, mode='relatedness'):
 
 
 def load_sts(dsfile):
-    """ load a dataset in the sts tsv format, with labels normalized to [0,1] """
+    """ load a dataset in the sts tsv format """
     s0 = []
     s1 = []
     labels = []
@@ -93,7 +93,7 @@ def load_sts(dsfile):
             label, s0x, s1x = line.split('\t')
             if label == '':
                 continue  # some pairs are unlabeled, skip
-            labels.append(float(label) / 5)
+            labels.append(float(label))
             s0.append(word_tokenize(s0x))
             s1.append(word_tokenize(s1x))
     return (s0, s1, np.array(labels))
@@ -131,3 +131,31 @@ def balance_dataset(ds):
         s1.append(ds[1][i])
         labels.append(ds[2][i])
     return (s0, s1, np.array(labels))
+
+
+def sts_labels2categorical(labels, nclass=6):
+    """
+    From continuous labels in [0,5], generate 5D binary-ish vectors.
+    This enables us to do classification instead of regression.
+    (e.g. sigmoid output would be troublesome with the original labeling)
+
+    Label encoding from Tree LSTM paper (Tai, Socher, Manning)
+
+    (Based on https://github.com/ryankiros/skip-thoughts/blob/master/eval_sick.py)
+    """
+    Y = np.zeros((len(labels), nclass))
+    for j, y in enumerate(labels):
+        if np.floor(y) + 1 < nclass:
+            Y[j, int(np.floor(y)) + 1] = y - np.floor(y)
+        Y[j, int(np.floor(y))] = np.floor(y) - y + 1
+    return Y
+
+
+def sts_categorical2labels(Y, nclass=6):
+    """
+    From categorical score encoding, reconstruct continuous labels.
+    This is useful to convert classifier output to something we can
+    correlate with gold standard again.
+    """
+    r = np.arange(nclass)
+    return np.dot(Y, r)
