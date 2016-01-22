@@ -57,7 +57,7 @@ TODO: We should explain also the nature of the datasets - size, their exact
 
   * [ ] RTE Datasets (TODO)
 
-  * [ ] Answer Sentence Selection - original (TODO)
+  * [X] Answer Sentence Selection - original Wang dataset
 
   * [X] **anssel-yodaqa/** Answer Sentence Selection - YodaQA-based
 
