@@ -1,1 +1,5 @@
 .*
+*.pyc
+__pycache__/
+
+/glove.6B.*d.txt
