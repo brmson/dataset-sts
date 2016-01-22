@@ -36,7 +36,7 @@ references or attributions.  Please let us know if we misread some licence
 terms and shouldn't be including something, we'll take that down right away!**
 
 Pull request that include simple baselines for *f_b* models are also welcome.
-(Simple == they fit in roughly one file and are batch-runnable.
+(Simple == they fit in a couple of screenfuls of code and are batch-runnable.
 Python is preferred, but not mandatory.)
 
 Package Overview
