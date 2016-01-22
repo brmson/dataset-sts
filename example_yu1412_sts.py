@@ -44,8 +44,8 @@ def load_set(glove, globmask):
     # for padding and sequences (e.g. keras RNNs):
     # print('(%s) s0[-1000]: %d tokens' % (globmask, np.sort([np.shape(s) for s in s0], axis=0)[-1000]))
     # print('(%s) s1[-1000]: %d tokens' % (globmask, np.sort([np.shape(s) for s in s1], axis=0)[-1000]))
-    # s0 = glove.pad_set(s0, 40)
-    # s1 = glove.pad_set(s1, 40)
+    # s0 = glove.pad_set(glove.map_set(s0), 30)
+    # s1 = glove.pad_set(glove.map_set(s1), 30)
 
     # for averaging:
     s0 = glove.map_set(s0, ndim=1)
