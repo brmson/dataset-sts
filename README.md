@@ -49,6 +49,8 @@ Package Overview
 
   * [X] **sick2014/** SemEval SICK2014 Task
 
+  * [ ] SemEval 2014 Cross-level Semantic Similarity Task
+
   * [ ] MSR Paraphrase Dataset (TODO)
 
   * [ ] RTE Datasets (TODO)
@@ -107,6 +109,8 @@ Here, we refer to some interesting models for sentence pair classification.
 We focus mainly on papers that consider multiple datasets or are hard to find;
 you can read e.g. about STS winners on STS wiki.
 
+  * https://github.com/alvations/stasis contains several baselines and another
+    view of the datasets (incl. the CLSS task)
   * https://github.com/ryankiros/skip-thoughts
   * Standard memory networks (MemNN, MemN2N) are in fact *f_b* models at their
     core; very similar to http://arxiv.org/abs/1412.1632
