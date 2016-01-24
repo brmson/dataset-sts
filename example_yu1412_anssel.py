@@ -55,21 +55,23 @@ def load_set(glove, fname, balance=True, subsample0=3):
     # print('(%s) s1[-1000]: %d tokens' % (globmask, np.sort([np.shape(s) for s in s1], axis=0)[-1000]))
     # s0 = glove.pad_set(glove.map_set(s0), 25)
     # s1 = glove.pad_set(glove.map_set(s1), 60)
-    # return (np.hstack((s0, s1)), labels)
 
     # for averaging:
     s0 = glove.map_set(s0, ndim=1)
     s1 = glove.map_set(s1, ndim=1)
+    return ([np.array(s0), np.array(s1)], labels)
+
+
+def logreg_M(s0, s1):
     # To train the projection matrix M, we expand X to pairwise element multiplications instead of just concatenating s0, s1
-    X = np.array([np.ravel(np.outer(s0[i], s1[i])) for i in range(len(s0))])
-    return (s0, X, labels)
+    return np.array([np.ravel(np.outer(s0[i], s1[i])) for i in range(len(s0))])
 
 
-def eval_set(logreg, s0, X, y, name):
-    ypred = logreg.predict_proba(X)[:, 1]
+def eval_set(logreg, X, y, name):
+    ypred = logreg.predict_proba(logreg_M(*X))[:, 1]
     rawacc, y0acc, y1acc, balacc = ev.binclass_accuracy(y, ypred)
     print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
-    print('%s MRR: %f  %s' % (name, ev.mrr(s0, y, ypred), '(on training set, y=0 is subsampled!)' if name == 'Train' else ''))
+    print('%s MRR: %f  %s' % (name, ev.mrr(X[0], y, ypred), '(on training set, y=0 is subsampled!)' if name == 'Train' else ''))
 
 
 if __name__ == "__main__":
@@ -80,16 +82,16 @@ if __name__ == "__main__":
 
     glove = emb.GloVe(N=args.N)
     ''' anssel-wang '''
-    # s0train, Xtrain, ytrain = load_set(glove, 'anssel-wang/train-all.csv', balance=(args.balance == 1))
-    # s0test, Xtest, ytest = load_set(glove, 'anssel-wang/test.csv', subsample0=1)
+    # Xtrain, ytrain = load_set(glove, 'anssel-wang/train-all.csv', balance=(args.balance == 1))
+    # Xtest, ytest = load_set(glove, 'anssel-wang/test.csv', subsample0=1)
     ''' anssel-yodaqa '''
-    s0train, Xtrain, ytrain = load_set(glove, 'anssel-yodaqa/curatedv1-training.csv', balance=(args.balance == 1))
-    s0test, Xtest, ytest = load_set(glove, 'anssel-yodaqa/curatedv1-val.csv', subsample0=1)
+    Xtrain, ytrain = load_set(glove, 'anssel-yodaqa/curatedv1-training.csv', balance=(args.balance == 1))
+    Xtest, ytest = load_set(glove, 'anssel-yodaqa/curatedv1-val.csv', subsample0=1)
 
     logreg = linear_model.LogisticRegression(C=0.01, verbose=1, n_jobs=7)
-    logreg.fit(Xtrain, ytrain)
-    eval_set(logreg, s0train, Xtrain, ytrain, 'Train')
-    eval_set(logreg, s0test, Xtest, ytest, 'Test')
+    logreg.fit(logreg_M(*Xtrain), ytrain)
+    eval_set(logreg, Xtrain, ytrain, 'Train')
+    eval_set(logreg, Xtest, ytest, 'Test')
 
 
 """
