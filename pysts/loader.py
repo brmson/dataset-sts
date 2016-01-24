@@ -134,6 +134,27 @@ def balance_dataset(ds):
     return (s0, s1, np.array(labels))
 
 
+def load_embedded(glove, s0, s1, labels, balance=False, ndim=1, s0pad=25, s1pad=60):
+    """ Post-process loaded (s0, s1, labels) by mapping it to embeddings,
+    plus optionally balancing (if labels are binary) and optionally not
+    averaging but padding and returning full-sequence matrices.  """
+
+    if balance:
+        s0, s1, labels = balance_dataset((s0, s1, labels))
+
+    if ndim == 1:
+        # for averaging:
+        e0 = np.array(glove.map_set(s0, ndim=1))
+        e1 = np.array(glove.map_set(s1, ndim=1))
+    else:
+        # for padding and sequences (e.g. keras RNNs):
+        # print('(%s) s0[-1000]: %d tokens' % (globmask, np.sort([np.shape(s) for s in s0], axis=0)[-1000]))
+        # print('(%s) s1[-1000]: %d tokens' % (globmask, np.sort([np.shape(s) for s in s1], axis=0)[-1000]))
+        e0 = glove.pad_set(glove.map_set(s0), s0pad)
+        e1 = glove.pad_set(glove.map_set(s1), s1pad)
+    return (e0, e1, s0, s1, labels)
+
+
 def sts_labels2categorical(labels, nclass=6):
     """
     From continuous labels in [0,5], generate 5D binary-ish vectors.

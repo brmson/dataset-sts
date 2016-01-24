@@ -40,17 +40,8 @@ import pysts.loader as loader
 def load_set(glove, globmask):
     s0, s1, labels = loader.concat_datasets([loader.load_sts(d) for d in glob.glob(globmask)])
     print('(%s) Loaded dataset: %d' % (globmask, len(s0)))
-
-    # for padding and sequences (e.g. keras RNNs):
-    # print('(%s) s0[-1000]: %d tokens' % (globmask, np.sort([np.shape(s) for s in s0], axis=0)[-1000]))
-    # print('(%s) s1[-1000]: %d tokens' % (globmask, np.sort([np.shape(s) for s in s1], axis=0)[-1000]))
-    # s0 = glove.pad_set(glove.map_set(s0), 30)
-    # s1 = glove.pad_set(glove.map_set(s1), 30)
-
-    # for averaging:
-    s0 = glove.map_set(s0, ndim=1)
-    s1 = glove.map_set(s1, ndim=1)
-    return ([np.array(s0), np.array(s1)], labels)
+    e0, e1, s0, s1, labels = loader.load_embedded(glove, s0, s1, labels)
+    return ([e0, e1], labels)
 
 
 def prep_model(glove, dropout=0.3, l2reg=1e-3):

@@ -43,28 +43,16 @@ import pysts.loader as loader
 import pysts.eval as ev
 
 
-def load_set(glove, fname, balance=True, subsample0=3):
+def load_set(glove, fname, balance=False, subsample0=3):
     s0, s1, labels = loader.load_anssel(fname, subsample0=subsample0)
     print('(%s) Loaded dataset: %d' % (fname, len(s0)))
-
-    if balance:
-        s0, s1, labels = loader.balance_dataset((s0, s1, labels))
-
-    # for padding and sequences (e.g. keras RNNs):
-    # print('(%s) s0[-1000]: %d tokens' % (globmask, np.sort([np.shape(s) for s in s0], axis=0)[-1000]))
-    # print('(%s) s1[-1000]: %d tokens' % (globmask, np.sort([np.shape(s) for s in s1], axis=0)[-1000]))
-    # s0 = glove.pad_set(glove.map_set(s0), 25)
-    # s1 = glove.pad_set(glove.map_set(s1), 60)
-
-    # for averaging:
-    s0 = glove.map_set(s0, ndim=1)
-    s1 = glove.map_set(s1, ndim=1)
-    return ([np.array(s0), np.array(s1)], labels)
+    e0, e1, s0, s1, labels = loader.load_embedded(glove, s0, s1, labels, balance=balance)
+    return ([e0, e1], labels)
 
 
-def logreg_M(s0, s1):
-    # To train the projection matrix M, we expand X to pairwise element multiplications instead of just concatenating s0, s1
-    return np.array([np.ravel(np.outer(s0[i], s1[i])) for i in range(len(s0))])
+def logreg_M(e0, e1):
+    # To train the projection matrix M, we expand X to pairwise element multiplications instead of just concatenating e0, e1
+    return np.array([np.ravel(np.outer(e0[i], e1[i])) for i in range(len(e0))])
 
 
 def eval_set(logreg, X, y, name):
@@ -78,15 +66,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Benchmark yu1412 on binary classification / point ranking task (anssel-yodaqa)")
     parser.add_argument("-N", help="GloVe dim", type=int, default=50)  # for our naive method, 300**2 would be too much
     parser.add_argument("--balance", help="whether to manually balance the dataset", type=int, default=1)
+    parser.add_argument("--wang", help="whether to run on Wang inst. of YodaQA dataset", type=int, default=0)
     args = parser.parse_args()
 
     glove = emb.GloVe(N=args.N)
-    ''' anssel-wang '''
-    # Xtrain, ytrain = load_set(glove, 'anssel-wang/train-all.csv', balance=(args.balance == 1))
-    # Xtest, ytest = load_set(glove, 'anssel-wang/test.csv', subsample0=1)
-    ''' anssel-yodaqa '''
-    Xtrain, ytrain = load_set(glove, 'anssel-yodaqa/curatedv1-training.csv', balance=(args.balance == 1))
-    Xtest, ytest = load_set(glove, 'anssel-yodaqa/curatedv1-val.csv', subsample0=1)
+    if args.wang == 1:
+        Xtrain, ytrain = load_set(glove, 'anssel-wang/train-all.csv', balance=(args.balance == 1))
+        Xtest, ytest = load_set(glove, 'anssel-wang/test.csv', subsample0=1)
+    else:
+        Xtrain, ytrain = load_set(glove, 'anssel-yodaqa/curatedv1-training.csv', balance=(args.balance == 1))
+        Xtest, ytest = load_set(glove, 'anssel-yodaqa/curatedv1-val.csv', subsample0=1)
 
     logreg = linear_model.LogisticRegression(C=0.01, verbose=1, n_jobs=7)
     logreg.fit(logreg_M(*Xtrain), ytrain)
