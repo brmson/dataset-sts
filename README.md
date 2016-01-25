@@ -72,13 +72,8 @@ TODO: We should explain also the nature of the datasets - size, their exact
 
 ### Software tools
 
-Python:
-
   * **pysts/** Python module contains various tools for easily working with the dataset
-  * **example_yu1412_sts.py** shows a simple embedding-based classifier hacked
-    together on a few lines that wouldn't end up dead last in STS2015 competition.
-  * **example_yu1412_anssel.py** shows the yu1412 classifier applied to its original
-    "answer sentence selection" task
+  * **examples/** contains a couple of baselines on various tasks
 
 Other Datasets
 --------------

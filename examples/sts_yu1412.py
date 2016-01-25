@@ -8,6 +8,11 @@ http://arxiv.org/abs/1412.1632 of training (M, b) such that:
 We use a trivial keras model to train an embedding projection M
 while using bag-of-words average for the two sentenes.
 
+The big downside of this approach is that the model doesn't see both
+sentences at once, producing only a coarse measure of similarity based
+purely the very limited embedding capacity.  This seems to be the
+reason the model overfits a lot.
+
 Prerequisites:
     * Get glove.6B.300d.txt from http://nlp.stanford.edu/projects/glove/
 
