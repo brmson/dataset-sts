@@ -10,3 +10,9 @@ distance measure:
   * **sts_yu1412.py** shows a simple embedding-based classifier hacked
     together on a few lines that wouldn't end up dead last in STS2015
     competition
+
+Tai et al., 1503.00075 - mean embeddings, elementwise comparison
+features and hidden layer:
+
+  * **sts_kst1503.py** applies this to the STS and SICK tasks, reproducing
+    the "mean vector" baseline in the paper
