@@ -51,7 +51,7 @@ Package Overview
 
   * [ ] SemEval 2014 Cross-level Semantic Similarity Task
 
-  * [ ] MSR Paraphrase Dataset (TODO)
+  * [X] **msr/** MSR Paraphrase Dataset (TODO: pysts manipulation tools)
 
   * [ ] RTE Datasets (TODO)
 
