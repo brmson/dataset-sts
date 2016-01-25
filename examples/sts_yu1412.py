@@ -92,5 +92,5 @@ if __name__ == "__main__":
     model.compile(loss='categorical_crossentropy', optimizer='adam')
     model.fit(Xtrain, loader.sts_labels2categorical(ytrain), batch_size=80, nb_epoch=200, show_accuracy=True,
               validation_data=(Xtest, loader.sts_labels2categorical(ytest)))
-    ev.eval_sts(model, Xtrain, ytrain, 'Train')
-    ev.eval_sts(model, Xtest, ytest, 'Test')
+    ev.eval_sts(model.predict_proba(Xtrain), ytrain, 'Train')
+    ev.eval_sts(model.predict_proba(Xtest), ytest, 'Test')

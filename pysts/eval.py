@@ -60,9 +60,8 @@ def mrr(s0, y, ypred):
     return np.mean(rr)
 
 
-def eval_sts(model, X, y, name):
-    """ Evaluate given STS regression-classification model and print results. """
-    ycat = model.predict_proba(X)
+def eval_sts(ycat, y, name):
+    """ Evaluate given STS regression-classification predictions and print results. """
     ypred = loader.sts_categorical2labels(ycat)
     pr = pearsonr(ypred, y)[0]
     print('%s Pearson: %f' % (name, pr,))
@@ -71,8 +70,7 @@ def eval_sts(model, X, y, name):
     return pr
 
 
-def eval_anssel(model, X, s0, y, name):
-    ypred = model.predict_proba(X)[:, 1]
+def eval_anssel(ypred, s0, y, name):
     rawacc, y0acc, y1acc, balacc = binclass_accuracy(y, ypred)
     mrr_ = mrr(s0, y, ypred)
     print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
