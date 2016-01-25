@@ -7,30 +7,28 @@ using the awesome Keras deep learning library.
 Play with it to see effect of GloVe dimensionality, hidden layer
 (and its size), various regularization etc.!
 
-TODO: Add sum-features, or even better abs-delta features
-
 TODO: KL cost function
 
 Prerequisites:
     * Get glove.6B.300d.txt from http://nlp.stanford.edu/projects/glove/
 
-Performance (100 iters):
+Performance (2000 iters):
     * sick2014
-        4500/4500 [==============================] - 0s - loss: 1.2332 - acc: 0.5016 - val_loss: 1.1926 - val_acc: 0.4770
-        Train Pearson: 0.721662
-        Train Spearman: 0.593711
-        Train MSE: 0.529364
-        Test Pearson: 0.701661
-        Test Spearman: 0.571329
-        Test MSE: 0.540898
+        4500/4500 [==============================] - 0s - loss: 0.9471 - val_loss: 1.2636
+        Train Pearson: 0.943327
+        Train Spearman: 0.933806
+        Train MSE: 0.131103
+        Test Pearson: 0.747579
+        Test Spearman: 0.630783
+        Test MSE: 0.450212
     * sts
-        9092/9092 [==============================] - 0s - loss: 1.5331 - acc: 0.3917 - val_loss: 1.8354 - val_acc: 0.2080
-        Train Pearson: 0.581443
-        Train Spearman: 0.525810
-        Train MSE: 1.450468
-        Test Pearson: 0.345727
-        Test Spearman: 0.340871
-        Test MSE: 2.489101
+        9092/9092 [==============================] - 1s - loss: 1.1706 - val_loss: 2.1772
+        Train Pearson: 0.919535
+        Train Spearman: 0.902290
+        Train MSE: 0.381750
+        Test Pearson: 0.396603
+        Test Spearman: 0.385356
+        Test MSE: 2.353272
 """
 
 from __future__ import print_function
@@ -67,13 +65,11 @@ def prep_model(glove, dropout=0, l2reg=1e-4):
 
     # Generate element-wise features from the pair
     # (the Activation is a nop, merge_mode is the important part)
-    # model.add_node(name='sum', inputs=['e0_', 'e1_'], layer=Activation('linear'), merge_mode='sum')
+    model.add_node(name='sum', inputs=['e0_', 'e1_'], layer=Activation('linear'), merge_mode='sum')
     model.add_node(name='mul', inputs=['e0_', 'e1_'], layer=Activation('linear'), merge_mode='mul')
 
     # Use MLP to generate classes
-    # model.add_node(name='hidden', inputs=['sum', 'mul'], merge_mode='concat',
-    #                layer=Dense(50, W_regularizer=l2(l2reg)))
-    model.add_node(name='hidden', input='mul',
+    model.add_node(name='hidden', inputs=['sum', 'mul'], merge_mode='concat',
                    layer=Dense(50, W_regularizer=l2(l2reg)))
     model.add_node(name='hiddenS', input='hidden',
                    layer=Activation('sigmoid'))
@@ -103,7 +99,7 @@ if __name__ == "__main__":
     model = prep_model(glove)
     model.compile(loss={'classes': 'categorical_crossentropy'}, optimizer='adam')
     model.fit({'e0': Xtrain[0], 'e1': Xtrain[1], 'classes': loader.sts_labels2categorical(ytrain)},
-              batch_size=80, nb_epoch=100,
+              batch_size=20, nb_epoch=100,
               validation_data={'e0': Xtest[0], 'e1': Xtest[1], 'classes': loader.sts_labels2categorical(ytest)})
     ev.eval_sts(model.predict({'e0': Xtrain[0], 'e1': Xtrain[1]})['classes'], ytrain, 'Train')
     ev.eval_sts(model.predict({'e0': Xtest[0], 'e1': Xtest[1]})['classes'], ytest, 'Test')
