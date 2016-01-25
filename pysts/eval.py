@@ -6,6 +6,11 @@ from __future__ import print_function
 from __future__ import division
 
 import numpy as np
+from scipy.stats import pearsonr
+from scipy.stats import spearmanr
+from sklearn.metrics import mean_squared_error as mse
+
+from . import loader
 
 
 def binclass_accuracy(y, ypred):
@@ -53,3 +58,23 @@ def mrr(s0, y, ypred):
         rr.append(1 / float(1+rank))
 
     return np.mean(rr)
+
+
+def eval_sts(model, X, y, name):
+    """ Evaluate given STS regression-classification model and print results. """
+    ycat = model.predict_proba(X)
+    ypred = loader.sts_categorical2labels(ycat)
+    pr = pearsonr(ypred, y)[0]
+    print('%s Pearson: %f' % (name, pr,))
+    print('%s Spearman: %f' % (name, spearmanr(ypred, y)[0],))
+    print('%s MSE: %f' % (name, mse(ypred, y),))
+    return pr
+
+
+def eval_anssel(model, X, s0, y, name):
+    ypred = model.predict_proba(X)[:, 1]
+    rawacc, y0acc, y1acc, balacc = binclass_accuracy(y, ypred)
+    mrr_ = mrr(s0, y, ypred)
+    print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
+    print('%s MRR: %f  %s' % (name, mrr_, '(on training set, y=0 is subsampled!)' if name == 'Train' else ''))
+    return mrr_

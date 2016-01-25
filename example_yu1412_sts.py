@@ -34,10 +34,6 @@ from __future__ import print_function
 
 import argparse
 import glob
-import numpy as np
-from sklearn.metrics import mean_squared_error as mse
-from scipy.stats import pearsonr
-from scipy.stats import spearmanr
 
 from keras.models import Sequential
 from keras.layers.core import Activation, Dense, Dropout, Flatten, Merge, RepeatVector
@@ -45,6 +41,7 @@ from keras.regularizers import l2
 
 import pysts.embedding as emb
 import pysts.loader as loader
+import pysts.eval as ev
 
 
 def load_set(glove, globmask, loadfun=loader.load_sts):
@@ -72,14 +69,6 @@ def prep_model(glove, dropout=0.3, l2reg=1e-3):
     return model
 
 
-def eval_set(model, X, y, name):
-    ycat = model.predict_proba(X)
-    ypred = loader.sts_categorical2labels(ycat)
-    print('%s Pearson: %f' % (name, pearsonr(ypred, y)[0],))
-    print('%s Spearman: %f' % (name, spearmanr(ypred, y)[0],))
-    print('%s MSE: %f' % (name, mse(ypred, y),))
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Benchmark yu1412 on semantic relatedness regression-classification (sts)")
     parser.add_argument("-N", help="GloVe dim", type=int, default=300)
@@ -98,5 +87,5 @@ if __name__ == "__main__":
     model.compile(loss='categorical_crossentropy', optimizer='adam')
     model.fit(Xtrain, loader.sts_labels2categorical(ytrain), batch_size=80, nb_epoch=200, show_accuracy=True,
               validation_data=(Xtest, loader.sts_labels2categorical(ytest)))
-    eval_set(model, Xtrain, ytrain, 'Train')
-    eval_set(model, Xtest, ytest, 'Test')
+    ev.eval_sts(model, Xtrain, ytrain, 'Train')
+    ev.eval_sts(model, Xtest, ytest, 'Test')
