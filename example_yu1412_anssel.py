@@ -55,11 +55,11 @@ def logreg_M(e0, e1):
     return np.array([np.ravel(np.outer(e0[i], e1[i])) for i in range(len(e0))])
 
 
-def eval_set(logreg, X, y, name):
-    ypred = logreg.predict_proba(logreg_M(*X))[:, 1]
+def eval_set(logreg, X, s0, y, name):
+    ypred = logreg.predict_proba(X)[:, 1]
     rawacc, y0acc, y1acc, balacc = ev.binclass_accuracy(y, ypred)
     print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
-    print('%s MRR: %f  %s' % (name, ev.mrr(X[0], y, ypred), '(on training set, y=0 is subsampled!)' if name == 'Train' else ''))
+    print('%s MRR: %f  %s' % (name, ev.mrr(s0, y, ypred), '(on training set, y=0 is subsampled!)' if name == 'Train' else ''))
 
 
 if __name__ == "__main__":
@@ -79,8 +79,8 @@ if __name__ == "__main__":
 
     logreg = linear_model.LogisticRegression(C=0.01, verbose=1, n_jobs=7)
     logreg.fit(logreg_M(*Xtrain), ytrain)
-    eval_set(logreg, Xtrain, ytrain, 'Train')
-    eval_set(logreg, Xtest, ytest, 'Test')
+    eval_set(logreg, logreg_M(*Xtrain), Xtrain[0], ytrain, 'Train')
+    eval_set(logreg, logreg_M(*Xtest), Xtest[0], ytest, 'Test')
 
 
 """
