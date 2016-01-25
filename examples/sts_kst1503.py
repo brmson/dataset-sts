@@ -38,8 +38,8 @@ from __future__ import print_function
 import argparse
 import glob
 
-from keras.models import Sequential
-from keras.layers.core import Activation, Dense, Dropout, Merge
+from keras.models import Graph
+from keras.layers.core import Activation, Dense, Dropout
 from keras.regularizers import l2
 
 import pysts.embedding as emb
@@ -55,17 +55,34 @@ def load_set(glove, globmask, loadfun=loader.load_sts):
 
 
 def prep_model(glove, dropout=0, l2reg=1e-4):
-    model0 = Sequential()  # s0
-    model1 = Sequential()  # s1
-    model0.add(Dropout(dropout, input_shape=(glove.N,)))
-    model1.add(Dropout(dropout, input_shape=(glove.N,)))
+    model = Graph()
 
-    model = Sequential()
-    model.add(Merge([model0, model1], mode='mul'))
-    model.add(Dense(50, W_regularizer=l2(l2reg)))
-    model.add(Activation('sigmoid'))
-    model.add(Dense(6, W_regularizer=l2(l2reg)))
-    model.add(Activation('softmax'))
+    # Process sentence embeddings
+    model.add_input(name='e0', input_shape=(glove.N,))
+    model.add_input(name='e1', input_shape=(glove.N,))
+    model.add_node(name='e0_', input='e0',
+                   layer=Dropout(dropout))
+    model.add_node(name='e1_', input='e1',
+                   layer=Dropout(dropout))
+
+    # Generate element-wise features from the pair
+    # (the Activation is a nop, merge_mode is the important part)
+    # model.add_node(name='sum', inputs=['e0_', 'e1_'], layer=Activation('linear'), merge_mode='sum')
+    model.add_node(name='mul', inputs=['e0_', 'e1_'], layer=Activation('linear'), merge_mode='mul')
+
+    # Use MLP to generate classes
+    # model.add_node(name='hidden', inputs=['sum', 'mul'], merge_mode='concat',
+    #                layer=Dense(50, W_regularizer=l2(l2reg)))
+    model.add_node(name='hidden', input='mul',
+                   layer=Dense(50, W_regularizer=l2(l2reg)))
+    model.add_node(name='hiddenS', input='hidden',
+                   layer=Activation('sigmoid'))
+    model.add_node(name='out', input='hiddenS',
+                   layer=Dense(6, W_regularizer=l2(l2reg)))
+    model.add_node(name='outS', input='out',
+                   layer=Activation('softmax'))
+
+    model.add_output(name='classes', input='outS')
     return model
 
 
@@ -84,11 +101,12 @@ if __name__ == "__main__":
         Xtest, ytest = load_set(glove, 'sts/all/2015*')
 
     model = prep_model(glove)
-    model.compile(loss='categorical_crossentropy', optimizer='adam')
-    model.fit(Xtrain, loader.sts_labels2categorical(ytrain), batch_size=80, nb_epoch=100, show_accuracy=True,
-              validation_data=(Xtest, loader.sts_labels2categorical(ytest)))
-    ev.eval_sts(model, Xtrain, ytrain, 'Train')
-    ev.eval_sts(model, Xtest, ytest, 'Test')
+    model.compile(loss={'classes': 'categorical_crossentropy'}, optimizer='adam')
+    model.fit({'e0': Xtrain[0], 'e1': Xtrain[1], 'classes': loader.sts_labels2categorical(ytrain)},
+              batch_size=80, nb_epoch=100,
+              validation_data={'e0': Xtest[0], 'e1': Xtest[1], 'classes': loader.sts_labels2categorical(ytest)})
+    ev.eval_sts(model.predict({'e0': Xtrain[0], 'e1': Xtrain[1]})['classes'], ytrain, 'Train')
+    ev.eval_sts(model.predict({'e0': Xtest[0], 'e1': Xtest[1]})['classes'], ytest, 'Test')
 
 
 """
