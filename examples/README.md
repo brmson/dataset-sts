@@ -16,3 +16,5 @@ features and hidden layer:
 
   * **sts_kst1503.py** applies this to the STS and SICK tasks, reproducing
     the "mean vector" baseline in the paper
+
+  * **ans_kst1503.py** applies this to the answer sentence selection task
