@@ -48,13 +48,25 @@ def mrr(s0, y, ypred):
     rr = []
     for s in ybys0.keys():
         ys = sorted(ybys0[s], key=lambda yy: yy[1], reverse=True)
-        rank = -1
-        for i in range(len(ys)):
-            if ys[i][0] == 1:
-                rank = i
-                break
-        if rank == -1:
+        if np.sum([yy[0] for yy in ys]) == 0:
             continue  # do not include s0 with no right answers in MRR
+        # to get rank, if we are in a larger cluster of same-scored sentences,
+        # we must get |cluster|/2-ranked, not 1-ranked!
+        # python3 -c 'import pysts.eval; import numpy as np; print(pysts.eval.mrr([np.array([0]),np.array([0]),np.array([0]),np.array([1]),np.array([1])], [1,0,0,1,1], [0.4,0.3,0.4,0.5,0.3]))'
+        ysd = dict()
+        for yy in ys:
+            if yy[1] in ysd:
+                ysd[yy[1]].append(yy[0])
+            else:
+                ysd[yy[1]] = [yy[0]]
+        rank = 0
+        for yp in sorted(ysd.keys(), reverse=True):
+            if np.sum(ysd[yp]) > 0:
+                rankofs = 1 - np.sum(ysd[yp]) / len(ysd[yp])
+                rank += len(ysd[yp]) * rankofs
+                break
+            rank += len(ysd[yp])
+        print(ysd, s, rank)
         rr.append(1 / float(1+rank))
 
     return np.mean(rr)
