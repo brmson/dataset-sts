@@ -66,7 +66,6 @@ def mrr(s0, y, ypred):
                 rank += len(ysd[yp]) * rankofs
                 break
             rank += len(ysd[yp])
-        print(ysd, s, rank)
         rr.append(1 / float(1+rank))
 
     return np.mean(rr)
