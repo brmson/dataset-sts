@@ -61,7 +61,7 @@ Package Overview
 
   * [ ] Property Selection (based on WebQuestions + YodaQA; TODO)
 
-  * [ ] Argus Dataset (Yes/No Question vs. News Headline; work in progress)
+  * [X] **argus/** Argus Dataset (Yes/No Question vs. News Headline)
 
   * [ ] COCO image-sentence ranking experiments
 
@@ -95,6 +95,9 @@ Microsoft Research Video Description Corpus
 
   * http://research.microsoft.com/en-US/downloads/4495da01-db8c-4041-a7f6-7984a4f6a905/default.aspx
 Microsoft Research WikiQA Corpus
+
+  * bAbI has a variety of datasets, especially re memory networks (memory
+    relevant to a given question)
 
 
 Algorithm References
