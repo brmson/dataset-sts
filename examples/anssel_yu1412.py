@@ -44,7 +44,7 @@ import pysts.eval as ev
 
 
 def load_set(glove, fname, balance=False, subsample0=3):
-    s0, s1, labels = loader.load_anssel(fname, subsample0=subsample0)
+    s0, s1, labels, toklabels = loader.load_anssel(fname, subsample0=subsample0)
     print('(%s) Loaded dataset: %d' % (fname, len(s0)))
     e0, e1, s0, s1, labels = loader.load_embedded(glove, s0, s1, labels, balance=balance)
     return ([e0, e1], labels)

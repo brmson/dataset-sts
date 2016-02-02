@@ -26,6 +26,7 @@ def load_anssel(dsfile, subsample0=3):
     s0 = []
     s1 = []
     labels = []
+    toklabels = []
     i = 0
     with open(dsfile) as f:
         c = csv.DictReader(f)
@@ -43,8 +44,10 @@ def load_anssel(dsfile, subsample0=3):
                 atext = l['atext']
             s0.append(word_tokenize(qtext))
             s1.append(word_tokenize(atext))
+            if 'toklabels' in l:
+                toklabels.append([int(tl) for tl in l['toklabels'].split(' ')])
             i += 1
-    return (s0, s1, np.array(labels))
+    return (s0, s1, np.array(labels), toklabels if toklabels else None)
 
 
 def load_sick2014(dsfile, mode='relatedness'):
