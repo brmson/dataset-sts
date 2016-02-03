@@ -58,7 +58,10 @@ class GloVe:
         ss2 = []
         for s in ss:
             if spad > s.shape[0]:
-                s = np.vstack((s, np.zeros((spad - s.shape[0], self.N))))
+                if s.ndim == 2:
+                    s = np.vstack((s, np.zeros((spad - s.shape[0], self.N))))
+                else:  # pad non-embeddings (e.g. toklabels) too
+                    s = np.hstack((s, np.zeros(spad - s.shape[0])))
             elif spad < s.shape[0]:
                 s = s[:spad]
             ss2.append(s)
