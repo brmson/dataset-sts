@@ -130,11 +130,19 @@ def balance_dataset(ds):
     s0 = list(ds[0])
     s1 = list(ds[1])
     labels = list(ds[2])
+    has_toklabels = len(ds) > 3
+    if has_toklabels:
+        toklabels = list(ds[3]) if ds[3] is not None else None
     for i in np.random.choice(class1, size=n_imbal):
         s0.append(ds[0][i])
         s1.append(ds[1][i])
         labels.append(ds[2][i])
-    return (s0, s1, np.array(labels))
+        if has_toklabels and toklabels is not None:
+            toklabels.append(ds[3][i])
+    if has_toklabels:
+        return (s0, s1, np.array(labels), toklabels)
+    else:
+        return (s0, s1, np.array(labels))
 
 
 def load_embedded(glove, s0, s1, labels, balance=False, ndim=1, s0pad=25, s1pad=60):
