@@ -81,6 +81,9 @@ Other Datasets
 Some datasets could not have been included for legal or size reasons, but you
 might find them inspiring:
 
+  * http://nlp.stanford.edu/projects/snli/ The Stanford Natural Language
+    Inference (SNLI) Corpus
+
   * https://www.kaggle.com/c/the-allen-ai-science-challenge/ derived dataset
 that combines question+answer in a single sentence and pairs it with relevant
 sentences extracted from textbooks and Wikipedia.
