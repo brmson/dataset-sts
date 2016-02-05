@@ -43,7 +43,7 @@ class GloVe:
         """ apply map_tokens on a whole set of sentences """
         return [self.map_tokens(s, ndim=ndim) for s in ss]
 
-    def pad_set(self, ss, spad):
+    def pad_set(self, ss, spad, N=None):
         """ Given a set of sentences transformed to per-word embeddings
         (using glove.map_set()), convert them to a 3D matrix with fixed
         sentence sizes - padded or trimmed to spad embeddings per sentence.
@@ -56,10 +56,12 @@ class GloVe:
         to accomodate outliers.
         """
         ss2 = []
+        if N is None:
+            N = self.N
         for s in ss:
             if spad > s.shape[0]:
                 if s.ndim == 2:
-                    s = np.vstack((s, np.zeros((spad - s.shape[0], self.N))))
+                    s = np.vstack((s, np.zeros((spad - s.shape[0], N))))
                 else:  # pad non-embeddings (e.g. toklabels) too
                     s = np.hstack((s, np.zeros(spad - s.shape[0])))
             elif spad < s.shape[0]:
