@@ -59,6 +59,9 @@ def sample_questions(glove, pairs, embpar=None, B=False, once=False, gen_classes
             s0 = [p.s0 for p in qpairs]
             s1 = [p.s1 for p in qpairs]
             labels = np.array([p.l for p in qpairs])
+            if np.all(labels < 1) or np.all(labels > 0):
+                # no or all right answers, skip!
+                continue
             e0, e1, s0, s1, labels = loader.load_embedded(glove, s0, s1, labels, **embpar)
             if embpar.get('ndim', 1) == 2:
                 l0 = glove.pad_set([p.l0 for p in qpairs], embpar['s0pad'], N=3)
