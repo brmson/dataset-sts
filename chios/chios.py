@@ -60,7 +60,11 @@ def sample_questions(glove, pairs, embpar=None, B=False, once=False, gen_classes
             s1 = [p.s1 for p in qpairs]
             labels = np.array([p.l for p in qpairs])
             e0, e1, s0, s1, labels = loader.load_embedded(glove, s0, s1, labels, **embpar)
-            # ndim=2: dstack qid.l0, .l1
+            if embpar.get('ndim', 1) == 2:
+                l0 = glove.pad_set([p.l0 for p in qpairs], embpar['s0pad'], N=3)
+                l1 = glove.pad_set([p.l1 for p in qpairs], embpar['s1pad'], N=3)
+                e0 = np.dstack((e0, l0))
+                e1 = np.dstack((e1, l1))
             data = {'e0': e0, 'e1': e1, 'score': labels}
             if B:
                 data['e0B'] = e0
