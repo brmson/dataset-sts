@@ -69,6 +69,9 @@ def sample_questions(glove, pairs, embpar=None, once=False, gen_classes=False):
             return
 
 
+global last_val_stats
+last_val_stats = (0,0,0,0,0)
+
 class SampleValCB(Callback):
     def __init__(self, glove, ptest, embpar=None):
         self.glove = glove
@@ -112,6 +115,8 @@ class SampleValCB(Callback):
         top_acc1 /= n
         sums_mrr /= n
         sums_acc1 /= n
+        global last_val_stats
+        last_val_stats = (mtloss, top_mrr, top_acc1, sums_mrr, sums_acc1)
         print('       valloss: %.4f valtop(mrr: %.4f acc@1: %.4f) valsum(mrr: %.4f acc@1: %.4f)' % (mtloss, top_mrr, top_acc1, sums_mrr, sums_acc1))
 
 
