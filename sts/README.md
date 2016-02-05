@@ -12,9 +12,12 @@ Let's say you want to compare your model to 2015 entrants. To get
 all the datasets before 2015 for your training set, load the
 ``all/201[0-4]*`` glob.
 
+Note that 2016 is not symlinked to all/ yet since there is no gold
+standard available so far.
+
 To evaluate, use scipy.stats.pearson.  The evaluation code is also
 the same as in ../sick2014 - refer e.g. to the python example from
-skip-thoughts.
+skip-thoughts, or in our own examples/ directory.
 
 Changes
 -------
