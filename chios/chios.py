@@ -1,44 +1,114 @@
-from __future__ import print_function
+from __future__ import print_function, division
 
 import csv
+from collections import defaultdict, namedtuple
 from nltk.tokenize import word_tokenize
+from keras.callbacks import Callback
 import numpy as np
+import random
 
 import pysts.eval as ev
+import pysts.loader as loader
+
+
+Pair = namedtuple('Pair', ['qid', 's0', 's1', 'l', 'l0', 'l1'])
 
 
 def load_chios(dsfile):
     """ load a dataset in the anssel csv format """
-    s0 = []
-    s1 = []
-    labels = []
-    # halabels,hqnlabels,hanlabels,mtext,mqnlabels,manlabels
-    hlabels = []
-    mlabels = []
+    pairs = []
     i = 0
     with open(dsfile) as f:
         c = csv.DictReader(f)
         for l in c:
             label = int(l['label'])
-            labels.append(label)
             try:
                 qtext = l['htext'].decode('utf8')
                 atext = l['mtext'].decode('utf8')
             except AttributeError:  # python3 has no .decode()
                 qtext = l['htext']
                 atext = l['mtext']
-            s0.append(word_tokenize(qtext))
-            s1.append(word_tokenize(atext))
+            s0 = word_tokenize(qtext)
+            s1 = word_tokenize(atext)
             hlab = [[int(tl) for tl in l['halabels'].split(' ')],
                     [int(tl) for tl in l['hqnlabels'].split(' ')],
                     [int(tl) for tl in l['hanlabels'].split(' ')]]
             mlab = [[0       for tl in l['mqnlabels'].split(' ')],
                     [int(tl) for tl in l['mqnlabels'].split(' ')],
                     [int(tl) for tl in l['manlabels'].split(' ')]]
-            hlabels.append(np.array(hlab).T)
-            mlabels.append(np.array(mlab).T)
+            l0 = np.array(hlab).T
+            l1 = np.array(mlab).T
+            pairs.append(Pair(l['qid'], s0, s1, label, l0, l1))
             i += 1
-    return (s0, s1, np.array(labels), np.array(hlabels), np.array(mlabels))
+    return pairs
+
+
+def sample_questions(glove, pairs, once=False, gen_classes=False):
+    questions = defaultdict(list)
+    for p in pairs:
+        questions[p.qid].append(p)
+    qids = list(questions.keys())
+
+    while True:
+        random.shuffle(qids)
+        for qid in qids:
+            qpairs = questions[qid]
+            s0 = [p.s0 for p in qpairs]
+            s1 = [p.s1 for p in qpairs]
+            labels = np.array([p.l for p in qpairs])
+            e0, e1, s0, s1, labels = loader.load_embedded(glove, s0, s1, labels)
+            # ndim=2: dstack qid.l0, .l1
+            data = {'e0': e0, 'e1': e1, 'score': labels}
+            if gen_classes:
+                data['s0h'] = [hash(tuple(s)) for s in s0]
+            yield data
+        if once:
+            return
+
+
+class SampleValCB(Callback):
+    def __init__(self, glove, ptest):
+        self.glove = glove
+        self.ptest = ptest
+
+    def on_epoch_end(self, epoch, logs={}):
+        mtloss = np.mean([self.model.test_on_batch(data) for data in sample_questions(self.glove, self.ptest, once=True)])
+        n = 0
+        top_mrr = 0
+        top_acc1 = 0
+        sums_mrr = 0
+        sums_acc1 = 0
+        for data in sample_questions(self.glove, self.ptest, once=True, gen_classes=True):
+            pdata = dict(data)
+            pdata.pop('s0h')
+            pred = self.model.predict_on_batch(pdata)['score'][:, 0]
+
+            sums = defaultdict(list)
+            sums_trueh = None
+            rank = 1
+            for i, k in sorted(enumerate(pred), key=lambda e: e[1], reverse=True):
+                sums[data['s0h'][i]].append(k)
+                if sums_trueh is None and data['score'][i] > 0.5:
+                    sums_trueh = data['s0h'][i]
+                    if rank == 1:
+                        top_acc1 += 1
+                    top_mrr += 1/rank
+                rank += 1
+
+            rank = 1
+            for h, k in sorted(sums.items(), key=lambda e: np.mean(e[1]), reverse=True):
+                if h == sums_trueh:
+                    if rank == 1:
+                        sums_acc1 += 1
+                    sums_mrr += 1/rank
+                rank += 1
+
+            n += 1
+        top_mrr /= n
+        top_acc1 /= n
+        sums_mrr /= n
+        sums_acc1 /= n
+        print('       valloss: %.4f valtop(mrr: %.4f acc@1: %.4f) valsum(mrr: %.4f acc@1: %.4f)' % (mtloss, top_mrr, top_acc1, sums_mrr, sums_acc1))
 
 
 def eval_chios(ypred, s0, y, name):

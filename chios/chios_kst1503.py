@@ -23,17 +23,8 @@ from keras.regularizers import l2
 import numpy as np
 
 import pysts.embedding as emb
-import pysts.loader as loader
 import chios
 import pysts.eval as ev
-
-
-def load_set(glove, fname):
-    s0, s1, labels, hlabels, mlabels = chios.load_chios(fname)
-    print('(%s) Loaded dataset: %d' % (fname, len(s0)))
-    e0, e1, s0, s1, labels = loader.load_embedded(glove, s0, s1, labels)
-    # return ([np.dstack((e0, hlabels)), np.dstack((e1, mlabels))], labels)
-    return ([e0, e1], labels)
 
 
 def prep_model(glove, dropout=0, l2reg=1e-4):
@@ -74,16 +65,12 @@ if __name__ == "__main__":
 
     glove = emb.GloVe(N=args.N)
     if args.enw == 1:
-        Xtrain, ytrain = load_set(glove, 'chios/trainmodel-enw4k.csv')
-        Xtest, ytest = load_set(glove, 'chios/localval-enw4k.csv')
+        ptrain = chios.load_chios('chios/trainmodel-enw4k.csv')
+        ptest = chios.load_chios('chios/localval-enw4k.csv')
     else:
-        Xtrain, ytrain = load_set(glove, 'chios/trainmodel-ck12.csv')
-        Xtest, ytest = load_set(glove, 'chios/localval-ck12.csv')
+        ptrain = chios.load_chios('chios/trainmodel-ck12.csv')
+        ptest = chios.load_chios('chios/localval-ck12.csv')
 
     model = prep_model(glove)
     model.compile(loss={'score': 'binary_crossentropy'}, optimizer='adam')
-    model.fit({'e0': Xtrain[0], 'e1': Xtrain[1], 'score': ytrain},
-              batch_size=20, nb_epoch=20,
-              validation_data={'e0': Xtest[0], 'e1': Xtest[1], 'score': ytest})
-    ev.eval_anssel(model.predict({'e0': Xtrain[0], 'e1': Xtrain[1]})['score'][:, 0], Xtrain[0], ytrain, 'Train')
-    ev.eval_anssel(model.predict({'e0': Xtest[0], 'e1': Xtest[1]})['score'][:, 0], Xtest[0], ytest, 'Test')
+    model.fit_generator(chios.sample_questions(glove, ptrain), nb_epoch=20, samples_per_epoch=len(ptrain), callbacks=[chios.SampleValCB(glove, ptest)])
