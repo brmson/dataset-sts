@@ -86,7 +86,7 @@ def load_sick2014(dsfile, mode='relatedness'):
     return (s0, s1, np.array(labels))
 
 
-def load_sts(dsfile):
+def load_sts(dsfile, skip_unlabeled=True):
     """ load a dataset in the sts tsv format """
     s0 = []
     s1 = []
@@ -96,8 +96,12 @@ def load_sts(dsfile):
             line = line.rstrip()
             label, s0x, s1x = line.split('\t')
             if label == '':
-                continue  # some pairs are unlabeled, skip
-            labels.append(float(label))
+                if skip_unlabeled:
+                    continue
+                else:
+                    labels.append(-1.)
+            else:
+                labels.append(float(label))
             s0.append(word_tokenize(s0x))
             s1.append(word_tokenize(s1x))
     return (s0, s1, np.array(labels))
