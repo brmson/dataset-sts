@@ -43,7 +43,7 @@ def load_chios(dsfile):
     return pairs
 
 
-def sample_questions(glove, pairs, embpar=None, once=False, gen_classes=False):
+def sample_questions(glove, pairs, embpar=None, B=False, once=False, gen_classes=False, ret_qpair=False):
     questions = defaultdict(list)
     for p in pairs:
         questions[p.qid].append(p)
@@ -62,8 +62,13 @@ def sample_questions(glove, pairs, embpar=None, once=False, gen_classes=False):
             e0, e1, s0, s1, labels = loader.load_embedded(glove, s0, s1, labels, **embpar)
             # ndim=2: dstack qid.l0, .l1
             data = {'e0': e0, 'e1': e1, 'score': labels}
+            if B:
+                data['e0B'] = e0
+                data['e1B'] = e1
             if gen_classes:
                 data['s0h'] = [hash(tuple(s)) for s in s0]
+            if ret_qpair:
+                data['p'] = qpairs
             yield data
         if once:
             return
@@ -73,19 +78,20 @@ global last_val_stats
 last_val_stats = (0,0,0,0,0)
 
 class SampleValCB(Callback):
-    def __init__(self, glove, ptest, embpar=None):
+    def __init__(self, glove, ptest, embpar=None, B=False):
         self.glove = glove
         self.ptest = ptest
         self.embpar = embpar
+	self.B = B
 
     def on_epoch_end(self, epoch, logs={}):
-        mtloss = np.mean([self.model.test_on_batch(data) for data in sample_questions(self.glove, self.ptest, embpar=self.embpar, once=True)])
+        mtloss = np.mean([self.model.test_on_batch(data) for data in sample_questions(self.glove, self.ptest, embpar=self.embpar, B=self.B, once=True)])
         n = 0
         top_mrr = 0
         top_acc1 = 0
         sums_mrr = 0
         sums_acc1 = 0
-        for data in sample_questions(self.glove, self.ptest, embpar=self.embpar, once=True, gen_classes=True):
+        for data in sample_questions(self.glove, self.ptest, embpar=self.embpar, B=self.B, once=True, gen_classes=True):
             pdata = dict(data)
             pdata.pop('s0h')
             pred = self.model.predict_on_batch(pdata)['score'][:, 0]
