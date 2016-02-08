@@ -45,7 +45,7 @@ def load_chios(dsfile, origbit):
     return pairs
 
 
-def sample_questions(glove, pairs, embpar=None, B=False, once=False, gen_classes=False, ret_qpair=False):
+def sample_questions(glove, pairs, embpar=None, B=False, skip_long=True, once=False, gen_classes=False, ret_qpair=False):
     questions = defaultdict(list)
     for p in pairs:
         questions[p.qid].append(p)
@@ -58,6 +58,10 @@ def sample_questions(glove, pairs, embpar=None, B=False, once=False, gen_classes
         random.shuffle(qids)
         for qid in qids:
             qpairs = questions[qid]
+            if skip_long and embpar.get('ndim', 1) == 2:
+                qpairs = [p for p in qpairs if len(p.s0) <= embpar['s0pad'] and len(p.s1) <= embpar['s1pad']]
+                if not qpairs:
+                    continue
             s0 = [p.s0 for p in qpairs]
             s1 = [p.s1 for p in qpairs]
             labels = np.array([p.l for p in qpairs])
@@ -94,13 +98,13 @@ class SampleValCB(Callback):
 	self.B = B
 
     def on_epoch_end(self, epoch, logs={}):
-        mtloss = np.mean([self.model.test_on_batch(data) for data in sample_questions(self.glove, self.ptest, embpar=self.embpar, B=self.B, once=True)])
+        mtloss = np.mean([self.model.test_on_batch(data) for data in sample_questions(self.glove, self.ptest, embpar=self.embpar, B=self.B, skip_long=False, once=True)])
         n = 0
         top_mrr = 0
         top_acc1 = 0
         sums_mrr = 0
         sums_acc1 = 0
-        for data in sample_questions(self.glove, self.ptest, embpar=self.embpar, B=self.B, once=True, gen_classes=True):
+        for data in sample_questions(self.glove, self.ptest, embpar=self.embpar, B=self.B, skip_long=False, once=True, gen_classes=True):
             pdata = dict(data)
             pdata.pop('s0h')
             pred = self.model.predict_on_batch(pdata)['score'][:, 0]
