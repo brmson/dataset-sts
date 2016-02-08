@@ -40,10 +40,14 @@ def mrr(s0, y, ypred):
     """
     ybys0 = dict()
     for i in range(len(s0)):
-        if s0[i].tostring() in ybys0:
-            ybys0[s0[i].tostring()].append((y[i], ypred[i]))
+        try:
+            s0is = s0[i].tostring()
+        except AttributeError:
+            s0is = str(s0[i])
+        if s0is in ybys0:
+            ybys0[s0is].append((y[i], ypred[i]))
         else:
-            ybys0[s0[i].tostring()] = [(y[i], ypred[i])]
+            ybys0[s0is] = [(y[i], ypred[i])]
 
     rr = []
     for s in ybys0.keys():
