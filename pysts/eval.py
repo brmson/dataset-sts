@@ -71,13 +71,17 @@ def mrr(s0, y, ypred):
     return np.mean(rr)
 
 
-def eval_sts(ycat, y, name):
+def eval_sts(ycat, y, name, quiet=False):
     """ Evaluate given STS regression-classification predictions and print results. """
-    ypred = loader.sts_categorical2labels(ycat)
+    if ycat.ndim == 1:
+        ypred = ycat
+    else:
+        ypred = loader.sts_categorical2labels(ycat)
     pr = pearsonr(ypred, y)[0]
-    print('%s Pearson: %f' % (name, pr,))
-    print('%s Spearman: %f' % (name, spearmanr(ypred, y)[0],))
-    print('%s MSE: %f' % (name, mse(ypred, y),))
+    if not quiet:
+        print('%s Pearson: %f' % (name, pr,))
+        print('%s Spearman: %f' % (name, spearmanr(ypred, y)[0],))
+        print('%s MSE: %f' % (name, mse(ypred, y),))
     return pr
 
 
