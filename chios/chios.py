@@ -14,7 +14,7 @@ import pysts.loader as loader
 Pair = namedtuple('Pair', ['qid', 's0', 's1', 'l', 'l0', 'l1'])
 
 
-def load_chios(dsfile):
+def load_chios(dsfile, origbit):
     """ load a dataset in the anssel csv format """
     pairs = []
     i = 0
@@ -32,10 +32,12 @@ def load_chios(dsfile):
             s1 = word_tokenize(atext)
             hlab = [[int(tl) for tl in l['halabels'].split(' ')],
                     [int(tl) for tl in l['hqnlabels'].split(' ')],
-                    [int(tl) for tl in l['hanlabels'].split(' ')]]
+                    [int(tl) for tl in l['hanlabels'].split(' ')],
+                    [origbit for tl in l['hanlabels'].split(' ')]]
             mlab = [[0       for tl in l['mqnlabels'].split(' ')],
                     [int(tl) for tl in l['mqnlabels'].split(' ')],
-                    [int(tl) for tl in l['manlabels'].split(' ')]]
+                    [int(tl) for tl in l['manlabels'].split(' ')],
+                    [origbit for tl in l['manlabels'].split(' ')]]
             l0 = np.array(hlab).T
             l1 = np.array(mlab).T
             pairs.append(Pair(l['qid'], s0, s1, label, l0, l1))
@@ -64,8 +66,8 @@ def sample_questions(glove, pairs, embpar=None, B=False, once=False, gen_classes
                 continue
             e0, e1, s0, s1, labels = loader.load_embedded(glove, s0, s1, labels, **embpar)
             if embpar.get('ndim', 1) == 2:
-                l0 = glove.pad_set([p.l0 for p in qpairs], embpar['s0pad'], N=3)
-                l1 = glove.pad_set([p.l1 for p in qpairs], embpar['s1pad'], N=3)
+                l0 = glove.pad_set([p.l0 for p in qpairs], embpar['s0pad'], N=4)
+                l1 = glove.pad_set([p.l1 for p in qpairs], embpar['s1pad'], N=4)
                 e0 = np.dstack((e0, l0))
                 e1 = np.dstack((e1, l1))
             data = {'e0': e0, 'e1': e1, 'score': labels}
