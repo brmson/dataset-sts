@@ -82,7 +82,11 @@ Some datasets could not have been included for legal or size reasons, but you
 might find them inspiring:
 
   * http://nlp.stanford.edu/projects/snli/ The Stanford Natural Language
-    Inference (SNLI) Corpus
+Inference (SNLI) Corpus (huge dataset for an RTE-type task)
+
+  * http://cs.mcgill.ca/~jpineau/datasets/ubuntu-corpus-1.0/ The Ubuntu
+Dialogue Corpus contains pairs of sequences where the second sentence is
+a candidate for being a followup in a community techsupport chat dialog.
 
   * https://www.kaggle.com/c/the-allen-ai-science-challenge/ derived dataset
 that combines question+answer in a single sentence and pairs it with relevant
