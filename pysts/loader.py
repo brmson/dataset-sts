@@ -152,7 +152,10 @@ def balance_dataset(ds):
 def load_embedded(glove, s0, s1, labels, balance=False, ndim=1, s0pad=25, s1pad=60):
     """ Post-process loaded (s0, s1, labels) by mapping it to embeddings,
     plus optionally balancing (if labels are binary) and optionally not
-    averaging but padding and returning full-sequence matrices.  """
+    averaging but padding and returning full-sequence matrices.
+
+    Note that this is now deprecated, especially if you use Keras - use the
+    vocab.Vocabulary class. """
 
     if balance:
         s0, s1, labels = balance_dataset((s0, s1, labels))
