@@ -16,18 +16,48 @@ from nltk.tokenize import word_tokenize
 import numpy as np
 
 
-def load_anssel(dsfile, subsample0=3):
+def load_anssel(dsfile, subsample0=3, skip_oneclass=False):
     """ load a dataset in the anssel csv format;
 
     subsample0=N denotes that only every N-th 0-labelled sample
     should be loaded; so e.g. N=3 reduces 80k negatives to 28k
     negatives in the training set (vs. 4k positives); N=10k
-    gets you just 8k negatives, etc. """
+    gets you just 8k negatives, etc.
+
+    skip_oneclass=True denotes that samples with s0 that is associated
+    only with 0-labelled or 1-labelled samples are skipped (i.e. questions
+    with only positives/negatives are skipped) """
     s0 = []
     s1 = []
     labels = []
     toklabels = []
     i = 0
+
+    s0blacklist = set()
+    if skip_oneclass:
+        # A separate pass that builds a blacklist of s0 to skip
+        with open(dsfile) as f:
+            c = csv.DictReader(f)
+            s0l, npos, nneg = ('', 0, 0)
+            for l in c:
+                try:
+                    qtext = l['qtext'].decode('utf8')
+                except AttributeError:  # python3 has no .decode()
+                    qtext = l['qtext']
+                if s0l == '':
+                    s0l = qtext
+                elif s0l != qtext:
+                    if npos == 0 or nneg == 0:
+                        s0blacklist.add(s0l)
+                    s0l, npos, nneg = (qtext, 0, 0)
+                label = int(l['label'])
+                if label == 1:
+                    npos += 1
+                else:
+                    nneg += 1
+            if npos == 0 or nneg == 0:
+                s0blacklist.add(s0l)
+
     with open(dsfile) as f:
         c = csv.DictReader(f)
         for l in c:
@@ -35,15 +65,17 @@ def load_anssel(dsfile, subsample0=3):
             if label == 0 and (i % subsample0) != 0:
                 i += 1
                 continue
-            labels.append(label)
             try:
                 qtext = l['qtext'].decode('utf8')
                 atext = l['atext'].decode('utf8')
             except AttributeError:  # python3 has no .decode()
                 qtext = l['qtext']
                 atext = l['atext']
-            s0.append(word_tokenize(qtext))
-            s1.append(word_tokenize(atext))
+            if qtext in s0blacklist:
+                continue
+            labels.append(label)
+            s0.append(qtext.split(' '))
+            s1.append(atext.split(' '))
             if 'toklabels' in l:
                 toklabels.append([int(tl) for tl in l['toklabels'].split(' ')])
             i += 1
