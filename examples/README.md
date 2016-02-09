@@ -1,7 +1,7 @@
 Example Models
 ==============
 
-Yu et al., 1412 - mean embeddings, projection matrix and dot-product
+Yu et al., 1412 baseline - mean embeddings, projection matrix and dot-product
 distance measure:
 
   * **anssel_yu1412.py** shows the yu1412 classifier applied to its original
@@ -11,10 +11,14 @@ distance measure:
     together on a few lines that wouldn't end up dead last in STS2015
     competition
 
-Tai et al., 1503.00075 - mean embeddings, elementwise comparison
+Tai et al., 1503.00075 baseline - mean embeddings, elementwise comparison
 features and hidden layer:
 
   * **sts_kst1503.py** applies this to the STS and SICK tasks, reproducing
     the "mean vector" baseline in the paper
 
-  * **ans_kst1503.py** applies this to the answer sentence selection task
+  * **anssel_kst1503.py** applies this to the answer sentence selection task
+
+A full-fledged but simple Keras RNN architecture:
+
+  * **anssel_rnn.py** beats 2015-state-of-art on the answer selection task
