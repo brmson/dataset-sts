@@ -4,6 +4,7 @@ Predefined Keras Graph blocks that represent common model components.
 
 from keras.layers.core import Activation, Dense, Dropout
 from keras.layers.embeddings import Embedding
+from keras.regularizers import l2
 
 import pysts.nlp as nlp
 
