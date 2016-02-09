@@ -4,7 +4,7 @@ putting together and comfortably running neural STS models a breeze.
 """
 
 
-def graph_input(si0, si1, y, f0=None, f1=None):
+def graph_input_anssel(si0, si1, y, f0=None, f1=None):
     """ Produce Keras task specification from vocab-vectorized sentences. """
     gr = {'si0': si0, 'si1': si1, 'score': y}
     if f0 is not None:
