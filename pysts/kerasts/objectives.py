@@ -28,7 +28,12 @@ def _y2num(y):
     return y[:,1] + 2*y[:,2] + 3*y[:,3] + 4*y[:,4] + 5*y[:,5]
 
 def pearsonobj(y_true, y_pred):
-    """ Pearson's r (without SD norm) objective for STS grade correlation """
+    """ Pearson's r objective for STS grade correlation """
     ny_true = _y2num(y_true)
     ny_pred = _y2num(y_pred)
-    return K.mean(-((ny_true - K.mean(ny_true)) * (ny_pred - K.mean(ny_pred))), axis=-1)
+    my_true = K.mean(ny_true)
+    my_pred = K.mean(ny_pred)
+    var_true = (ny_true - my_true)**2
+    var_pred = (ny_pred - my_pred)**2
+    return - K.sum((ny_true - my_true) * (ny_pred - my_pred), axis=-1) / \
+             (K.sqrt(K.sum(var_true, axis=-1) * K.sum(var_pred, axis=-1)))
