@@ -56,7 +56,7 @@ s1pad = 60
 
 
 def load_set(fname, vocab=None):
-    s0, s1, y, t = loader.load_anssel(fname, subsample0=1)
+    s0, s1, y, t = loader.load_anssel(fname)
 
     if vocab is None:
         vocab = Vocabulary(s0 + s1)

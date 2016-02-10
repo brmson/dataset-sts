@@ -16,7 +16,7 @@ from nltk.tokenize import word_tokenize
 import numpy as np
 
 
-def load_anssel(dsfile, subsample0=3, skip_oneclass=False):
+def load_anssel(dsfile, subsample0=1, skip_oneclass=True):
     """ load a dataset in the anssel csv format;
 
     subsample0=N denotes that only every N-th 0-labelled sample
