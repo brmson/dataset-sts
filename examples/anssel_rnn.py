@@ -69,25 +69,30 @@ def load_set(fname, vocab=None):
     return (s0, s1, y, vocab, gr)
 
 
-def prep_model(glove, vocab, dropout=1/2, l2reg=1e-3,
+def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
                rnn=GRU, rnnact='tanh', rnninit='glorot_uniform', sdim=2,
-               project=True, pdim=2,
+               project=True, pdim=2.5,
                ptscorer=B.dot_ptscorer, Ddim=2,
                oact='sigmoid'):
     model = Graph()
     N = B.embedding(model, glove, vocab, s0pad, s1pad, dropout)
+
+    if dropout_in is None:
+        dropout_in = dropout
     
     # RNN
     model.add_shared_node(name='rnn', inputs=['e0_', 'e1_'], outputs=['e0s', 'e1s'],
                           layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=s0pad,
                                     init=rnninit, activation=rnnact))
     model.add_shared_node(name='rnndrop', inputs=['e0s', 'e1s'], outputs=['e0s_', 'e1s_'],
-                          layer=Dropout(dropout, input_shape=(N,)))
+                          layer=Dropout(dropout_in, input_shape=(N,)))
     
     # Projection
     if project:
         model.add_shared_node(name='proj', inputs=['e0s_', 'e1s_'], outputs=['e0p', 'e1p'],
                               layer=Dense(input_dim=int(N*sdim), output_dim=int(N*pdim), W_regularizer=l2(l2reg)))
+        model.add_shared_node(name='projdrop', inputs=['e0p', 'e1p'], outputs=['e0p_', 'e1p_'],
+                              layer=Dropout(dropout_in, input_shape=(N,)))
         final_outputs = ['e0p', 'e1p']
     else:
         final_outputs = ['e0s_', 'e1s_']
