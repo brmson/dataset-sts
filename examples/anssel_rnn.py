@@ -118,7 +118,7 @@ if __name__ == "__main__":
     model.fit(gr, validation_data=grt,
               callbacks=[AnsSelCB(s0t, grt),
                          ModelCheckpoint('weights-bestval.h5', save_best_only=True, monitor='mrr', mode='max')],
-              batch_size=80, nb_epoch=4)
-    model.save_weights('weights-final.h5')
+              batch_size=160, nb_epoch=8)
+    model.save_weights('weights-final.h5', overwrite=True)
     ev.eval_anssel(model.predict(gr)['score'][:,0], s0, y, 'Train')
     ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, yt, 'Val')
