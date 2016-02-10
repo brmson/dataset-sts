@@ -7,13 +7,7 @@ to a given question.
 
 The classic academic standard stems from the TREC-based dataset originally
 by Wang et al., 2007, in the form by Yao et al., 2013 as downloaded from
-https://code.google.com/p/jacana/ - however, it suffers from a variety of
-ailments; it's hard to make sense of and process, it's not very high quality,
-and most importantly the train/test split is very unbalanced, both in the
-kind of sentence pairs and difficulty (train set is a lot harder!).
-
-Therefore, we recommend to develop and test primarily against anssel-yodaqa/
-and use this dataset just for comparison to past work.
+https://code.google.com/p/jacana/
 
 Dataset
 -------

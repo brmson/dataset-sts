@@ -27,14 +27,12 @@ importantly, we want to let Turkers update the gold standard answer regex.)
 Older Datasets
 --------------
 
-The academic standard up to now stems from the TREC-based dataset originally
-by Wang et al., 2007, in the form by Yao et al., 2013 as downloaded from
-https://code.google.com/p/jacana/ - however, it suffers from a variety of
-ailments; it's hard to make sense of and process, it's not very high quality,
-and most importantly the train/test split is very unbalanced, both in the
-kind of sentence pairs and difficulty (train set is a lot harder!).
+The academic standard up to now stems from **anssel-wang** - the TREC-based
+dataset originally by Wang et al., 2007, in the form by Yao et al., 2013.
+However, this dataset seems to be quite easy as the ratio of relevant snippets
+is high and they are often pretty short.
 
-That's why we are introducing a new one.
+That's why we are introducing a new one, which is also somewhat bigger.
 
 See also the WikiQA corpus, which has too restrictive licence but manually
 labelled pairs.
