@@ -103,6 +103,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Benchmark RNN on a bipartite ranking task (answer selection)")
     parser.add_argument("-N", help="GloVe dim", type=int, default=300)
     parser.add_argument("--wang", help="whether to run on Wang inst. of YodaQA dataset", type=int, default=0)
+    parser.add_argument("--params", help="additional training parameters", type=str, default='')
     args = parser.parse_args()
 
     glove = emb.GloVe(N=args.N)
@@ -113,7 +114,8 @@ if __name__ == "__main__":
         s0, s1, y, vocab, gr = load_set('anssel-yodaqa/curatedv1-training.csv')
         s0t, s1t, yt, _, grt = load_set('anssel-yodaqa/curatedv1-val.csv', vocab)
 
-    model = prep_model(glove, vocab, oact='linear', dropout=2/3, l2reg=1e-4)
+    kwargs = eval('dict(' + args.params + ')')
+    model = prep_model(glove, vocab, oact='linear', **kwargs)
     model.compile(loss={'score': ranknet}, optimizer='adam')  # for 'binary_crossentropy', drop the custom oact
     model.fit(gr, validation_data=grt,
               callbacks=[AnsSelCB(s0t, grt),
