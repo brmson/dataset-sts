@@ -71,22 +71,29 @@ def load_set(fname, vocab=None):
 
 def prep_model(glove, vocab, dropout=1/2, l2reg=1e-3,
                rnn=GRU, rnnact='tanh', rnninit='glorot_uniform', sdim=2,
-               pdim=2, Ddim=2, ptscorer=B.dot_ptscorer, oact='sigmoid'):
+               project=True, pdim=2,
+               ptscorer=B.dot_ptscorer, Ddim=2,
+               oact='sigmoid'):
     model = Graph()
     N = B.embedding(model, glove, vocab, s0pad, s1pad, dropout)
     
     # RNN
     model.add_shared_node(name='rnn', inputs=['e0_', 'e1_'], outputs=['e0s', 'e1s'],
-                          layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=s0pad, init=rnninit, activation=rnnact))
+                          layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=s0pad,
+                                    init=rnninit, activation=rnnact))
     model.add_shared_node(name='rnndrop', inputs=['e0s', 'e1s'], outputs=['e0s_', 'e1s_'],
-                          layer=Dropout(dropout))
+                          layer=Dropout(dropout, input_shape=(N,)))
     
     # Projection
-    model.add_shared_node(name='proj', inputs=['e0s_', 'e1s_'], outputs=['e0p', 'e1p'],
-                          layer=Dense(input_dim=int(N*sdim), output_dim=int(N*pdim), W_regularizer=l2(l2reg)))
+    if project:
+        model.add_shared_node(name='proj', inputs=['e0s_', 'e1s_'], outputs=['e0p', 'e1p'],
+                              layer=Dense(input_dim=int(N*sdim), output_dim=int(N*pdim), W_regularizer=l2(l2reg)))
+        final_outputs = ['e0p', 'e1p']
+    else:
+        final_outputs = ['e0s_', 'e1s_']
 
     # Measurement
-    model.add_node(name='scoreS', input=ptscorer(model, ['e0p', 'e1p'], Ddim, N, l2reg),
+    model.add_node(name='scoreS', input=ptscorer(model, final_outputs, Ddim, N, l2reg),
                    layer=Activation(oact))
     model.add_output(name='score', input='scoreS')
     return model
