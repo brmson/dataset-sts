@@ -15,6 +15,7 @@ from __future__ import division
 import sys
 
 import anssel_rnn as E
+from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 import pysts.embedding as emb
 import pysts.eval as ev
 import pysts.kerasts.blocks as B
