@@ -22,3 +22,4 @@ features and hidden layer:
 A full-fledged but simple Keras RNN architecture:
 
   * **anssel_rnn.py** beats 2015-state-of-art on the answer selection task
+  * **anssel_rnn_eval.py** to measure model performance using the official tool
