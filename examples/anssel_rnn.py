@@ -29,7 +29,7 @@ Performance:
                 rnnbidi=False - devMRR=0.773352, testMRR=0.745151
                 rnnbidi=True - devMRR=0.796154, testMRR=0.774527
 
-      * project=True, dot_ptscorer (no dropout after project)
+      * project=True, dot_ptscorer
                 rnnbidi=False - devMRR=0.818654, testMRR=0.709342
                 rnnbidi=True - devMRR=0.840403, testMRR=0.762395
 
@@ -37,13 +37,13 @@ Performance:
                 rnnbidi=False - devMRR=0.829890, testMRR=0.756679
                 rnnbidi=True - devMRR=0.869744, testMRR=0.787051
 
-      * project=True, mlp_ptscorer (no dropout after project)
-                rnnbidi=False - devMRR=0.844359, testMRR=0.813130, testMAP=0.7249
-                rnnbidi=True - devMRR=0.857949, testMRR=0.797496, testMAP=0.7275
-
-      * project=True, mlp_ptscorer (CURRENT)
+      * project=True, mlp_ptscorer (dropout after project)
                 rnnbidi=False - devMRR=0.830641, testMRR=0.797059, testMAP=0.7097
                 rnnbidi=True - devMRR=0.833887, testMRR=0.808252, testMAP=0.7262
+
+      * project=True, mlp_ptscorer (CURRENT)
+                rnnbidi=False - devMRR=0.844359, testMRR=0.813130, testMAP=0.7249
+                rnnbidi=True - devMRR=0.857949, testMRR=0.797496, testMAP=0.7275
 
 """
 
@@ -108,9 +108,12 @@ def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
     if project:
         model.add_shared_node(name='proj', inputs=['e0s_', 'e1s_'], outputs=['e0p', 'e1p'],
                               layer=Dense(input_dim=int(N*sdim), output_dim=int(N*pdim), W_regularizer=l2(l2reg)))
-        model.add_shared_node(name='projdrop', inputs=['e0p', 'e1p'], outputs=['e0p_', 'e1p_'],
-                              layer=Dropout(dropout_in, input_shape=(N,)))
-        final_outputs = ['e0p_', 'e1p_']
+        # This dropout is controversial; it might be harmful to apply,
+        # or at least isn't a clear win.
+        # model.add_shared_node(name='projdrop', inputs=['e0p', 'e1p'], outputs=['e0p_', 'e1p_'],
+        #                       layer=Dropout(dropout_in, input_shape=(N,)))
+        # final_outputs = ['e0p_', 'e1p_']
+        final_outputs = ['e0p', 'e1p']
     else:
         final_outputs = ['e0s_', 'e1s_']
 
