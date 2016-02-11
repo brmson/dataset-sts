@@ -2,12 +2,12 @@
 """
 An Answer Sentence Selection classifier that uses full-fledged features
 of the pysts Keras toolkit (KeraSTS) and even with a very simple architecture
-achieves 2015-state-of-art results on the task.
+pretty closely approaches 2015-state-of-art results on the task.
 
-The architecture uses shared one-directional GRU to produce sentence embeddings,
+The architecture uses shared bidirectional GRU to produce sentence embeddings,
 adaptable word embedding matrix preinitialized with 300D GloVe, projection
 matrix (MemNN-like - applied to both sentences to project them to a common
-external similarity space) and dot-product similarity measure.
+external similarity space) and MLP (TODO: cite) similarity measure.
 
 Rather than relying on the hack of using the word overlap counts as additional
 features for final classification, individual tokens are annotated by overlap
@@ -24,7 +24,26 @@ Prerequisites:
     * Get glove.6B.300d.txt from http://nlp.stanford.edu/projects/glove/
 
 Performance:
-    * wang: devMRR=0.84364, testMRR=0.81342
+    * wang:  (the model parameters were tuned to maximize devMRR on wang)
+      * project=False, dot_ptscorer
+                rnnbidi=False - devMRR=0.773352, testMRR=0.745151
+                rnnbidi=True - devMRR=0.796154, testMRR=0.774527
+
+      * project=True, dot_ptscorer (no dropout after project)
+                rnnbidi=False - devMRR=0.818654, testMRR=0.709342
+                rnnbidi=True - devMRR=0.840403, testMRR=0.762395
+
+      * project=False, mlp_ptscorer
+                rnnbidi=False - devMRR=0.829890, testMRR=0.756679
+                rnnbidi=True - devMRR=0.869744, testMRR=0.787051
+
+      * project=True, mlp_ptscorer (no dropout after project)
+                rnnbidi=False - devMRR=0.844359, testMRR=0.813130, testMAP=0.7249
+                rnnbidi=True - devMRR=0.857949, testMRR=0.797496, testMAP=0.7275
+
+      * project=True, mlp_ptscorer (CURRENT)
+                rnnbidi=False - devMRR=0.830641, testMRR=0.797059, testMAP=0.7097
+                rnnbidi=True - devMRR=0.833887, testMRR=0.808252, testMAP=0.7262
 
 """
 
@@ -72,7 +91,7 @@ def load_set(fname, vocab=None):
 def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
                rnnbidi=True, rnn=GRU, rnnact='tanh', rnninit='glorot_uniform', sdim=2,
                project=True, pdim=2.5,
-               ptscorer=B.dot_ptscorer, Ddim=2,
+               ptscorer=B.mlp_ptscorer, Ddim=2,
                oact='sigmoid'):
     model = Graph()
     N = B.embedding(model, glove, vocab, s0pad, s1pad, dropout)

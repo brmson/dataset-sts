@@ -19,7 +19,7 @@ features and hidden layer:
 
   * **anssel_kst1503.py** applies this to the answer sentence selection task
 
-A full-fledged but simple Keras RNN architecture:
+A full-fledged but simple Keras architectures:
 
-  * **anssel_rnn.py** beats 2015-state-of-art on the answer selection task
-  * **anssel_rnn_eval.py** to measure model performance using the official tool
+  * **anssel_rnn.py** uses GRU hidden states to approach 2015-state-of-art
+  * **anssel_rnn_eval.py** to measure anssel performance using the official tool
