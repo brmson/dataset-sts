@@ -4,6 +4,7 @@ Predefined Keras Graph blocks that represent common model components.
 
 from keras.layers.core import Activation, Dense, Dropout
 from keras.layers.embeddings import Embedding
+from keras.layers.recurrent import GRU
 from keras.regularizers import l2
 
 import pysts.nlp as nlp
@@ -31,6 +32,37 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, trainable=True):
                           layer=Dropout(dropout, input_shape=(N,)))
 
     return N
+
+
+def rnn_input(model, N, spad, dropout=3/4, sdim=2, rnnbidi=True, return_sequences=False,
+              rnn=GRU, rnnact='tanh', rnninit='glorot_uniform'):
+    """ An RNN layer that takes sequence of embeddings e0_, e1_ and
+    processes them using an RNN + dropout.
+
+    If return_sequences=False, it returns just the final hidden state of the RNN;
+    otherwise, it return a sequence of contextual token embeddings instead.
+    At any rate, the output layers are e0s_, e1s_.
+    """
+    if rnnbidi:
+        model.add_shared_node(name='rnnf', inputs=['e0_', 'e1_'], outputs=['e0sf', 'e1sf'],
+                              layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
+                                        init=rnninit, activation=rnnact,
+                                        return_sequences=return_sequences))
+        model.add_shared_node(name='rnnb', inputs=['e0_', 'e1_'], outputs=['e0sb', 'e1sb'],
+                              layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
+                                        init=rnninit, activation=rnnact,
+                                        return_sequences=return_sequences, go_backwards=True))
+        model.add_node(name='e0s', inputs=['e0sf', 'e0sb'], merge_mode='sum', layer=Activation('linear'))
+        model.add_node(name='e1s', inputs=['e1sf', 'e1sb'], merge_mode='sum', layer=Activation('linear'))
+
+    else:
+        model.add_shared_node(name='rnn', inputs=['e0_', 'e1_'], outputs=['e0s', 'e1s'],
+                              layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
+                                        init=rnninit, activation=rnnact,
+                                        return_sequences=return_sequences))
+
+    model.add_shared_node(name='rnndrop', inputs=['e0s', 'e1s'], outputs=['e0s_', 'e1s_'],
+                          layer=Dropout(dropout_in, input_shape=(spad, N) if return_sequences else (N,)))
 
 
 # Match point scoring (scalar output) callables.  Each returns the layer name.
