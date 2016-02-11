@@ -89,7 +89,8 @@ def load_set(fname, vocab=None):
 
 
 def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
-               rnnbidi=True, rnn=GRU, rnnbidi_mode='sum', rnnact='tanh', rnninit='glorot_uniform', sdim=2,
+               rnnbidi=True, rnn=GRU, rnnbidi_mode='sum', rnnact='tanh', rnninit='glorot_uniform',
+               sdim=2, rnnlevels=1,
                project=True, pdim=2.5,
                ptscorer=B.mlp_ptscorer, mlpsum='sum', Ddim=2,
                oact='sigmoid'):
@@ -101,7 +102,7 @@ def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
 
     B.rnn_input(model, N, s0pad, dropout=dropout_in, sdim=sdim,
                 rnnbidi=rnnbidi, rnn=rnn, rnnact=rnnact, rnninit=rnninit,
-                rnnbidi_mode=rnnbidi_mode)
+                rnnbidi_mode=rnnbidi_mode, rnnlevels=rnnlevels)
 
     # Projection
     if project:
