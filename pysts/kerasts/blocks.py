@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import print_function
 
 from keras.layers.convolutional import Convolution1D, MaxPooling1D
-from keras.layers.core import Activation, Dense, Dropout, Flatten
+from keras.layers.core import Activation, Dense, Dropout, Flatten, LambdaMerge
 from keras.layers.embeddings import Embedding
 from keras.layers.recurrent import GRU
 from keras.regularizers import l2
@@ -145,3 +145,20 @@ def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
     if you for example process s1 "with regard to s0"). """
     model.add_node(name=pfx+'cat', inputs=inputs, merge_mode='concat',
                    layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+
+
+def absdiff_merge(layers):
+    """ Merging two layers into one, via element-wise subtraction and then taking absolute value
+    example of usage: model.add_node(name="diff", layer=absdiff_merge([model.nodes["e0_"], model.nodes["e1_"]]))
+    """
+    def diff(X):
+        if len(X)!=2:
+            raise ValueError("")
+        
+        return np.absolute(X[0]-X[1])
+
+    def output_shape(input_shapes):
+        return input_shapes[0]
+
+    return LambdaMerge(layers, diff, output_shape)
+
