@@ -127,9 +127,12 @@ def dot_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
     return pfx+'dot'
 
 
-def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
+def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
     """ Element-wise features from the pair fed to an MLP. """
-    model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
+    if sum_mode == 'absdiff':
+        model.add_node(name=pfx+'sum', layer=absdiff_merge(model, inputs))
+    else:
+        model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
     model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
 
     model.add_node(name=pfx+'hdn', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
