@@ -147,17 +147,19 @@ def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
                    layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
 
 
-def absdiff_merge(layers):
+def absdiff_merge(model, layers):
     """ Merging two layers into one, via element-wise subtraction and then taking absolute value.
 
-    Example of usage: model.add_node(name="diff", layer=absdiff_merge([model.nodes["e0_"], model.nodes["e1_"]]))
+    Example of usage: model.add_node(name="diff", layer=absdiff_merge(["e0_", "e1_"]))
+
+    TODO: The more modern way appears to be to use "join" merge mode and Lambda layer.
     """
     def diff(X):
         if len(X)!=2:
             raise ValueError("")
-        return np.absolute(X[0]-X[1])
+        return K.abs(X[0]-X[1])
 
     def output_shape(input_shapes):
         return input_shapes[0]
 
-    return LambdaMerge(layers, diff, output_shape)
+    return LambdaMerge([model.nodes[l] for l in layers], diff, output_shape)
