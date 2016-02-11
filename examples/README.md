@@ -23,3 +23,4 @@ A full-fledged but simple Keras architectures:
 
   * **anssel_rnn.py** uses GRU hidden states to approach 2015-state-of-art
   * **anssel_rnn_eval.py** to measure anssel performance using the official tool
+  * **anssel_cnn.py** generates summary sentence embeddings using a CNN

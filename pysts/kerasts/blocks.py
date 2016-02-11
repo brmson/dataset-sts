@@ -2,7 +2,11 @@
 Predefined Keras Graph blocks that represent common model components.
 """
 
-from keras.layers.core import Activation, Dense, Dropout
+from __future__ import division
+from __future__ import print_function
+
+from keras.layers.convolutional import Convolution1D, MaxPooling1D
+from keras.layers.core import Activation, Dense, Dropout, Flatten
 from keras.layers.embeddings import Embedding
 from keras.layers.recurrent import GRU
 from keras.regularizers import l2
@@ -62,7 +66,51 @@ def rnn_input(model, N, spad, dropout=3/4, sdim=2, rnnbidi=True, return_sequence
                                         return_sequences=return_sequences))
 
     model.add_shared_node(name='rnndrop', inputs=['e0s', 'e1s'], outputs=['e0s_', 'e1s_'],
-                          layer=Dropout(dropout_in, input_shape=(spad, N) if return_sequences else (N,)))
+                          layer=Dropout(dropout, input_shape=(spad, N) if return_sequences else (N,)))
+
+
+def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
+                 cnninit='glorot_uniform', cnnact='tanh',
+                 cdim={1: 1/2, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2}):
+    """ An CNN pooling layer that takes sequence of embeddings e0_, e1_ and
+    processes them using a CNN + max-pooling to produce a single "summary
+    embedding" (*NOT* a sequence of embeddings).
+
+    The layer can apply multiple convolutions of different widths; the
+    convolution dimensionality is denoted by the cdim dict, keyed by width
+    and containing the number of filters.  The resulting summary embedding
+    dimensionality is sum of N*cdim values (the convolutions are concatenated),
+    returned by this function for your convenience.
+
+    The output layers are e0s_, e1s_.
+    """
+    Nc = 0
+    for fl, cd in cdim.items():
+        nb_filter = int(N*cd)
+        model.add_shared_node(name='aconv%d'%(fl,),
+                              inputs=['e0_', 'e1_'], outputs=['e0c%d'%(fl,), 'e1c%d'%(fl,)],
+                              layer=Convolution1D(input_shape=(spad, N),
+                                                  nb_filter=nb_filter, filter_length=fl,
+                                                  activation=cnnact, W_regularizer=l2(l2reg),
+                                                  init=cnninit))
+        model.add_shared_node(name='apool%d[0]'%(fl,),
+                              inputs=['e0c%d'%(fl,), 'e1c%d'%(fl,)], outputs=['e0s%d[0]'%(fl,), 'e1s%d[0]'%(fl,)],
+                              layer=MaxPooling1D(pool_length=int(spad - fl + 1)))
+        model.add_shared_node(name='apool%d[1]'%(fl,),
+                              inputs=['e0s%d[0]'%(fl,), 'e1s%s[0]'%(fl,)], outputs=['e0s%d'%(fl,), 'e1s%d'%(fl,)],
+                              layer=Flatten(input_shape=(1, nb_filter)))
+        Nc += nb_filter
+
+    if len(cdim) > 1:
+        model.add_node(name='e0s', inputs=['e0s%d'%(fl,) for fl in cdim.keys()], merge_mode='concat', layer=Activation('linear'))
+        model.add_node(name='e1s', inputs=['e1s%d'%(fl,) for fl in cdim.keys()], merge_mode='concat', layer=Activation('linear'))
+    else:
+        model.add_node(name='e0s', input='e0s%d'%(cdim.keys()[0],), layer=Activation('linear'))
+        model.add_node(name='e1s', input='e1s%d'%(cdim.keys()[0],), layer=Activation('linear'))
+    model.add_node(name='e0s_', input='e0s', layer=Dropout(dropout))
+    model.add_node(name='e1s_', input='e1s', layer=Dropout(dropout))
+
+    return Nc
 
 
 # Match point scoring (scalar output) callables.  Each returns the layer name.
