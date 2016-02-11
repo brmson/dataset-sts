@@ -20,10 +20,11 @@ class RandomSearch:
             for p, vset in self.params.items():
                 if isinstance(vset, dict):
                     v = dict()
-                    for k, kset in vset.items():
-                        vc = random.choice(kset)
-                        if vc:
-                            v[k] = vc
+                    while not v:
+                        for k, kset in vset.items():
+                            vc = random.choice(kset)
+                            if vc:
+                                v[k] = vc
                     pardict[p] = v
                 else:
                     pardict[p] = random.choice(vset)
