@@ -70,7 +70,7 @@ def load_set(fname, vocab=None):
 
 
 def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
-               rnn=GRU, rnnact='tanh', rnninit='glorot_uniform', sdim=2,
+               rnnbidi=True, rnn=GRU, rnnact='tanh', rnninit='glorot_uniform', sdim=2,
                project=True, pdim=2.5,
                ptscorer=B.dot_ptscorer, Ddim=2,
                oact='sigmoid'):
@@ -81,9 +81,19 @@ def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
         dropout_in = dropout
     
     # RNN
-    model.add_shared_node(name='rnn', inputs=['e0_', 'e1_'], outputs=['e0s', 'e1s'],
-                          layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=s0pad,
-                                    init=rnninit, activation=rnnact))
+    if rnnbidi:
+        model.add_shared_node(name='rnnf', inputs=['e0_', 'e1_'], outputs=['e0sf', 'e1sf'],
+                              layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=s0pad,
+                                        init=rnninit, activation=rnnact))
+        model.add_shared_node(name='rnnb', inputs=['e0_', 'e1_'], outputs=['e0sb', 'e1sb'],
+                              layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=s0pad,
+                                        init=rnninit, activation=rnnact, go_backwards=True))
+        model.add_node(name='e0s', inputs=['e0sf', 'e0sb'], merge_mode='sum', layer=Activation('linear'))
+        model.add_node(name='e1s', inputs=['e1sf', 'e1sb'], merge_mode='sum', layer=Activation('linear'))
+    else:
+        model.add_shared_node(name='rnn', inputs=['e0_', 'e1_'], outputs=['e0s', 'e1s'],
+                              layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=s0pad,
+                                        init=rnninit, activation=rnnact))
     model.add_shared_node(name='rnndrop', inputs=['e0s', 'e1s'], outputs=['e0s_', 'e1s_'],
                           layer=Dropout(dropout_in, input_shape=(N,)))
     
