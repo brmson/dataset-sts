@@ -72,7 +72,7 @@ def load_set(fname, vocab=None):
 def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
                cnnact='tanh', cnninit='glorot_uniform', cdim={1: 1/2, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2},
                project=True, pdim=2.5,
-               ptscorer=B.dot_ptscorer, Ddim=2,
+               ptscorer=B.mlp_ptscorer, Ddim=2,
                oact='sigmoid'):
     model = Graph()
     N = B.embedding(model, glove, vocab, s0pad, s1pad, dropout)
