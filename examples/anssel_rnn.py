@@ -89,7 +89,7 @@ def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
                               layer=Dense(input_dim=int(N*sdim), output_dim=int(N*pdim), W_regularizer=l2(l2reg)))
         model.add_shared_node(name='projdrop', inputs=['e0p', 'e1p'], outputs=['e0p_', 'e1p_'],
                               layer=Dropout(dropout_in, input_shape=(N,)))
-        final_outputs = ['e0p', 'e1p']
+        final_outputs = ['e0p_', 'e1p_']
     else:
         final_outputs = ['e0s_', 'e1s_']
 
