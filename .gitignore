@@ -3,3 +3,4 @@
 __pycache__/
 
 /glove.6B.*d.txt
+/*weights*.h5
