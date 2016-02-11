@@ -89,9 +89,9 @@ def load_set(fname, vocab=None):
 
 
 def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
-               rnnbidi=True, rnn=GRU, rnnact='tanh', rnninit='glorot_uniform', sdim=2,
+               rnnbidi=True, rnn=GRU, rnnbidi_mode='sum', rnnact='tanh', rnninit='glorot_uniform', sdim=2,
                project=True, pdim=2.5,
-               ptscorer=B.mlp_ptscorer, Ddim=2,
+               ptscorer=B.mlp_ptscorer, mlpsum='sum', Ddim=2,
                oact='sigmoid'):
     model = Graph()
     N = B.embedding(model, glove, vocab, s0pad, s1pad, dropout)
@@ -100,7 +100,8 @@ def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
         dropout_in = dropout
 
     B.rnn_input(model, N, s0pad, dropout=dropout_in, sdim=sdim,
-                rnnbidi=rnnbidi, rnn=rnn, rnnact=rnnact, rnninit=rnninit)
+                rnnbidi=rnnbidi, rnn=rnn, rnnact=rnnact, rnninit=rnninit,
+                rnnbidi_mode=rnnbidi_mode)
 
     # Projection
     if project:
@@ -113,7 +114,10 @@ def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
         final_outputs = ['e0s_', 'e1s_']
 
     # Measurement
-    model.add_node(name='scoreS', input=ptscorer(model, final_outputs, Ddim, N, l2reg),
+    kwargs = dict()
+    if ptscorer == B.mlp_ptscorer:
+        kwargs['sum_mode'] = mlpsum
+    model.add_node(name='scoreS', input=ptscorer(model, final_outputs, Ddim, N, l2reg, **kwargs),
                    layer=Activation(oact))
     model.add_output(name='score', input='scoreS')
     return model

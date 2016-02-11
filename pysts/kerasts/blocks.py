@@ -39,7 +39,8 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, trainable=True):
 
 
 def rnn_input(model, N, spad, dropout=3/4, sdim=2, rnnbidi=True, return_sequences=False,
-              rnn=GRU, rnnact='tanh', rnninit='glorot_uniform'):
+              rnn=GRU, rnnact='tanh', rnninit='glorot_uniform', rnnbidi_mode='sum',
+              inputs=['e0_', 'e1_']):
     """ An RNN layer that takes sequence of embeddings e0_, e1_ and
     processes them using an RNN + dropout.
 
@@ -48,19 +49,21 @@ def rnn_input(model, N, spad, dropout=3/4, sdim=2, rnnbidi=True, return_sequence
     At any rate, the output layers are e0s_, e1s_.
     """
     if rnnbidi:
-        model.add_shared_node(name='rnnf', inputs=['e0_', 'e1_'], outputs=['e0sf', 'e1sf'],
+        if rnnbidi_mode == 'concat':
+            sdim /= 2
+        model.add_shared_node(name='rnnf', inputs=inputs, outputs=['e0sf', 'e1sf'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
                                         return_sequences=return_sequences))
-        model.add_shared_node(name='rnnb', inputs=['e0_', 'e1_'], outputs=['e0sb', 'e1sb'],
+        model.add_shared_node(name='rnnb', inputs=inputs, outputs=['e0sb', 'e1sb'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
                                         return_sequences=return_sequences, go_backwards=True))
-        model.add_node(name='e0s', inputs=['e0sf', 'e0sb'], merge_mode='sum', layer=Activation('linear'))
-        model.add_node(name='e1s', inputs=['e1sf', 'e1sb'], merge_mode='sum', layer=Activation('linear'))
+        model.add_node(name='e0s', inputs=['e0sf', 'e0sb'], merge_mode=rnnbidi_mode, layer=Activation('linear'))
+        model.add_node(name='e1s', inputs=['e1sf', 'e1sb'], merge_mode=rnnbidi_mode, layer=Activation('linear'))
 
     else:
-        model.add_shared_node(name='rnn', inputs=['e0_', 'e1_'], outputs=['e0s', 'e1s'],
+        model.add_shared_node(name='rnn', inputs=inputs, outputs=['e0s', 'e1s'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
                                         return_sequences=return_sequences))
