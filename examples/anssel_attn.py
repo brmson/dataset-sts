@@ -173,11 +173,11 @@ def prep_model(glove, vocab, dropout=3/4, dropout_in=None, l2reg=1e-4,
     # (s1pad,) vector of scalars denoting the attention for each e1 token
     model.add_node(name='e0sa', input=e0_aggreg_attn,
                    layer=RepeatVector(s1pad))
-    if attn_mode == 'dot':
+    if attn_mode == 'dot' or attn_mode == 'cos':
         # model attention by dot-product, i.e. similarity measure of question
         # aggregate and answer token in attention space
         model.add_node(name='e1a[1]',
-                       layer=B.dot_time_distributed_merge(model, ['e0sa', e1_attn]))
+                       layer=B.dot_time_distributed_merge(model, ['e0sa', e1_attn], cos_norm=(attn_mode == 'cos')))
     else:
         # traditional attention model from Hermann et al., 2015 and Tan et al., 2015
         # we want to model attention as w*tanh(e0a + e1sa[i])

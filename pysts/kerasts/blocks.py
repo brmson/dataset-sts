@@ -193,9 +193,11 @@ def absdiff_merge(model, layers):
     return LambdaMerge([model.nodes[l] for l in layers], diff, output_shape)
 
 
-def dot_time_distributed_merge(model, layers):
+def dot_time_distributed_merge(model, layers, cos_norm=False):
     """ Merging two time series layers into one, producing a new time series that
-    contains a dot-product scalar for each time step. """
+    contains a dot-product scalar for each time step.
+
+    If cos_norm=True, actually computes cosine similarity. """
     def batched_batched_dot(s):
         """ from (x,y,z)-shaped pair, produce (x,y)-shaped pair that replaces the z-vector pairs by their dot-products """
         import theano
@@ -203,5 +205,17 @@ def dot_time_distributed_merge(model, layers):
         return theano.scan(fn=lambda xm, ym: T.batched_dot(xm, ym),
                            outputs_info=None, sequences=s, non_sequences=None)[0]
 
-    return LambdaMerge([model.nodes[l] for l in layers], batched_batched_dot,
+    def batched_cos_sim(s):
+        """ from (x,y,z)-shaped pair, produce (x,y)-shaped pair that replaces the z-vector pairs by their cosine similarities """
+        import theano
+        import theano.tensor as T
+        return theano.scan(fn=lambda xm, ym: T.batched_dot(xm, ym) / T.sqrt(T.batched_dot(xm, xm) * T.batched_dot(ym, ym)),
+                           outputs_info=None, sequences=s, non_sequences=None)[0]
+
+    if cos_norm:
+        lmb = batched_cos_sim
+    else:
+        lmb = batched_batched_dot
+
+    return LambdaMerge([model.nodes[l] for l in layers], lmb,
                        lambda s: (s[1][0], s[1][1]))
