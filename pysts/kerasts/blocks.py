@@ -184,3 +184,17 @@ def absdiff_merge(model, layers):
         return input_shapes[0]
 
     return LambdaMerge([model.nodes[l] for l in layers], diff, output_shape)
+
+
+def dot_time_distributed_merge(model, layers):
+    """ Merging two time series layers into one, producing a new time series that
+    contains a dot-product scalar for each time step. """
+    def batched_batched_dot(s):
+        """ from (x,y,z)-shaped pair, produce (x,y)-shaped pair that replaces the z-vector pairs by their dot-products """
+        import theano
+        import theano.tensor as T
+        return theano.scan(fn=lambda xm, ym: T.batched_dot(xm, ym),
+                           outputs_info=None, sequences=s, non_sequences=None)[0]
+
+    return LambdaMerge([model.nodes[l] for l in layers], batched_batched_dot,
+                       lambda s: (s[1][0], s[1][1]))

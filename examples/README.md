@@ -19,7 +19,7 @@ features and hidden layer:
 
   * **anssel_kst1503.py** applies this to the answer sentence selection task
 
-A full-fledged but simple Keras architectures using the KeraSTS toolkit:
+Full-fledged Keras architectures using the KeraSTS toolkit:
 
   * **anssel_rnn.py** uses GRU hidden states to approach 2015-state-of-art
   * **anssel_cnn.py** generates summary sentence embeddings using a CNN
@@ -31,3 +31,8 @@ Generic KeraSTS tools:
   * **anssel_treceval.py** to measure anssel performance using the official tool
   * **anssel_cnn_tuning.py** tunes the CNN model parameters using random search
     (TODO make generic)
+
+Tan et al., 1511.04108 reimplementation and extension:
+
+  * **anssel_attn.py** is a modular and configurable pipeline using RNNs, CNNs
+    and attention
