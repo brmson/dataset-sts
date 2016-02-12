@@ -15,6 +15,7 @@ from __future__ import division
 import importlib
 import sys
 
+from keras.layers.convolutional import MaxPooling1D, AveragePooling1D
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 import pysts.embedding as emb
 import pysts.eval as ev
