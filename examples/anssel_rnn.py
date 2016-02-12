@@ -45,6 +45,9 @@ Performance:
                 rnnbidi=False - devMRR=0.844359, testMRR=0.813130, testMAP=0.7249
                 rnnbidi=True - devMRR=0.857949, testMRR=0.797496, testMAP=0.7275
 
+    * yodaqa:  (using the wang-tuned parameters)
+      valMRR=0.312343
+
 """
 
 from __future__ import print_function

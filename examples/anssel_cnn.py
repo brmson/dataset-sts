@@ -26,6 +26,8 @@ Prerequisites:
 Performance:
     * wang:  (the model parameters were tuned to maximize devMRR on wang)
       devMRR=0.876154, testMRR=0.820956, testMAP=0.7321
+    * yodaqa:  (using the wang-tuned parameters)
+      valMRR=0.377590
 
 """
 
