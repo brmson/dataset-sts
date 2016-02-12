@@ -132,12 +132,19 @@ def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
 
 def dot_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
     """ Score the pair using just dot-product, that is elementwise
-    multiplication and sum.  The dot-product is natural because it
+    multiplication and then sum.  The dot-product is natural because it
     measures the relative directions of vectors, being essentially
     a non-normalized cosine similarity. """
     # (The Activation is a nop, merge_mode is the important part)
     model.add_node(name=pfx+'dot', inputs=inputs, layer=Activation('linear'), merge_mode='dot', dot_axes=1)
     return pfx+'dot'
+
+
+def cos_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
+    """ Score the pair using just cosine similarity. """
+    # (The Activation is a nop, merge_mode is the important part)
+    model.add_node(name=pfx+'cos', inputs=inputs, layer=Activation('linear'), merge_mode='cos', dot_axes=1)
+    return pfx+'cos'
 
 
 def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
