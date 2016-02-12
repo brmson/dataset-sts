@@ -159,8 +159,13 @@ def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
     """ Just train a linear classifier (weighed sum of elements) on concatenation
     of inputs.  You may pass also just a single input (which may make sense
     if you for example process s1 "with regard to s0"). """
-    model.add_node(name=pfx+'cat', inputs=inputs, merge_mode='concat',
-                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+    if len(inputs) > 1:
+        model.add_node(name=pfx+'cat', inputs=inputs, merge_mode='concat',
+                       layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+    else:
+        model.add_node(name=pfx+'cat', input=inputs[0],
+                       layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+    return pfx+'cat'
 
 
 def absdiff_merge(model, layers):
