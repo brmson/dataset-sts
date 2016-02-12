@@ -14,17 +14,17 @@ Prerequisites:
 
 Performance (2000 iters):
     * YodaQA
-        44102/44102 [==============================] - 5s - loss: 0.3812 - val_loss: 0.3632
-        Train Accuracy: raw 0.900821 (y=0 0.896513, y=1 0.905129), bal 0.900821
-        Train MRR: 0.824016  (on training set, y=0 is subsampled!)
-        Test Accuracy: raw 0.837575 (y=0 0.858509, y=1 0.392583), bal 0.625546
-        Test MRR: 0.338848
+        38026/38026 [==============================] - 5s - loss: 0.4670 - val_loss: 0.4741
+        Train Accuracy: raw 0.851575 (y=0 0.810761, y=1 0.892389), bal 0.851575
+        Train MRR: 0.744192  (on training set, y=0 is subsampled!)
+        Test Accuracy: raw 0.777469 (y=0 0.795328, y=1 0.474425), bal 0.634876
+        Test MRR: 0.276420
     * wang
-        26536/26536 [==============================] - 3s - loss: 0.4702 - val_loss: 0.5506
-        Train Accuracy: raw 0.853821 (y=0 0.799216, y=1 0.908426), bal 0.853821
-        Train MRR: 0.902527  (on training set, y=0 is subsampled!)
-        Test Accuracy: raw 0.744232 (y=0 0.811030, y=1 0.454225), bal 0.632628
-        Test MRR: 0.702546
+        25372/25372 [==============================] - 3s - loss: 0.5956 - val_loss: 0.5407
+        Train Accuracy: raw 0.752601 (y=0 0.705423, y=1 0.799779), bal 0.752601
+        Train MRR: 0.806276  (on training set, y=0 is subsampled!)
+        Test Accuracy: raw 0.755201 (y=0 0.809883, y=1 0.491935), bal 0.650909
+        Test MRR: 0.620635
 """
 
 from __future__ import print_function
@@ -47,7 +47,7 @@ def load_set(glove, fname, balance=False, subsample0=3):
     return ([e0, e1], labels)
 
 
-def prep_model(glove, dropout=0, l2reg=1e-4):
+def prep_model(glove, dropout=1/2, l2reg=1e-4):
     model = Graph()
 
     # Process sentence embeddings

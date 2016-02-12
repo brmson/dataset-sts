@@ -14,15 +14,15 @@ Prerequisites:
 
 Performance:
     * anssel-wang train-all (c.f. http://aclweb.org/aclwiki/index.php?title=Question_Answering_(State_of_the_art)):
-        Train Accuracy: raw 0.710130 (y=0 0.686238, y=1 0.734022), bal 0.710130
-        Train MRR: 0.751665  (on training set, y=0 is subsampled!)
-        Test Accuracy: raw 0.684104 (y=0 0.712895, y=1 0.655312), bal 0.684104
-        Test MRR: 0.738870
+        Train Accuracy: raw 0.707709 (y=0 0.684140, y=1 0.731279), bal 0.707709
+        Train MRR: 0.715685  (on training set, y=0 is subsampled!)
+        Test Accuracy: raw 0.681692 (y=0 0.689280, y=1 0.645161), bal 0.667221
+        Test MRR: 0.671137
     * anssel-yodaqa:
-        Train Accuracy: raw 0.746315 (y=0 0.740148, y=1 0.752483), bal 0.746315
-        Train MRR: 0.516240  (on training set, y=0 is subsampled!)
-        Test Accuracy: raw 0.699454 (y=0 0.709318, y=1 0.489770), bal 0.599544
-        Test MRR: 0.301773
+        Train Accuracy: raw 0.736470 (y=0 0.721243, y=1 0.751696), bal 0.736470
+        Train MRR: 0.490585  (on training set, y=0 is subsampled!)
+        Test Accuracy: raw 0.634714 (y=0 0.640241, y=1 0.540921), bal 0.590581
+        Test MRR: 0.330349
 
 (N.B. (Yu, 2014) also trains a second-level classifier that combines
 this similarity with |common_keywords|.  We don't do that here - exercise
