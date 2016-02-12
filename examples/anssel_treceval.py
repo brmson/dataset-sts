@@ -1,20 +1,20 @@
 #!/usr/bin/python3
 """
-Tool for evaluating the answer selection RNN model (from anssel_rnn)
+Tool for evaluating the answer selection models
 using the original trec_eval tool.
 
-Usage: anssel_rnn_eval.py INITPARAMS WEIGHTSFILE TRAINDATA TESTDATA TREC_QRELS_FILE TREC_TOP_FILE
+Usage: anssel_treceval.py EXAMPLE INITPARAMS WEIGHTSFILE TRAINDATA TESTDATA TREC_QRELS_FILE TREC_TOP_FILE
 Example:
-    examples/anssel_rnn_eval.py "dropout=2/3, l2reg=1e-4" weights.h5 anssel-wang/train-all.csv anssel-wang/dev.csv /tmp/ground.txt /tmp/res.txt
+    examples/anssel_rnn_eval.py anssel_rnn "dropout=2/3, l2reg=1e-4" weights-bestval.h5 anssel-wang/train-all.csv anssel-wang/dev.csv /tmp/ground.txt /tmp/res.txt
     trec_eval.8.1/trec_eval /tmp/ground.txt /tmp/res.txt
 """
 
 from __future__ import print_function
 from __future__ import division
 
+import importlib
 import sys
 
-import anssel_rnn as E
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 import pysts.embedding as emb
 import pysts.eval as ev
@@ -35,7 +35,7 @@ def save_trec_qrels(f, s0, s1, y):
         m += 1
 
 
-def save_trec_top(f, s0, s1, y):
+def save_trec_top(f, s0, s1, y, code):
     n = -1
     m = 0
     last_is0 = ''
@@ -44,12 +44,14 @@ def save_trec_top(f, s0, s1, y):
             last_is0 = hash(tuple(is0))
             m = 0
             n += 1
-        print('%d 0 %d 1 %f rnn' % (n, m, iy), file=f)
+        print('%d 0 %d 1 %f %s' % (n, m, iy, code), file=f)
         m += 1
 
 
 if __name__ == "__main__":
-    initparams, weightsfile, traindata, testdata, trec_qrels_file, trec_top_file = sys.argv[1:]
+    example, initparams, weightsfile, traindata, testdata, trec_qrels_file, trec_top_file = sys.argv[1:]
+
+    E = importlib.import_module(example)
 
     print('Datasets')
     s0, s1, y, vocab, gr = E.load_set(traindata)
@@ -77,4 +79,4 @@ if __name__ == "__main__":
     with open(trec_qrels_file, 'wt') as f:
         save_trec_qrels(f, s0t, s1t, yt)
     with open(trec_top_file, 'wt') as f:
-        save_trec_top(f, s0t, s1t, ypredt)
+        save_trec_top(f, s0t, s1t, ypredt, example)
