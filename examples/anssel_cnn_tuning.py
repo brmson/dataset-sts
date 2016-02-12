@@ -28,11 +28,11 @@ if __name__ == "__main__":
     # XXX: hardcoded loss function
 
     rs = RandomSearch('cnn_rlog.txt',
-                      dropout=[1/4, 1/2, 2/3, 3/4], l2reg=[1e-4, 1e-3, 1e-2],
+                      dropout=[1/2, 2/3, 3/4], dropout_in=[1/2, 3/4, 4/5], l2reg=[1e-4, 1e-3, 1e-2],
                       cnnact=['tanh', 'tanh', 'relu'], cnninit=['glorot_uniform', 'glorot_uniform', 'normal'],
-                      cdim={1: [0,0,1/2,1,2], 2: [0,0,1/2,1,2], 3: [0,0,1/2,1,2], 4: [0,0,1/2,1,2], 5: [0,0,1/2,1,2]},
-                      project=[True, True, False], pdim=[1, 2, 2.5],
-                      ptscorer=[B.dot_ptscorer, B.mlp_ptscorer], Ddim=[1, 2, 2.5])
+                      cdim={1: [0,0,1/2,1,2], 2: [0,0,1/2,1,2,0], 3: [0,0,1/2,1,2,0], 4: [0,0,1/2,1,2,0], 5: [0,0,1/2,1,2]},
+                      project=[True, True, False], pdim=[1, 2, 2.5, 3],
+                      ptscorer=[B.mlp_ptscorer], Ddim=[1, 2, 2.5, 3])
     for ps, h, pardict in rs():
         print(' ...... %s .................... %s' % (h, ps))
         model = E.prep_model(glove, vocab, oact='linear', **pardict)
