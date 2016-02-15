@@ -63,17 +63,18 @@ in full in this Git repository:
 
   * [X] **sick2014/** SemEval SICK2014 Task
 
-  * [ ] SemEval 2014 Cross-level Semantic Similarity Task
+  * [ ] [SemEval 2014 Cross-level Semantic Similarity Task](http://alt.qcri.org/semeval2014/task3/index.php?id=data-and-tools)
+    (TODO; 500 paragraph-to-sentence training items)
 
   * [X] **msr/** MSR Paraphrase Dataset (TODO: pysts manipulation tools)
 
-  * [ ] RTE Datasets (TODO)
+  * [ ] RTE Datasets up to RTE-3 http://nlp.stanford.edu/RTE3-pilot/ (TODO)
 
   * [X] **anssel-wang/** Answer Sentence Selection - original Wang dataset
 
   * [X] **anssel-yodaqa/** Answer Sentence Selection - YodaQA-based
 
-  * [ ] Property Selection (based on WebQuestions + YodaQA; TODO)
+  * [ ] Property Path Selection (based on WebQuestions + YodaQA; TODO)
 
   * [X] **argus/** Argus Dataset (Yes/No Question vs. News Headline)
 
@@ -88,13 +89,13 @@ Other datasets (will) have their own directory and Python loading / evaluation
 tools, but you need to get the data separately for size reasons.  Of course,
 we highly encourage using these datasets if you can deal with their size.
 
-  * [ ] http://cs.mcgill.ca/~jpineau/datasets/ubuntu-corpus-1.0/ The Ubuntu
-Dialogue Corpus contains pairs of sequences where the second sentence is
-a candidate for being a followup in a community techsupport chat dialog.
-10M pairs make this awesome.
+  * [ ] [The Ubuntu Dialogue Corpus](http://cs.mcgill.ca/~jpineau/datasets/ubuntu-corpus-1.0/)
+contains pairs of sequences where the second sentence is a candidate for being
+a followup in a community techsupport chat dialog.  10M pairs make this
+awesome.
 
-  * [ ] http://nlp.stanford.edu/projects/snli/ The Stanford Natural Language
-Inference (SNLI) Corpus (570k pairs dataset for an RTE-type task).
+  * [ ] [The Stanford Natural Language Inference (SNLI) Corpus](http://nlp.stanford.edu/projects/snli/)
+(570k pairs dataset for an RTE-type task).
 
   * [ ] bAbI has a variety of datasets, especially re memory networks (memory
 relevant to a given question), though with an extremely limited vocabulary.
@@ -108,11 +109,13 @@ decide not to use them for model development and research, but only for
 some final benchmarks to benefit cross-model comparisons.  We *discourage*
 using these datasets.
 
-  * http://research.microsoft.com/en-us/downloads/38cf15fd-b8df-477e-a4e4-a4680caa75af/
-Microsoft Research Video Description Corpus
+  * [ ] [Microsoft Research Video Description Corpus](http://research.microsoft.com/en-us/downloads/38cf15fd-b8df-477e-a4e4-a4680caa75af/)
+(video annotation task, 120k sentences in 2k clusters)
 
-  * http://research.microsoft.com/en-US/downloads/4495da01-db8c-4041-a7f6-7984a4f6a905/default.aspx
-Microsoft Research WikiQA Corpus
+  * [ ] [Microsoft Research WikiQA Corpus](http://research.microsoft.com/en-US/downloads/4495da01-db8c-4041-a7f6-7984a4f6a905/default.aspx)
+(Answer Selection task, 3k questions and 29k answers with 1.5k correct)
+
+  * [ ] [STS2013 Joint Student Response Analysis (RTE-8)](https://www.cs.york.ac.uk/semeval-2013/task7/index.php%3Fid=data.html)
 
 Even More Datasets
 ------------------
@@ -120,17 +123,20 @@ Even More Datasets
 ### Non-free Datasets
 
 Some datasets are completely non-free and not available on the internet
-and we *discourage their usage*.
+and we *strongly discourage their usage*.
 We are not enthusiastic about these as we strongly believe in reproducible
 experiments.  Nevertheless, we accept contributions regarding Python tools
 to load and process these datasets.
 
-  * [ ] https://catalog.ldc.upenn.edu/LDC2013T18 STS2013 Machine Translation
-pairing translated and translated-and-postedited newswire headlines.
+  * [ ] [STS2013 Machine Translation](https://catalog.ldc.upenn.edu/LDC2013T18)
+pairs translated and translated-and-postedited newswire headlines.
 Payment required.
 
-  * [ ] https://www.kaggle.com/c/the-allen-ai-science-challenge/ derived dataset
-that combines question+answer in a single sentence and pairs it with relevant
+  * [ ] [TAC tracks RTE-4 to RTE-7](http://www.nist.gov/tac/data/).
+Printed user agreement required.
+
+  * [ ] [The Allen AI Science Challenge](https://www.kaggle.com/c/the-allen-ai-science-challenge/)
+derived dataset combines question+answer in a single sentence and pairs it with relevant
 sentences extracted from textbooks and Wikipedia.  The resulting dataset makes
 it possible for humans to answer many (not nearly all!) of the questions, but
 is very hard for machine models as it often requires significant world modelling
