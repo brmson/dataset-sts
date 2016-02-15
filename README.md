@@ -20,10 +20,10 @@ that is whether (or how much) the two parameters "say the same thing".
 or contradiction or just topic relatedness.  We may include such datasets
 as well.)
 
-This repo aims to gather a variety of standard datasets for training and
-evaluating such models in a single place, with the base belief that it should
-be possible to build generic models for *f_b* that aren't tailored to particular
-tasks (and even multitask learning should be possible).
+This repo aims to gather a variety of standard datasets and tools for training
+and evaluating such models in a single place, with the base belief that it
+should be possible to build generic models for *f_b* that aren't tailored to
+particular tasks (and even multitask learning should be possible).
 
 Most of the datasets are pre-existing; text similarity datasets that may be
 redistributed (at least for research purposes) are included.  Always check
@@ -42,7 +42,21 @@ Python is preferred, but not mandatory.)
 Package Overview
 ----------------
 
-### Datasets
+This is for now as much a TODO list as an overview.
+
+### Software tools
+
+  * **pysts/** Python module contains various tools for easy loading,
+    manipulation and evaluation of the dataset.
+  * **pysts/kerasts** the KeraSTS allows easy prototyping of deep learning
+    models for many of the included tasks using the Keras library.
+  * **examples/** contains a couple of baselines on various tasks.
+
+### Full Datasets
+
+These datasets are small enough, require significant postprocessing
+to be easily usable, and/or are original.  Therefore, they are included
+in full in this Git repository:
 
   * [X] **sts/** SemEval STS Task - multiple years, each covers a bunch of
     topics that share the same precise similarity metric definition
@@ -65,37 +79,34 @@ Package Overview
 
   * [ ] COCO image-sentence ranking experiments
 
-So, this is for now as much a TODO list as an overview.
-
 TODO: We should explain also the nature of the datasets - size, their exact
 *f_b* definition, or whether contradictions occur.
 
-### Software tools
+### Other Free Datasets
 
-  * **pysts/** Python module contains various tools for easily working with the dataset
-  * **examples/** contains a couple of baselines on various tasks
+Other datasets (will) have their own directory and Python loading / evaluation
+tools, but you need to get the data separately for size reasons.  Of course,
+we highly encourage using these datasets if you can deal with their size.
 
-Other Datasets
---------------
-
-Some datasets could not have been included for legal or size reasons, but you
-might find them inspiring:
-
-  * http://nlp.stanford.edu/projects/snli/ The Stanford Natural Language
-Inference (SNLI) Corpus (huge dataset for an RTE-type task)
-
-  * http://cs.mcgill.ca/~jpineau/datasets/ubuntu-corpus-1.0/ The Ubuntu
+  * [ ] http://cs.mcgill.ca/~jpineau/datasets/ubuntu-corpus-1.0/ The Ubuntu
 Dialogue Corpus contains pairs of sequences where the second sentence is
 a candidate for being a followup in a community techsupport chat dialog.
+10M pairs make this awesome.
 
-  * https://www.kaggle.com/c/the-allen-ai-science-challenge/ derived dataset
-that combines question+answer in a single sentence and pairs it with relevant
-sentences extracted from textbooks and Wikipedia.
+  * [ ] http://nlp.stanford.edu/projects/snli/ The Stanford Natural Language
+Inference (SNLI) Corpus (570k pairs dataset for an RTE-type task).
 
-  * https://archive.org/details/stackexchange could yield question paraphrases
-after some datacrunching; post-processed dataset submissions welcome!
+  * [ ] bAbI has a variety of datasets, especially re memory networks (memory
+relevant to a given question), though with an extremely limited vocabulary.
 
-  * https://catalog.ldc.upenn.edu/LDC2013T18 payment required
+### Other Restricted Datasets
+
+Some datasets are (will be) also included, but have restrictions regarding
+commercial usage or redistribution conditions.  Therefore, some scientists
+may not be able to agree with the licence and download them, and/or may
+decide not to use them for model development and research, but only for
+some final benchmarks to benefit cross-model comparisons.  We *discourage*
+using these datasets.
 
   * http://research.microsoft.com/en-us/downloads/38cf15fd-b8df-477e-a4e4-a4680caa75af/
 Microsoft Research Video Description Corpus
@@ -103,8 +114,36 @@ Microsoft Research Video Description Corpus
   * http://research.microsoft.com/en-US/downloads/4495da01-db8c-4041-a7f6-7984a4f6a905/default.aspx
 Microsoft Research WikiQA Corpus
 
-  * bAbI has a variety of datasets, especially re memory networks (memory
-    relevant to a given question)
+Even More Datasets
+------------------
+
+### Non-free Datasets
+
+Some datasets are completely non-free and not available on the internet
+and we *discourage their usage*.
+We are not enthusiastic about these as we strongly believe in reproducible
+experiments.  Nevertheless, we accept contributions regarding Python tools
+to load and process these datasets.
+
+  * [ ] https://catalog.ldc.upenn.edu/LDC2013T18 STS2013 Machine Translation
+pairing translated and translated-and-postedited newswire headlines.
+Payment required.
+
+  * [ ] https://www.kaggle.com/c/the-allen-ai-science-challenge/ derived dataset
+that combines question+answer in a single sentence and pairs it with relevant
+sentences extracted from textbooks and Wikipedia.  The resulting dataset makes
+it possible for humans to answer many (not nearly all!) of the questions, but
+is very hard for machine models as it often requires significant world modelling
+and reasoning.  This dataset had been Kaggle-only, but a more limited few
+hundreds questions dataset has been promised to be released publicly soon.
+
+### Stack Exchange
+
+https://archive.org/details/stackexchange could yield question paraphrases
+after some datacrunching; post-processed dataset submissions welcome!
+
+(dos Santos, 2015) http://www.aclweb.org/anthology/P15-2114 used two
+communities (Ask Ubuntu and English) to benchmark some similarity models.
 
 
 Algorithm References
@@ -112,7 +151,8 @@ Algorithm References
 
 Here, we refer to some interesting models for sentence pair classification.
 We focus mainly on papers that consider multiple datasets or are hard to find;
-you can read e.g. about STS winners on STS wiki.
+you can read e.g. about STS winners on the STS wiki or about anssel-wang models
+on the ACL wiki.
 
   * https://github.com/alvations/stasis contains several baselines and another
     view of the datasets (incl. the CLSS task)
