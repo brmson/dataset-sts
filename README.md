@@ -78,8 +78,6 @@ in full in this Git repository:
 
   * [X] **argus/** Argus Dataset (Yes/No Question vs. News Headline)
 
-  * [ ] COCO image-sentence ranking experiments
-
 TODO: We should explain also the nature of the datasets - size, their exact
 *f_b* definition, or whether contradictions occur.
 
