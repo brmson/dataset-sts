@@ -1,6 +1,13 @@
 Example Models
 ==============
 
+Non-KeraSTS Examples
+--------------------
+
+It is not necessary to use the KeraSTS toolkit and build deep learning
+models, as shown in these simple examples that use sklearn and plain
+Keras.
+
 Yu et al., 1412 baseline - mean embeddings, projection matrix and dot-product
 distance measure:
 
@@ -18,6 +25,9 @@ features and hidden layer:
     the "mean vector" baseline in the paper
 
   * **anssel_kst1503.py** applies this to the answer sentence selection task
+
+KeraSTS Examples
+----------------
 
 Full-fledged Keras architectures using the KeraSTS toolkit:
 

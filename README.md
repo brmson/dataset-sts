@@ -46,11 +46,14 @@ This is for now as much a TODO list as an overview.
 
 ### Software tools
 
+  * **examples/** contains a couple of baselines on various tasks.  Start here
+    to learn about the Python tools available.
+
   * **pysts/** Python module contains various tools for easy loading,
     manipulation and evaluation of the dataset.
+
   * **pysts/kerasts** the KeraSTS allows easy prototyping of deep learning
     models for many of the included tasks using the Keras library.
-  * **examples/** contains a couple of baselines on various tasks.
 
 ### Full Datasets
 
