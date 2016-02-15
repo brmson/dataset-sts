@@ -1,13 +1,6 @@
 Example Models
 ==============
 
-Non-KeraSTS Examples
---------------------
-
-It is not necessary to use the KeraSTS toolkit and build deep learning
-models, as shown in these simple examples that use sklearn and plain
-Keras.
-
 Yu et al., 1412 baseline - mean embeddings, projection matrix and dot-product
 distance measure:
 
@@ -26,23 +19,7 @@ features and hidden layer:
 
   * **anssel_kst1503.py** applies this to the answer sentence selection task
 
-KeraSTS Examples
-----------------
+Full-fledged Keras architecture using the KeraSTS toolkit (but as
+a standalone script instead of the models+tools abstraction architecture):
 
-Full-fledged Keras architectures using the KeraSTS toolkit:
-
-  * **anssel_rnn.py** uses GRU hidden states to approach 2015-state-of-art
   * **anssel_cnn.py** generates summary sentence embeddings using a CNN
-  * **anssel_cnnrnn.py** uses a model popular in Keras examples, using CNN to
-    "smear" the input sentence, then RNN on top of that
-
-Generic KeraSTS tools:
-
-  * **anssel_treceval.py** to measure anssel performance using the official tool
-  * **anssel_cnn_tuning.py** tunes the CNN model parameters using random search
-    (TODO make generic)
-
-Tan et al., 1511.04108 reimplementation and extension:
-
-  * **anssel_attn.py** is a modular and configurable pipeline using RNNs, CNNs
-    and attention

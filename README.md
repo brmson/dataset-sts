@@ -46,14 +46,25 @@ This is for now as much a TODO list as an overview.
 
 ### Software tools
 
-  * **examples/** contains a couple of baselines on various tasks.  Start here
-    to learn about the Python tools available.
+To get started with simple classifiers that use task-specific code,
+look at the **examples/** directory.
+To get started with task-universal deep learning models, look at the
+**tools/** and **models/** directory.
 
   * **pysts/** Python module contains various tools for easy loading,
     manipulation and evaluation of the dataset.
 
   * **pysts/kerasts** the KeraSTS allows easy prototyping of deep learning
     models for many of the included tasks using the Keras library.
+
+  * **examples/** contains a couple of simple, self-contained baselines
+    on various tasks.
+
+  * **tools/** directory contains tools to run, tune and evaluate the
+    KeraSTS models from the models/ directory
+
+  * **models/** directory contains various strong baseline models using
+    the KeraSTS toolkit, including state-of-art neural networks
 
 ### Full Datasets
 

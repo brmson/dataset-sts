@@ -3,9 +3,9 @@
 Tool for evaluating the answer selection models
 using the original trec_eval tool.
 
-Usage: anssel_treceval.py EXAMPLE INITPARAMS WEIGHTSFILE TRAINDATA TESTDATA TREC_QRELS_FILE TREC_TOP_FILE
+Usage: tools/anssel_treceval.py MODEL WEIGHTSFILE TRAINDATA VALDATA TREC_QRELS_FILE TREC_TOP_FILE [PARAM=VALUE]...
 Example:
-    examples/anssel_rnn_eval.py anssel_rnn "dropout=2/3, l2reg=1e-4" weights-bestval.h5 anssel-wang/train-all.csv anssel-wang/dev.csv /tmp/ground.txt /tmp/res.txt
+    tools/anssel_treceval.py cnn weights-bestval.h5 anssel-wang/train-all.csv anssel-wang/dev.csv /tmp/ground.txt /tmp/res.txt dropout=2/3 l2reg=1e-4
     trec_eval.8.1/trec_eval /tmp/ground.txt /tmp/res.txt
 """
 
@@ -21,6 +21,8 @@ import pysts.embedding as emb
 import pysts.eval as ev
 import pysts.kerasts.blocks as B
 from pysts.kerasts.objectives import ranknet
+
+import anssel_train
 
 
 def save_trec_qrels(f, s0, s1, y):
@@ -50,22 +52,21 @@ def save_trec_top(f, s0, s1, y, code):
 
 
 if __name__ == "__main__":
-    example, initparams, weightsfile, traindata, testdata, trec_qrels_file, trec_top_file = sys.argv[1:]
+    modelname, weightsfile, trainf, valf, trec_qrels_file, trec_top_file = sys.argv[1:7]
+    params = sys.argv[7:]
 
-    E = importlib.import_module(example)
+    module = importlib.import_module('.'+modelname, 'models')
+    conf, ps, h = anssel_train.config(module.config, params)
 
-    print('Datasets')
-    s0, s1, y, vocab, gr = E.load_set(traindata)
-    s0t, s1t, yt, _, grt = E.load_set(testdata, vocab)
+    print('GloVe')
+    glove = emb.GloVe(N=conf['embdim'])
 
-    print('Glove')
-    glove = emb.GloVe(300)  # XXX hardcoded N
+    print('Dataset')
+    s0, s1, y, vocab, gr = anssel_train.load_set(trainf)
+    s0t, s1t, yt, _, grt = anssel_train.load_set(valf, vocab)
 
     print('Model')
-    kwargs = eval('dict(' + initparams + ')')
-    # XXX: hardcoded loss function
-    model = E.prep_model(glove, vocab, oact='linear', **kwargs)
-    model.compile(loss={'score': ranknet}, optimizer='adam')
+    model = anssel_train.build_model(glove, vocab, module.prep_model, conf)
 
     print('Weights')
     model.load_weights(weightsfile)
@@ -74,10 +75,10 @@ if __name__ == "__main__":
     ypred = model.predict(gr)['score'][:,0]
     ypredt = model.predict(grt)['score'][:,0]
 
-    ev.eval_anssel(ypred, s0, y, 'Train')
-    ev.eval_anssel(ypredt, s0t, yt, 'Test')
+    ev.eval_anssel(ypred, s0, y, trainf)
+    ev.eval_anssel(ypredt, s0t, yt, valf)
 
     with open(trec_qrels_file, 'wt') as f:
         save_trec_qrels(f, s0t, s1t, yt)
     with open(trec_top_file, 'wt') as f:
-        save_trec_top(f, s0t, s1t, ypredt, example)
+        save_trec_top(f, s0t, s1t, ypredt, modelname)

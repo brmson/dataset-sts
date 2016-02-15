@@ -2,7 +2,14 @@
 """
 An Answer Sentence Selection classifier that uses full-fledged features
 of the pysts Keras toolkit (KeraSTS) and even with a very simple architecture
-achieves 2015-state-of-art results on the task.
+approaches 2015-state-of-art results on the task.
+
+This is the same classifier as what arises from hooking up models/cnn.py and
+tasks/anssel_train.py, just in a single stand-alone script to clear up how
+the abstractions fit together.  But it's a much better idea to use the
+task-independent models/ scheme so that you can benchmark them on other tasks
+as well.
+
 
 The architecture uses multi-width CNN and max-pooling to produce sentence embeddings,
 adaptable word embedding matrix preinitialized with 300D GloVe, projection
