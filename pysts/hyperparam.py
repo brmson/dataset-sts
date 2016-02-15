@@ -9,6 +9,12 @@ import json
 import random
 
 
+def hash_params(pardict):
+    ps = json.dumps(dict([(k, str(v)) for k, v in pardict.items()]), sort_keys=True)
+    h = hash(ps)
+    return ps, h
+
+
 class RandomSearch:
     def __init__(self, logfile, **params):
         self.params = params
@@ -28,8 +34,7 @@ class RandomSearch:
                     pardict[p] = v
                 else:
                     pardict[p] = random.choice(vset)
-            ps = json.dumps(dict([(k, str(v)) for k, v in pardict.items()]), sort_keys=True)
-            h = hash(ps)
+            ps, h = hash_params(pardict)
             print('%s %s' % (h, ps), file=self.rlog)
             self.rlog.flush()
             yield (ps, h, pardict)
