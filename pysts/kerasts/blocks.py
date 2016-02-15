@@ -14,23 +14,37 @@ from keras.regularizers import l2
 import pysts.nlp as nlp
 
 
-def embedding(model, glove, vocab, s0pad, s1pad, dropout, trainable=True):
+def embedding(model, glove, vocab, s0pad, s1pad, dropout, trainable=True,
+              add_flags=True):
     """ The universal sequence input layer.
 
     Declare inputs si0, si1, f0, f1 (vectorized sentences and NLP flags)
     and generate outputs e0, e1 representing vector sequences, and e0_, e1_
-    with dropout applied.  Returns the vector dimensionality. """
+    with dropout applied.  Returns the vector dimensionality.
+
+    With trainable=True, allows adaptation of the embedding matrix during
+    training.  With add_flags=True, append the NLP flags to the embeddings. """
 
     for m, p in [(0, s0pad), (1, s1pad)]:
         model.add_input('si%d'%(m,), input_shape=(p,), dtype='int')
-        model.add_input('f%d'%(m,), input_shape=(p, nlp.flagsdim))
-    model.add_shared_node(name='emb', inputs=['si0', 'si1'], outputs=['e0[0]', 'e1[0]'],
+        if add_flags:
+            model.add_input('f%d'%(m,), input_shape=(p, nlp.flagsdim))
+
+    if add_flags:
+        outputs = ['e0[0]', 'e1[0]']
+    else:
+        outputs = ['e0', 'e1']
+
+    model.add_shared_node(name='emb', inputs=['si0', 'si1'], outputs=outputs,
                           layer=Embedding(input_dim=vocab.size(), input_length=p,
                                           output_dim=glove.N, mask_zero=True,
                                           weights=[vocab.embmatrix(glove)], trainable=trainable))
-    for m in [0, 1]:
-        model.add_node(name='e%d'%(m,), inputs=['e%d[0]'%(m,), 'f%d'%(m,)], merge_mode='concat', layer=Activation('linear'))
-    N = glove.N + nlp.flagsdim
+    if add_flags:
+        for m in [0, 1]:
+            model.add_node(name='e%d'%(m,), inputs=['e%d[0]'%(m,), 'f%d'%(m,)], merge_mode='concat', layer=Activation('linear'))
+        N = glove.N + nlp.flagsdim
+    else:
+        N = glove.N
 
     model.add_shared_node(name='embdrop', inputs=['e0', 'e1'], outputs=['e0_', 'e1_'],
                           layer=Dropout(dropout, input_shape=(N,)))
