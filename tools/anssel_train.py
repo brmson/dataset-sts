@@ -68,9 +68,13 @@ def load_set(fname, vocab=None):
 def config(module_config, params):
     c = dict()
     c['embdim'] = 300
+    c['inp_e_dropout'] = 1/2
+    c['e_add_flags'] = True
+
     c['ptscorer'] = B.mlp_ptscorer
     c['mlpsum'] = 'sum'
     c['Ddim'] = 1
+
     c['loss'] = ranknet
     module_config(c)
 
@@ -85,7 +89,7 @@ def config(module_config, params):
 def prep_model(glove, vocab, module_prep_model, c, oact):
     # Input embedding and encoding
     model = Graph()
-    N = B.embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'])
+    N = B.embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'], add_flags=c['e_add_flags'])
 
     # Sentence-aggregate embeddings
     final_outputs = module_prep_model(model, N, s0pad, s1pad, c)
