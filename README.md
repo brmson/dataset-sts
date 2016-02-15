@@ -103,9 +103,9 @@ relevant to a given question), though with an extremely limited vocabulary.
 Some datasets are (will be) also included, but have restrictions regarding
 commercial usage or redistribution conditions.  Therefore, some scientists
 may not be able to agree with the licence and download them, and/or may
-decide not to use them for model development and research, but only for
-some final benchmarks to benefit cross-model comparisons.  We *discourage*
-using these datasets.
+decide not to use them for model development and research (if it is in
+commercial setting), but only for some final benchmarks to benefit
+cross-model comparisons.  We *discourage* using these datasets.
 
   * [ ] [Microsoft Research Video Description Corpus](http://research.microsoft.com/en-us/downloads/38cf15fd-b8df-477e-a4e4-a4680caa75af/)
 (video annotation task, 120k sentences in 2k clusters)
@@ -114,6 +114,9 @@ using these datasets.
 (Answer Selection task, 3k questions and 29k answers with 1.5k correct)
 
   * [ ] [STS2013 Joint Student Response Analysis (RTE-8)](https://www.cs.york.ac.uk/semeval-2013/task7/index.php%3Fid=data.html)
+
+  * [ ] [InsuranceQA Dataset](https://github.com/shuzi/insuranceQA)
+(used in recent IBM papers, 25k question-answer pairs)
 
 Even More Datasets
 ------------------
