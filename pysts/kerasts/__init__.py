@@ -21,3 +21,13 @@ def graph_input_sts(si0, si1, y, f0=None, f1=None):
         gr['f0'] = f0
         gr['f1'] = f1
     return gr
+
+
+def graph_input_slice(gr, sl):
+    """ Produce a slice of the original graph dataset.
+
+    Example: grs = graph_input_slice(gr, slice(500, 1000)) """
+    grs = dict()
+    for k, v in gr.items():
+        grs[k] = v[sl]
+    return grs

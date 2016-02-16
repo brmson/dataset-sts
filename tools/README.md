@@ -23,3 +23,5 @@ Answer Sentence Selection
 
   * **anssel_tuning.py** tunes the model parameters using random search
 
+  * **anssel-visual.ipynb** showcases IPython/Jupyter notebook for model
+    development and visualizing attention models using a token heatmap
