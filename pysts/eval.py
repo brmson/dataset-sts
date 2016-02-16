@@ -81,6 +81,10 @@ def eval_sts(ycat, y, name, quiet=False):
         ypred = ycat
     else:
         ypred = loader.sts_categorical2labels(ycat)
+    if y.ndim == 1:
+        ygold = y
+    else:
+        ygold = loader.sts_categorical2labels(y)
     pr = pearsonr(ypred, y)[0]
     if not quiet:
         print('%s Pearson: %f' % (name, pr,))

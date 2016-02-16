@@ -11,6 +11,7 @@ Basically, you pick a model from the **models/** directory, then pass its
 name, dataset paths and possibly some parameter tweaks to the training tool
 to train the model on that task/dataset and show validation set performance.
 
+
 Answer Sentence Selection
 -------------------------
 
@@ -25,3 +26,15 @@ Answer Sentence Selection
 
   * **anssel-visual.ipynb** showcases IPython/Jupyter notebook for model
     development and visualizing attention models using a token heatmap
+
+
+Semantic Text Similarity Task
+-----------------------------
+
+The main differences to the anssel task are that (i) this task is symmetric
+and both sentences should be considered from the same viewpoint; (ii) the
+output is a number between 0 and 5 and Pearson correlation is the metric.
+
+  * **sts_train.py** to train a model on 2012-2014 and evaluate on 2015:
+
+	tools/sts_train.py rnn sts/all/201[0-4]* -- sts/all/2015*
