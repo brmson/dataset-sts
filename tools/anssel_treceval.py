@@ -13,6 +13,7 @@ from __future__ import print_function
 from __future__ import division
 
 import importlib
+import subprocess
 import sys
 
 from keras.layers.convolutional import MaxPooling1D, AveragePooling1D
@@ -51,6 +52,11 @@ def save_trec_top(f, s0, s1, y, code):
         m += 1
 
 
+def trec_eval_get(trec_qrels_file, trec_top_file, qty):
+    p = subprocess.Popen('../trec_eval.8.1/trec_eval %s %s | grep %s | sed "s/.*\t//"' % (trec_qrels_file, trec_top_file, qty), stdout=subprocess.PIPE, shell=True)
+    return float(p.communicate()[0])
+
+
 if __name__ == "__main__":
     modelname, weightsfile, trainf, valf, trec_qrels_file, trec_top_file = sys.argv[1:7]
     params = sys.argv[7:]
@@ -82,3 +88,5 @@ if __name__ == "__main__":
         save_trec_qrels(f, s0t, s1t, yt)
     with open(trec_top_file, 'wt') as f:
         save_trec_top(f, s0t, s1t, ypredt, modelname)
+    mapt = trec_eval_get(trec_qrels_file, trec_top_file, 'map')
+    print('%s MAP: %f' % (valf, mapt))
