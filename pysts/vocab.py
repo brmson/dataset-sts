@@ -18,8 +18,8 @@ class Vocabulary:
     def __init__(self, sentences):
         """ build a vocabulary from given list of sentences """
 
-	vocab = sorted(list(set([t for s in sentences for t in s])))
-	self.word_idx = dict((w, i + 2) for i, w in enumerate(vocab))
+        vocab = sorted(list(set([t for s in sentences for t in s])))
+        self.word_idx = dict((w, i + 2) for i, w in enumerate(vocab))
         self.word_idx['_PAD_'] = 0
         self.word_idx['_OOV_'] = 1
 
