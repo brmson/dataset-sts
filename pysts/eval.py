@@ -85,11 +85,11 @@ def eval_sts(ycat, y, name, quiet=False):
         ygold = y
     else:
         ygold = loader.sts_categorical2labels(y)
-    pr = pearsonr(ypred, y)[0]
+    pr = pearsonr(ypred, ygold)[0]
     if not quiet:
         print('%s Pearson: %f' % (name, pr,))
-        print('%s Spearman: %f' % (name, spearmanr(ypred, y)[0],))
-        print('%s MSE: %f' % (name, mse(ypred, y),))
+        print('%s Spearman: %f' % (name, spearmanr(ypred, ygold)[0],))
+        print('%s MSE: %f' % (name, mse(ypred, ygold),))
     return pr
 
 
