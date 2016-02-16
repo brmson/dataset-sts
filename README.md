@@ -39,12 +39,9 @@ Pull request that include simple baselines for *f_b* models are also welcome.
 (Simple == they fit in a couple of screenfuls of code and are batch-runnable.
 Python is preferred, but not mandatory.)
 
-Package Overview
-----------------
 
-This is for now as much a TODO list as an overview.
-
-### Software tools
+Software Tools
+--------------
 
 To get started with simple classifiers that use task-specific code,
 look at the **examples/** directory.
@@ -66,11 +63,31 @@ To get started with task-universal deep learning models, look at the
   * **models/** directory contains various strong baseline models using
     the KeraSTS toolkit, including state-of-art neural networks
 
-### Full Datasets
+Datasets
+--------
 
-These datasets are small enough, require significant postprocessing
-to be easily usable, and/or are original.  Therefore, they are included
-in full in this Git repository:
+This is for now as much a TODO list as an overview.
+
+### "Paraphrasing" Task
+
+These datasets are about binary classification of independent sentence
+(or multi-sentence) pairs regarding whether they say the same thing;
+for example if they describe the same event (with same data), ask the
+same question, etc.
+
+  * [X] **msr/** MSR Paraphrase Dataset (TODO: pysts manipulation tools)
+
+  * [ ] [AskUbuntu StackOverflow Similar Questions](https://github.com/taolei87/rcnn)
+
+  * [ ] More [Stack Exchange](https://archive.org/details/stackexchange) data?
+    (some is also contained in the new STS datasets)
+
+### "Semantic Text Similarity" Task
+
+These datasets consider the semantic similarity of independent pairs of texts
+(typically short sentences) and share a precise similarity metric definition
+of assigning a number between 0 to 5 to each pair denoting the level of
+similarity/entailment.
 
   * [X] **sts/** SemEval STS Task - multiple years, each covers a bunch of
     topics that share the same precise similarity metric definition
@@ -80,44 +97,67 @@ in full in this Git repository:
   * [ ] [SemEval 2014 Cross-level Semantic Similarity Task](http://alt.qcri.org/semeval2014/task3/index.php?id=data-and-tools)
     (TODO; 500 paragraph-to-sentence training items)
 
-  * [X] **msr/** MSR Paraphrase Dataset (TODO: pysts manipulation tools)
+### "Entailment" Task
+
+These datasets classify independent pairs of "hypothesis" and "fact"
+sentences as entailment, contradiction or unknown.
+
+  * [X] **sick2014/** SemEval SICK2014 Task also includes entailment data
+
+  * [ ] [The Stanford Natural Language Inference (SNLI) Corpus](http://nlp.stanford.edu/projects/snli/)
+(570k pairs dataset for an RTE-type task).
 
   * [ ] RTE Datasets up to RTE-3 http://nlp.stanford.edu/RTE3-pilot/ (TODO)
+
+### "Answer Sentence Selection" Task
+
+These datasets concern a "bipartite ranking" task.  That is, each tuple
+of sentences is binary classified, but there are many different S1 sentences
+given the same S0 and the ultimate goal is to sort positive-labelled S1s
+above negative-labelled S1s for each S0.
+
+Typically, S0 is a question and S1 are potentially-answer-bearing passages
+(in that case, identifying the actual answer might be an auxiliary task
+to consider; see anssel-yodaqa).  However, other scenarios are possible, like
+the Ubuntu Dialogue Corpus where S1 are dialogue followups to S0.
 
   * [X] **anssel-wang/** Answer Sentence Selection - original Wang dataset
 
   * [X] **anssel-yodaqa/** Answer Sentence Selection - YodaQA-based
 
+  * [ ] [InsuranceQA Dataset](https://github.com/shuzi/insuranceQA)
+(used in recent IBM papers, 25k question-answer pairs; unclear licencing)
+
   * [ ] Property Path Selection (based on WebQuestions + YodaQA; TODO)
-
-  * [X] **argus/** Argus Dataset (Yes/No Question vs. News Headline)
-
-  * [ ] [AskUbuntu StackOverflow Similar Questions](https://github.com/taolei87/rcnn)
-
-TODO: We should explain also the nature of the datasets - size, their exact
-*f_b* definition, or whether contradictions occur.
-
-### Other Free Datasets
-
-Other datasets (will) have their own directory and Python loading / evaluation
-tools, but you need to get the data separately for size reasons.  Of course,
-we highly encourage using these datasets if you can deal with their size.
 
   * [ ] [The Ubuntu Dialogue Corpus](http://cs.mcgill.ca/~jpineau/datasets/ubuntu-corpus-1.0/)
 contains pairs of sequences where the second sentence is a candidate for being
 a followup in a community techsupport chat dialog.  10M pairs make this
 awesome.
 
-  * [ ] [The Stanford Natural Language Inference (SNLI) Corpus](http://nlp.stanford.edu/projects/snli/)
-(570k pairs dataset for an RTE-type task).
+### "Hypothesis Evidencing" Task
+
+Similar to the "Answer Sentence Selection" task, these datasets need to
+consider a variety of S1 given a fixed S0 - the desired output should be
+however a judgement about S0 alone (typically true / false).
+
+  * [X] **argus/** Argus Dataset (Yes/No Question vs. News Headline)
 
   * [ ] bAbI has a variety of datasets, especially re memory networks (memory
 relevant to a given question), though with an extremely limited vocabulary.
 
-### Other Restricted Datasets
+  * [ ] Various "Entrance Exam" tasks solving multiple-choice school tests.
 
-Some datasets are (will be) also included, but have restrictions regarding
-commercial usage or redistribution conditions.  Therefore, some scientists
+
+Other Datasets
+--------------
+
+Some datasets are not universally available, but we may accept contributions
+regarding code to load them.
+
+### Non-Redistributable Datasets
+
+Some datasets cannot be redistributed.  Therefore, some scientists
 may not be able to agree with the licence and download them, and/or may
 decide not to use them for model development and research (if it is in
 commercial setting), but only for some final benchmarks to benefit
@@ -131,19 +171,11 @@ cross-model comparisons.  We *discourage* using these datasets.
 
   * [ ] [STS2013 Joint Student Response Analysis (RTE-8)](https://www.cs.york.ac.uk/semeval-2013/task7/index.php%3Fid=data.html)
 
-  * [ ] [InsuranceQA Dataset](https://github.com/shuzi/insuranceQA)
-(used in recent IBM papers, 25k question-answer pairs)
-
-Even More Datasets
-------------------
-
 ### Non-free Datasets
 
-Some datasets are completely non-free and not available on the internet
-and we *strongly discourage their usage*.
-We are not enthusiastic about these as we strongly believe in reproducible
-experiments.  Nevertheless, we accept contributions regarding Python tools
-to load and process these datasets.
+Some datasets are completely non-free and not available on the internet,
+therefore as strong believers in reproducible experiments and open science,
+we *strongly discourage their usage*.
 
   * [ ] [STS2013 Machine Translation](https://catalog.ldc.upenn.edu/LDC2013T18)
 pairs translated and translated-and-postedited newswire headlines.
@@ -159,16 +191,6 @@ it possible for humans to answer many (not nearly all!) of the questions, but
 is very hard for machine models as it often requires significant world modelling
 and reasoning.  This dataset had been Kaggle-only, but a more limited few
 hundreds questions dataset has been promised to be released publicly soon.
-
-### Stack Exchange
-
-https://archive.org/details/stackexchange could yield question paraphrases
-after some datacrunching; post-processed dataset submissions welcome!
-
-(dos Santos, 2015) http://www.aclweb.org/anthology/P15-2114 used two
-communities (Ask Ubuntu and English) to benchmark some similarity models.
-He recommended using the https://github.com/taolei87/rcnn dataset instead,
-but there is a lot more to mine.
 
 
 Algorithm References
