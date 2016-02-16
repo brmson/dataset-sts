@@ -122,6 +122,38 @@ def aggregate(model, e_in, pfx, N, spad, pool_layer,
     return (pfx+'g', width)
 
 
+def focus(model, N, input_aggreg, input_seq, orig_seq, attn_name, output_name,
+          s1pad, sdim, awidth, attn_mode, focus_act, l2reg):
+    model.add_node(name=input_aggreg+'[rep]', input=input_aggreg,
+                   layer=RepeatVector(s1pad))
+    if attn_mode == 'dot' or attn_mode == 'cos':
+        # model attention by dot-product, i.e. similarity measure of question
+        # aggregate and answer token in attention space
+        model.add_node(name=attn_name+'[1]',
+                       layer=B.dot_time_distributed_merge(model, [input_aggreg+'[rep]', input_seq],
+                                                          cos_norm=(attn_mode == 'cos')))
+    else:
+        # traditional attention model from Hermann et al., 2015 and Tan et al., 2015
+        # we want to model attention as w*tanh(e0a + e1sa[i])
+        model.add_node(name=attn_name+'[0]', inputs=[input_aggreg+'[rep]', input_seq], merge_mode='sum',
+                       layer=Activation('tanh'))
+        model.add_node(name=attn_name+'[1]', input=attn_name+'[0]',
+                       layer=TimeDistributedDense(input_dim=awidth, output_dim=1, W_regularizer=l2(l2reg)))
+    model.add_node(name=attn_name+'[2]', input=attn_name+'[1]',
+                   layer=Flatten(input_shape=(s1pad, 1)))
+
+    # *Focus* e1 by softmaxing (by default) attention and multiplying tokens
+    # by their attention.
+    model.add_node(name=attn_name+'[3]', input=attn_name+'[2]',
+                   layer=Activation(focus_act))
+    model.add_node(name=attn_name+'[4]', input=attn_name+'[3]',
+                   layer=RepeatVector(int(N*sdim)))
+    model.add_node(name=attn_name, input=attn_name+'[4]',
+                   layer=Permute((2,1)))
+    model.add_node(name=output_name, inputs=[orig_seq, attn_name], merge_mode='mul',
+                   layer=Activation('linear'))
+
+
 def prep_model(model, N, s0pad, s1pad, c):
     # FIXME: pool_layer=None is in fact not supported, since this RNN
     # would return a scalar for e1s too; instead, we'l need to manually
@@ -155,33 +187,8 @@ def prep_model(model, N, s0pad, s1pad, c):
 
     # Now, build an attention function f(e0a, e1sa) -> e1a, producing an
     # (s1pad,) vector of scalars denoting the attention for each e1 token
-    model.add_node(name='e0sa', input=e0_aggreg_attn,
-                   layer=RepeatVector(s1pad))
-    if c['attn_mode'] == 'dot' or c['attn_mode'] == 'cos':
-        # model attention by dot-product, i.e. similarity measure of question
-        # aggregate and answer token in attention space
-        model.add_node(name='e1a[1]',
-                       layer=B.dot_time_distributed_merge(model, ['e0sa', e1_attn], cos_norm=(c['attn_mode'] == 'cos')))
-    else:
-        # traditional attention model from Hermann et al., 2015 and Tan et al., 2015
-        # we want to model attention as w*tanh(e0a + e1sa[i])
-        model.add_node(name='e1a[0]', inputs=['e0sa', e1_attn], merge_mode='sum',
-                       layer=Activation('tanh'))
-        model.add_node(name='e1a[1]', input='e1a[0]',
-                       layer=TimeDistributedDense(input_dim=awidth, output_dim=1, W_regularizer=l2(c['l2reg'])))
-    model.add_node(name='e1a[2]', input='e1a[1]',
-                   layer=Flatten(input_shape=(s1pad, 1)))
-
-    # *Focus* e1 by softmaxing (by default) attention and multiplying tokens
-    # by their attention.
-    model.add_node(name='e1a[3]', input='e1a[2]',
-                   layer=Activation(c['focus_act']))
-    model.add_node(name='e1a[4]', input='e1a[3]',
-                   layer=RepeatVector(int(N*c['sdim'])))
-    model.add_node(name='e1a', input='e1a[4]',
-                   layer=Permute((2,1)))
-    model.add_node(name='e1sm', inputs=['e1s_', 'e1a'], merge_mode='mul',
-                   layer=Activation('linear'))
+    focus(model, N, e0_aggreg_attn, e1_attn, 'e1s_', 'e1a', 'e1sm', s1pad, c['sdim'], awidth,
+          c['attn_mode'], c['focus_act'], c['l2reg'])
 
     # Generate e1sm aggregate embedding
     e1_aggreg, gwidth = aggregate(model, 'e1sm', 'e1', N, s1pad, c['pool_layer'],
