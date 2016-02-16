@@ -23,12 +23,12 @@ def sentence_flags(s0, s1, s0pad, s1pad):
     various token properties.  It is meant to be concatenated to the token
     embedding. """
 
-    def gen_iflags(s):
+    def gen_iflags(s, spad):
         iflags = []
         for i in range(len(s)):
-            iiflags = [[False, False] for j in range(s0pad)]
+            iiflags = [[False, False] for j in range(spad)]
             for j, t in enumerate(s[i]):
-                if j >= s0pad:
+                if j >= spad:
                     break
                 number = False
                 capital = False
@@ -64,8 +64,8 @@ def sentence_flags(s0, s1, s0pad, s1pad):
         return mflags
 
     # individual flags (for understanding)
-    iflags0 = gen_iflags(s0)
-    iflags1 = gen_iflags(s1)
+    iflags0 = gen_iflags(s0, s0pad)
+    iflags1 = gen_iflags(s1, s1pad)
 
     # s1-s0 match flags (for attention)
     mflags0 = gen_mflags(s0, s1, s0pad)

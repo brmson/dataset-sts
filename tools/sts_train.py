@@ -56,8 +56,8 @@ def load_set(files, vocab=None, skip_unlabeled=True):
     if vocab is None:
         vocab = Vocabulary(s0 + s1)
 
-    si0 = vocab.vectorize(s0)
-    si1 = vocab.vectorize(s1)
+    si0 = vocab.vectorize(s0, spad=spad)
+    si1 = vocab.vectorize(s1, spad=spad)
     f0, f1 = nlp.sentence_flags(s0, s1, spad, spad)
     gr = graph_input_sts(si0, si1, y, f0, f1)
 

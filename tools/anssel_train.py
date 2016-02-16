@@ -57,8 +57,8 @@ def load_set(fname, vocab=None):
     if vocab is None:
         vocab = Vocabulary(s0 + s1)
 
-    si0 = vocab.vectorize(s0)
-    si1 = vocab.vectorize(s1)
+    si0 = vocab.vectorize(s0, spad=s0pad)
+    si1 = vocab.vectorize(s1, spad=s1pad)
     f0, f1 = nlp.sentence_flags(s0, s1, s0pad, s1pad)
     gr = graph_input_anssel(si0, si1, y, f0, f1)
 
@@ -86,7 +86,7 @@ def config(module_config, params):
     return c, ps, h
 
 
-def prep_model(glove, vocab, module_prep_model, c, oact):
+def prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad):
     # Input embedding and encoding
     model = Graph()
     N = B.embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'], add_flags=c['e_add_flags'])
@@ -114,14 +114,14 @@ def prep_model(glove, vocab, module_prep_model, c, oact):
     return model
 
 
-def build_model(glove, vocab, module_prep_model, c):
+def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad):
     if c['loss'] == 'binary_crossentropy':
         oact = 'sigmoid'
     else:
         # ranking losses require wide output domain
         oact = 'linear'
 
-    model = prep_model(glove, vocab, module_prep_model, c, oact)
+    model = prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad)
     model.compile(loss={'score': c['loss']}, optimizer='adam')
     return model
 
