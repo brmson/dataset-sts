@@ -15,7 +15,9 @@ all the datasets before 2015 for your training set, load the
 Note that 2016 is not symlinked to all/ yet since there is no gold
 standard available so far.
 
-To evaluate, use scipy.stats.pearson.  The evaluation code is also
+To evaluate using KeraSTS, refer to ``tools/sts_train.py``.
+
+Otherwise: Use scipy.stats.pearson.  The evaluation code is also
 the same as in ../sick2014 - refer e.g. to the python example from
 skip-thoughts, or in our own examples/ directory.
 
