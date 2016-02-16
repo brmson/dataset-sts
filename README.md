@@ -92,6 +92,8 @@ in full in this Git repository:
 
   * [X] **argus/** Argus Dataset (Yes/No Question vs. News Headline)
 
+  * [ ] [AskUbuntu StackOverflow Similar Questions](https://github.com/taolei87/rcnn)
+
 TODO: We should explain also the nature of the datasets - size, their exact
 *f_b* definition, or whether contradictions occur.
 
@@ -165,6 +167,8 @@ after some datacrunching; post-processed dataset submissions welcome!
 
 (dos Santos, 2015) http://www.aclweb.org/anthology/P15-2114 used two
 communities (Ask Ubuntu and English) to benchmark some similarity models.
+He recommended using the https://github.com/taolei87/rcnn dataset instead,
+but there is a lot more to mine.
 
 
 Algorithm References

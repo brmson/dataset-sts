@@ -55,6 +55,9 @@ Model Wishlist
   * Trivial Averaging Model!  Would make sense to set a per-task total baseline,
     reproduce [(Yu, 1412.1632)](http://arxiv.org/abs/1412.1632)
     as well as for example [Deep Averaging Networks](http://cs.umd.edu/~miyyer/pubs/2015_acl_dan.pdf)
+  * [Attentive Pooling Networks](http://arxiv.org/abs/1602.03609)
+  * [Reasoning about Entailment with Neural Attention](http://arxiv.org/abs/1509.06664)
+  * [Denoising Bodies to Titles: Retrieving Similar Questions with Recurrent Convolutional Models](http://arxiv.org/abs/1512.05726)
   * [Learning Hybrid Representations to Retrieve Semantically Equivalent Questions](http://www.aclweb.org/anthology/P15-2114)
   * [Learning to Rank Short Text Pairs with Convolutional Deep Neural Networks](http://disi.unitn.it/~severyn/papers/sigir-2015-long.pdf)
   * [Tree-LSTM](http://arxiv.org/abs/1503.00075)
