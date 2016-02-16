@@ -77,6 +77,9 @@ same question, etc.
 
   * [X] **msr/** MSR Paraphrase Dataset (TODO: pysts manipulation tools)
 
+  * [ ] [PPDB: The Paraphrase Database](http://www.cis.upenn.edu/~ccb/ppdb/)
+    contains only short phrase snippets, but tens of millions of pairs
+
   * [ ] [AskUbuntu StackOverflow Similar Questions](https://github.com/taolei87/rcnn)
 
   * [ ] More [Stack Exchange](https://archive.org/details/stackexchange) data?
