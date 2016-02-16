@@ -1,5 +1,5 @@
 """
-An Answer Sentence Selection classifier that aims to reproduce the attention-based
+A model that aims to reproduce the attention-based
 RNN/CNN combined architecture of http://arxiv.org/abs/1511.04108.
 
 The architecture uses gated RNN for input preprocessing, CNN to generate

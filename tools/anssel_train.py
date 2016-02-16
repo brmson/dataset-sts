@@ -10,7 +10,7 @@ This applies the given text similarity model to the anssel task.
 Extra input pre-processing is done:
 Rather than relying on the hack of using the word overlap counts as additional
 features for final classification, individual tokens are annotated by overlap
-features and that's passed to the GRU along with the embeddings.
+features and that's passed to the model along with the embeddings.
 
 Final comparison of summary embeddings is by default performed by
 a multi-layered perceptron with elementwise products and sums as the input,

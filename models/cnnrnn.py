@@ -1,5 +1,5 @@
 """
-An Answer Sentence Selection classifier that follows Fariz Rahman's approach
+A model that follows Fariz Rahman's approach
 popular in Keras examples of combining CNN + RNN for text classification.
 
 Performance:
