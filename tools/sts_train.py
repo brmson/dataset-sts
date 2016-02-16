@@ -4,7 +4,7 @@ Train a KeraSTS model on the Semantic Text Similarity task.
 
 Usage: tools/sts_train.py MODEL TRAINDATA... -- VALDATA... [-- PARAM=VALUE...]
 
-Example: tools/sts_train.py rnn sts/all/201[0-4]* -- sts/all/2015*
+Example: tools/sts_train.py rnn data/sts/semeval-sts/all/201[0-4]* -- data/sts/semeval-sts/all/2015*
 
 This applies the given text similarity model to the sts task.
 Extra input pre-processing is done:

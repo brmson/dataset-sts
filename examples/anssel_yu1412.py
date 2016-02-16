@@ -13,12 +13,12 @@ Prerequisites:
     * Get glove.6B.50d.txt from http://nlp.stanford.edu/projects/glove/
 
 Performance:
-    * anssel-wang train-all (c.f. http://aclweb.org/aclwiki/index.php?title=Question_Answering_(State_of_the_art)):
+    * anssel/wang train-all (c.f. http://aclweb.org/aclwiki/index.php?title=Question_Answering_(State_of_the_art)):
         Train Accuracy: raw 0.707709 (y=0 0.684140, y=1 0.731279), bal 0.707709
         Train MRR: 0.715685  (on training set, y=0 is subsampled!)
         Test Accuracy: raw 0.681692 (y=0 0.689280, y=1 0.645161), bal 0.667221
         Test MRR: 0.671137
-    * anssel-yodaqa:
+    * anssel/yodaqa:
         Train Accuracy: raw 0.736470 (y=0 0.721243, y=1 0.751696), bal 0.736470
         Train MRR: 0.490585  (on training set, y=0 is subsampled!)
         Test Accuracy: raw 0.634714 (y=0 0.640241, y=1 0.540921), bal 0.590581
@@ -26,7 +26,7 @@ Performance:
 
 (N.B. (Yu, 2014) also trains a second-level classifier that combines
 this similarity with |common_keywords|.  We don't do that here - exercise
-for the reader, yields state-of-art-2014 MRR on anssel-wang!)
+for the reader, yields state-of-art-2014 MRR on anssel/wang!)
 
 A more complicated implementation of this script lives in
 https://github.com/brmson/Sentence-selection
@@ -64,11 +64,11 @@ if __name__ == "__main__":
 
     glove = emb.GloVe(N=args.N)
     if args.wang == 1:
-        Xtrain, ytrain = load_set(glove, 'anssel-wang/train-all.csv', balance=(args.balance == 1))
-        Xtest, ytest = load_set(glove, 'anssel-wang/test.csv', subsample0=1)
+        Xtrain, ytrain = load_set(glove, 'data/anssel/wang/train-all.csv', balance=(args.balance == 1))
+        Xtest, ytest = load_set(glove, 'data/anssel/wang/test.csv', subsample0=1)
     else:
-        Xtrain, ytrain = load_set(glove, 'anssel-yodaqa/curatedv1-training.csv', balance=(args.balance == 1))
-        Xtest, ytest = load_set(glove, 'anssel-yodaqa/curatedv1-val.csv', subsample0=1)
+        Xtrain, ytrain = load_set(glove, 'data/anssel/yodaqa/curatedv1-training.csv', balance=(args.balance == 1))
+        Xtest, ytest = load_set(glove, 'data/anssel/yodaqa/curatedv1-val.csv', subsample0=1)
 
     logreg = linear_model.LogisticRegression(C=0.01, verbose=1, n_jobs=7)
     logreg.fit(logreg_M(*Xtrain), ytrain)

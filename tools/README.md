@@ -17,7 +17,7 @@ Answer Sentence Selection
 
   * **annssel_train.py** to train a model and evaluate on validation/dev set:
 
-	tools/anssel_train.py attn1511 anssel-wang/train-all.csv anssel-wang/dev.csv
+	tools/anssel_train.py attn1511 data/anssel/wang/train-all.csv data/anssel/wang/dev.csv
 
   * **anssel_treceval.py** to measure anssel performance using the official
     ``trec_eval`` tool
@@ -37,4 +37,4 @@ output is a number between 0 and 5 and Pearson correlation is the metric.
 
   * **sts_train.py** to train a model on 2012-2014 and evaluate on 2015:
 
-	tools/sts_train.py rnn sts/all/201[0-4]* -- sts/all/2015*
+	tools/sts_train.py rnn data/sts/semeval-sts/all/201[0-4]* -- data/sts/semeval-sts/all/2015*

@@ -142,7 +142,7 @@ def load_sts(dsfile, skip_unlabeled=True):
 def concat_datasets(datasets):
     """ Concatenate multiple loaded datasets into a single large one.
 
-    Example: s0, s1, lab = concat_datasets([load_sts(d) for glob.glob('sts/all/201[0-4]*')]) """
+    Example: s0, s1, lab = concat_datasets([load_sts(d) for glob.glob('data/sts/semeval-sts/all/201[0-4]*')]) """
     s0 = []
     s1 = []
     labels = []

@@ -75,7 +75,7 @@ These datasets are about binary classification of independent sentence
 for example if they describe the same event (with same data), ask the
 same question, etc.
 
-  * [X] **msr/** MSR Paraphrase Dataset (TODO: pysts manipulation tools)
+  * [X] **data/para/msr/** MSR Paraphrase Dataset (TODO: pysts manipulation tools)
 
   * [ ] [PPDB: The Paraphrase Database](http://www.cis.upenn.edu/~ccb/ppdb/)
     contains only short phrase snippets, but tens of millions of pairs
@@ -92,10 +92,10 @@ These datasets consider the semantic similarity of independent pairs of texts
 of assigning a number between 0 to 5 to each pair denoting the level of
 similarity/entailment.
 
-  * [X] **sts/** SemEval STS Task - multiple years, each covers a bunch of
+  * [X] **data/sts/semeval-sts/** SemEval STS Task - multiple years, each covers a bunch of
     topics that share the same precise similarity metric definition
 
-  * [X] **sick2014/** SemEval SICK2014 Task
+  * [X] **data/sts/sick2014/** SemEval SICK2014 Task
 
   * [ ] [SemEval 2014 Cross-level Semantic Similarity Task](http://alt.qcri.org/semeval2014/task3/index.php?id=data-and-tools)
     (TODO; 500 paragraph-to-sentence training items)
@@ -105,7 +105,7 @@ similarity/entailment.
 These datasets classify independent pairs of "hypothesis" and "fact"
 sentences as entailment, contradiction or unknown.
 
-  * [X] **sick2014/** SemEval SICK2014 Task also includes entailment data
+  * [X] **data/rte/sick2014/** SemEval SICK2014 Task also includes entailment data
 
   * [ ] [The Stanford Natural Language Inference (SNLI) Corpus](http://nlp.stanford.edu/projects/snli/)
 (570k pairs dataset for an RTE-type task).
@@ -124,9 +124,9 @@ Typically, S0 is a question and S1 are potentially-answer-bearing passages
 to consider; see anssel-yodaqa).  However, other scenarios are possible, like
 the Ubuntu Dialogue Corpus where S1 are dialogue followups to S0.
 
-  * [X] **anssel-wang/** Answer Sentence Selection - original Wang dataset
+  * [X] **data/anssel/wang/** Answer Sentence Selection - original Wang dataset
 
-  * [X] **anssel-yodaqa/** Answer Sentence Selection - YodaQA-based
+  * [X] **data/anssel/yodaqa/** Answer Sentence Selection - YodaQA-based
 
   * [ ] [InsuranceQA Dataset](https://github.com/shuzi/insuranceQA)
 (used in recent IBM papers, 25k question-answer pairs; unclear licencing)
@@ -144,7 +144,7 @@ Similar to the "Answer Sentence Selection" task, these datasets need to
 consider a variety of S1 given a fixed S0 - the desired output should be
 however a judgement about S0 alone (typically true / false).
 
-  * [X] **argus/** Argus Dataset (Yes/No Question vs. News Headline)
+  * [X] **data/hypev/argus/** Argus Dataset (Yes/No Question vs. News Headline)
 
   * [ ] bAbI has a variety of datasets, especially re memory networks (memory
 relevant to a given question), though with an extremely limited vocabulary.
@@ -201,7 +201,7 @@ Algorithm References
 
 Here, we refer to some interesting models for sentence pair classification.
 We focus mainly on papers that consider multiple datasets or are hard to find;
-you can read e.g. about STS winners on the STS wiki or about anssel-wang models
+you can read e.g. about STS winners on the STS wiki or about anssel/wang models
 on the ACL wiki.
 
   * https://github.com/alvations/stasis contains several baselines and another

@@ -5,7 +5,7 @@ using the original trec_eval tool.
 
 Usage: tools/anssel_treceval.py MODEL WEIGHTSFILE TRAINDATA VALDATA TREC_QRELS_FILE TREC_TOP_FILE [PARAM=VALUE]...
 Example:
-    tools/anssel_treceval.py cnn weights-bestval.h5 anssel-wang/train-all.csv anssel-wang/dev.csv /tmp/ground.txt /tmp/res.txt dropout=2/3 l2reg=1e-4
+    tools/anssel_treceval.py cnn weights-bestval.h5 data/anssel/wang/train-all.csv data/anssel/wang/dev.csv /tmp/ground.txt /tmp/res.txt dropout=2/3 l2reg=1e-4
     trec_eval.8.1/trec_eval /tmp/ground.txt /tmp/res.txt
 """
 

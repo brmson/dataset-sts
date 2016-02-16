@@ -27,7 +27,7 @@ importantly, we want to let Turkers update the gold standard answer regex.)
 Older Datasets
 --------------
 
-The academic standard up to now stems from **anssel-wang** - the TREC-based
+The academic standard up to now stems from **anssel/wang** - the TREC-based
 dataset originally by Wang et al., 2007, in the form by Yao et al., 2013.
 However, this dataset seems to be quite easy as the ratio of relevant snippets
 is high and they are often pretty short.

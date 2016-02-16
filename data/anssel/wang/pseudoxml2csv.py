@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Convert the Jacana/Heilman(?) style pseudo-XML files to simple CSVs.
-# Example: anssel-wang/pseudoxml2csv.py ../jacana-data/dev-less-than-40.xml anssel-wang/dev.csv
+# Example: data/anssel/wang/pseudoxml2csv.py ../jacana-data/dev-less-than-40.xml data/anssel/wang/dev.csv
 
 import csv
 import sys

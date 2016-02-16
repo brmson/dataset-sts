@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-An example sts2015/sick2014 classifier using the (Tai, 2015) approach
+An example anssel classifier using the (Tai, 2015) approach
 http://arxiv.org/abs/1503.00075 with mean vectors and model as in 4.2,
 using the awesome Keras deep learning library.
 
@@ -86,11 +86,11 @@ if __name__ == "__main__":
 
     glove = emb.GloVe(N=args.N)
     if args.wang == 1:
-        Xtrain, ytrain = load_set(glove, 'anssel-wang/train-all.csv', balance=(args.balance == 1))
-        Xtest, ytest = load_set(glove, 'anssel-wang/test.csv', subsample0=1)
+        Xtrain, ytrain = load_set(glove, 'data/anssel/wang/train-all.csv', balance=(args.balance == 1))
+        Xtest, ytest = load_set(glove, 'data/anssel/wang/test.csv', subsample0=1)
     else:
-        Xtrain, ytrain = load_set(glove, 'anssel-yodaqa/curatedv1-training.csv', balance=(args.balance == 1))
-        Xtest, ytest = load_set(glove, 'anssel-yodaqa/curatedv1-val.csv', subsample0=1)
+        Xtrain, ytrain = load_set(glove, 'data/anssel/yodaqa/curatedv1-training.csv', balance=(args.balance == 1))
+        Xtest, ytest = load_set(glove, 'data/anssel/yodaqa/curatedv1-val.csv', subsample0=1)
 
     model = prep_model(glove)
     model.compile(loss={'score': 'binary_crossentropy'}, optimizer='adam')

@@ -125,11 +125,11 @@ if __name__ == "__main__":
 
     glove = emb.GloVe(N=args.N)
     if args.wang == 1:
-        s0, s1, y, vocab, gr = load_set('anssel-wang/train-all.csv')
-        s0t, s1t, yt, _, grt = load_set('anssel-wang/dev.csv', vocab)
+        s0, s1, y, vocab, gr = load_set('data/anssel/wang/train-all.csv')
+        s0t, s1t, yt, _, grt = load_set('data/anssel/wang/dev.csv', vocab)
     else:
-        s0, s1, y, vocab, gr = load_set('anssel-yodaqa/curatedv1-training.csv')
-        s0t, s1t, yt, _, grt = load_set('anssel-yodaqa/curatedv1-val.csv', vocab)
+        s0, s1, y, vocab, gr = load_set('data/anssel/yodaqa/curatedv1-training.csv')
+        s0t, s1t, yt, _, grt = load_set('data/anssel/yodaqa/curatedv1-val.csv', vocab)
 
     kwargs = eval('dict(' + args.params + ')')
     model = prep_model(glove, vocab, oact='linear', **kwargs)

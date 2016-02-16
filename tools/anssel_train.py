@@ -4,7 +4,7 @@ Train a KeraSTS model on the Answer Sentence Selection task.
 
 Usage: tools/anssel_train.py MODEL TRAINDATA VALDATA [PARAM=VALUE]...
 
-Example: tools/anssel_train.py cnn anssel-wang/train-all.csv anssel-wang/dev.csv inp_e_dropout=1/2
+Example: tools/anssel_train.py cnn data/anssel/wang/train-all.csv data/anssel/wang/dev.csv inp_e_dropout=1/2
 
 This applies the given text similarity model to the anssel task.
 Extra input pre-processing is done:

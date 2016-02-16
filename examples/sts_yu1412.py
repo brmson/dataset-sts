@@ -82,11 +82,11 @@ if __name__ == "__main__":
 
     glove = emb.GloVe(N=args.N)
     if args.sick == 1:
-        Xtrain, ytrain = load_set(glove, 'sick2014/SICK_train.txt', loader.load_sick2014)
-        Xtest, ytest = load_set(glove, 'sick2014/SICK_test_annotated.txt', loader.load_sick2014)
+        Xtrain, ytrain = load_set(glove, 'data/sts/sick2014/SICK_train.txt', loader.load_sick2014)
+        Xtest, ytest = load_set(glove, 'data/sts/sick2014/SICK_test_annotated.txt', loader.load_sick2014)
     else:
-        Xtrain, ytrain = load_set(glove, 'sts/all/201[0-4]*')
-        Xtest, ytest = load_set(glove, 'sts/all/2015*')
+        Xtrain, ytrain = load_set(glove, 'data/sts/semeval-sts/all/201[0-4]*')
+        Xtest, ytest = load_set(glove, 'data/sts/semeval-sts/all/2015*')
 
     model = prep_model(glove)
     model.compile(loss='categorical_crossentropy', optimizer='adam')
