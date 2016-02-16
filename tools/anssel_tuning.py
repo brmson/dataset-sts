@@ -51,7 +51,7 @@ if __name__ == "__main__":
         model.fit(gr, validation_data=grt,
                   callbacks=[AnsSelCB(s0t, grt),
                              ModelCheckpoint('weights-'+runid+'.h5', save_best_only=True, monitor='mrr', mode='max'),
-                             EarlyStopping(monitor='mrr', mode='max', patience=1)],
+                             EarlyStopping(monitor='mrr', mode='max', patience=4)],
                   batch_size=160, nb_epoch=16, samples_per_epoch=5000)
         # mrr = max(hist.history['mrr'])
         model.load_weights('weights-'+runid+'.h5')
