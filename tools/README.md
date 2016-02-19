@@ -27,6 +27,15 @@ Answer Sentence Selection
   * **anssel-visual.ipynb** showcases IPython/Jupyter notebook for model
     development and visualizing attention models using a token heatmap
 
+The Ubuntu dialogue corpus is the same task, but uses dedicated scripts to be
+able to process large datasets:
+
+  * **ubuntu_train.py** to train a model and evaluate on validation/dev set:
+
+	tools/ubuntu_train.py rnn data/anssel/ubuntu/v1-vocab.pickle data/anssel/ubuntu/v1-trainset.pickle data/anssel/ubuntu/v1-valset.pickle
+
+    (see instructions on top of the file re preprocessing csv to the pickle files)
+
 
 Semantic Text Similarity Task
 -----------------------------
