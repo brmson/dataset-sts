@@ -1,7 +1,7 @@
 KeraSTS Training and Evaluation Tools
 =====================================
 
-Along with the datasets, we ship a variety of models that implement the *f_b*
+Along with the datasets, we ship a variety of models that implement the *f_2*
 text similarity functions.  These models should be task-independent, and they
 can be run and applied on a specific task (family of datasets) using the tools
 below.

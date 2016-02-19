@@ -4,17 +4,17 @@ Semantic Text Similarity Dataset Hub
 A typical NLP machine learning task involves classifying a sequence of tokens
 such as a sentence or a document, i.e. approximating a function
 
-	f_a(s) ∈ [0,1]
+	f_1(s) ∈ [0,1]
 
-(where *f_a* may determine a domain, sentiment, etc.).  But there is a large
+(where *f_1* may determine a domain, sentiment, etc.).  But there is a large
 class of problems that are often harder and involve classifying a *pair* of
 sentences:
 
-	f_b(s1, s2) ∈ [0,1]*c
+	f_2(s1, s2) ∈ [0,1]*c
 
 (where s1, s2 are sequences of tokens and c is a rescaling factor like c=5).
 
-Typically, the function *f_b* denotes some sort of **semantic similarity**,
+Typically, the function *f_2* denotes some sort of **semantic similarity**,
 that is whether (or how much) the two parameters "say the same thing".
 (However, the function could do something else - like classify entailment
 or contradiction or just topic relatedness.  We may include such datasets
@@ -22,7 +22,7 @@ as well.)
 
 This repo aims to gather a variety of standard datasets and tools for training
 and evaluating such models in a single place, with the base belief that it
-should be possible to build generic models for *f_b* that aren't tailored to
+should be possible to build generic models for *f_2* that aren't tailored to
 particular tasks (and even multitask learning should be possible).
 
 Most of the datasets are pre-existing; text similarity datasets that may be
@@ -35,7 +35,7 @@ a function...
 references or attributions.  Please let us know if we misread some licence
 terms and shouldn't be including something, we'll take that down right away!**
 
-Pull request that include simple baselines for *f_b* models are also welcome.
+Pull request that include simple baselines for *f_2* models are also welcome.
 (Simple == they fit in a couple of screenfuls of code and are batch-runnable.
 Python is preferred, but not mandatory.)
 
@@ -207,7 +207,7 @@ on the ACL wiki, about RTE models on the SNLI page.
   * https://github.com/alvations/stasis contains several baselines and another
     view of the datasets (incl. the CLSS task)
   * https://github.com/ryankiros/skip-thoughts
-  * Standard memory networks (MemNN, MemN2N) are in fact *f_b* models at their
+  * Standard memory networks (MemNN, MemN2N) are in fact *f_2* models at their
     core; very similar to http://arxiv.org/abs/1412.1632
 
 Licence and Attribution
@@ -219,5 +219,5 @@ use only.  Default licence for anything else in this repository is ASLv2 for
 the code, CC-BY 4.0 for data.
 
 There should be a paper on this conglomerate of datasets (and comparison of
-*f_b* metrics) to cite soon!  (As of Jan 2016.)  Watch this space for the
+*f_2* metrics) to cite soon!  (As of Jan 2016.)  Watch this space for the
 reference when it's done.
