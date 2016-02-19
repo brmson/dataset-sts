@@ -6,19 +6,30 @@ embeddings.
 
 from __future__ import print_function
 
+from collections import defaultdict
+import numpy as np
+from operator import itemgetter
+
 from keras.layers.embeddings import Embedding
 from keras.preprocessing.sequence import pad_sequences
-
-import numpy as np
 
 
 class Vocabulary:
     """ word-to-index mapping, token sequence mapping tools and
     embedding matrix construction tools """
-    def __init__(self, sentences):
-        """ build a vocabulary from given list of sentences """
+    def __init__(self, sentences, count_thres=1):
+        """ build a vocabulary from given list of sentences, but including
+        only words occuring at least #count_thres times """
 
-        vocab = sorted(list(set([t for s in sentences for t in s])))
+        # Counter() is superslow :(
+        vocabset = defaultdict(int)
+        for s in sentences:
+            for t in s:
+                vocabset[t] += 1
+
+        vocab = sorted(list(map(itemgetter(0),
+                                filter(lambda k: itemgetter(1)(k) >= count_thres,
+                                       vocabset.items() ) )))
         self.word_idx = dict((w, i + 2) for i, w in enumerate(vocab))
         self.word_idx['_PAD_'] = 0
         self.word_idx['_OOV_'] = 1
