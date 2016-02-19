@@ -40,7 +40,10 @@ class Vocabulary:
         """ build an spad-ed matrix of word indices from a list of
         token sequences """
         silist = [[self.word_idx.get(t, 1) for t in s] for s in slist]
-        return pad_sequences(silist, maxlen=spad, truncating='post', padding='post') 
+        if spad is not None:
+            return pad_sequences(silist, maxlen=spad, truncating='post', padding='post') 
+        else:
+            return silist
 
     def embmatrix(self, emb):
         """ generate index-based embedding matrix from embedding class emb
