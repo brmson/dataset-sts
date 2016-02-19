@@ -146,10 +146,18 @@ however a judgement about S0 alone (typically true / false).
 
   * [X] **data/hypev/argus/** Argus Dataset (Yes/No Question vs. News Headline)
 
+  * [ ] [AI2 8th Grade Science Questions](http://allenai.org/data.html)
+are 641 school Science quiz questions (A/B/C/D test format), stemming from
+[The Allen AI Science Challenge](https://www.kaggle.com/c/the-allen-ai-science-challenge/)
+We are going to produce a dataset that merges questions and answers in a single
+sentence, and pairs each with potential-evidencing sentences from Wikipedia and
+CK12 textbooks.  This will be probably the hardest dataset by far included in
+this repo for some time.  (We may also want to include the Elementary dataset.)
+
   * [ ] bAbI has a variety of datasets, especially re memory networks (memory
 relevant to a given question), though with an extremely limited vocabulary.
 
-  * [ ] Various "Entrance Exam" tasks solving multiple-choice school tests.
+  * [ ] More "Entrance Exam" tasks solving multiple-choice school tests.
 
 
 Other Datasets
@@ -187,22 +195,14 @@ Payment required.
   * [ ] [TAC tracks RTE-4 to RTE-7](http://www.nist.gov/tac/data/).
 Printed user agreement required.
 
-  * [ ] [The Allen AI Science Challenge](https://www.kaggle.com/c/the-allen-ai-science-challenge/)
-derived dataset combines question+answer in a single sentence and pairs it with relevant
-sentences extracted from textbooks and Wikipedia.  The resulting dataset makes
-it possible for humans to answer many (not nearly all!) of the questions, but
-is very hard for machine models as it often requires significant world modelling
-and reasoning.  This dataset had been Kaggle-only, but a more limited few
-hundreds questions dataset has been promised to be released publicly soon.
-
 
 Algorithm References
 --------------------
 
 Here, we refer to some interesting models for sentence pair classification.
 We focus mainly on papers that consider multiple datasets or are hard to find;
-you can read e.g. about STS winners on the STS wiki or about anssel/wang models
-on the ACL wiki.
+you can read e.g. about STS winners on the STS wiki, about anssel/wang models
+on the ACL wiki, about RTE models on the SNLI page.
 
   * https://github.com/alvations/stasis contains several baselines and another
     view of the datasets (incl. the CLSS task)
