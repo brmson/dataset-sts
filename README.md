@@ -133,7 +133,7 @@ the Ubuntu Dialogue Corpus where S1 are dialogue followups to S0.
 
   * [ ] Property Path Selection (based on WebQuestions + YodaQA; TODO)
 
-  * [X] **data/anssel/ubuntu/** [The Ubuntu Dialogue Corpus](http://cs.mcgill.ca/~jpineau/datasets/ubuntu-corpus-1.0/)
+  * [X] **data/anssel/ubuntu/** The Ubuntu Dialogue Corpus
 contains pairs of sequences where the second sentence is a candidate for being
 a followup in a community techsupport chat dialog.  10M pairs make this
 awesome.

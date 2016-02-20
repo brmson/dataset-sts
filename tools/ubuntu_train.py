@@ -4,7 +4,7 @@ Train a KeraSTS model on the Ubuntu Dialogue task.
 
 Usage: tools/ubuntu_train.py MODEL VOCAB TRAINDATA VALDATA [PARAM=VALUE]...
 
-Example: tools/ubuntu_train.py cnn data/anssel/ubuntu/v1-vocab.pickle data/anssel/ubuntu/v1-trainset.pickle data/anssel/ubuntu/v1-valset.pickle
+Example: tools/ubuntu_train.py cnn data/anssel/ubuntu/v2-vocab.pickle data/anssel/ubuntu/v2-trainset.pickle data/anssel/ubuntu/v2-valset.pickle
 
 See coments in anssel_train.py.
 
@@ -13,9 +13,9 @@ size - pass e.g. batch_size=128.  To speed up training, you may want to
 conversely bump the batch_size if you have a smaller model (e.g. cnn).
 
 First, you must however run:
-    tools/ubuntu_preprocess.py --revocab data/anssel/ubuntu/v1-trainset.csv data/anssel/ubuntu/v1-trainset.pickle data/anssel/ubuntu/v1-vocab.pickle
-    tools/ubuntu_preprocess.py data/anssel/ubuntu/v1-valset.csv data/anssel/ubuntu/v1-valset.pickle data/anssel/ubuntu/v1-vocab.pickle
-    tools/ubuntu_preprocess.py data/anssel/ubuntu/v1-testset.csv data/anssel/ubuntu/v1-testset.pickle data/anssel/ubuntu/v1-vocab.pickle
+    tools/ubuntu_preprocess.py --revocab data/anssel/ubuntu/v2-trainset.csv data/anssel/ubuntu/v2-trainset.pickle data/anssel/ubuntu/v2-vocab.pickle
+    tools/ubuntu_preprocess.py data/anssel/ubuntu/v2-valset.csv data/anssel/ubuntu/v2-valset.pickle data/anssel/ubuntu/v2-vocab.pickle
+    tools/ubuntu_preprocess.py data/anssel/ubuntu/v2-testset.csv data/anssel/ubuntu/v2-testset.pickle data/anssel/ubuntu/v2-vocab.pickle
 (N.B. this will include only the first 1M samples of the train set).
 
 (TODO: Make these downloadable.)

@@ -2,3 +2,9 @@ ubuntu_csvfiles/
 ubuntu_dataset.*
 v1-*.csv
 v1-*.pickle
+Ubuntu-Dialogue-Generationv2/
+
+ubuntu-ranking-dataset-creator/
+tweetmotif/
+v2-*.csv
+v2-*.pickle
