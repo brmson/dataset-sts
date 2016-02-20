@@ -39,6 +39,9 @@ able to process large datasets:
   * **ubuntu_eval.py** to produce evaluation metrics including those used in
     past papers (1-in-k Recall@N)
 
+  * **ubuntu-visual.ipynb** is a simple transposition of anssel-visual for
+    attention visualization on the Ubuntu corpus
+
 
 Semantic Text Similarity Task
 -----------------------------
