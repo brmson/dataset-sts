@@ -63,4 +63,4 @@ Model Wishlist
   * [Learning to Rank Short Text Pairs with Convolutional Deep Neural Networks](http://disi.unitn.it/~severyn/papers/sigir-2015-long.pdf)
   * [Tree-LSTM](http://arxiv.org/abs/1503.00075)
   * [Deep Averaging Networks](http://cs.umd.edu/~miyyer/pubs/2015_acl_dan.pdf)
-    should be a trivial extension of avg
+    should be a trivial extension of avg; just word-level dropout is required

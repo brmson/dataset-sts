@@ -14,7 +14,7 @@ import pysts.kerasts.blocks as B
 def config(c):
     c['l2reg'] = 1e-5
 
-    c['deep'] = 3
+    c['deep'] = 0
     c['nnact'] = 'relu'
     c['nninit'] = 'glorot_uniform'
 
