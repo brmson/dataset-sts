@@ -8,6 +8,10 @@ Example: tools/ubuntu_train.py cnn data/anssel/ubuntu/v1-vocab.pickle data/ansse
 
 See coments in anssel_train.py.
 
+If this crashes due to out-of-memory error, you'll need to lower the batch
+size - pass e.g. batch_size=128.  To speed up training, you may want to
+conversely bump the batch_size if you have a smaller model (e.g. cnn).
+
 First, you must however run:
     tools/ubuntu_preprocess.py --revocab data/anssel/ubuntu/v1-trainset.csv data/anssel/ubuntu/v1-trainset.pickle data/anssel/ubuntu/v1-vocab.pickle
     tools/ubuntu_preprocess.py data/anssel/ubuntu/v1-valset.csv data/anssel/ubuntu/v1-valset.pickle data/anssel/ubuntu/v1-vocab.pickle
@@ -106,6 +110,7 @@ def config(module_config, params):
     c['mlpsum'] = 'sum'
     c['Ddim'] = 1
 
+    c['batch_size'] = 192
     c['loss'] = ranknet
     module_config(c)
 
@@ -117,7 +122,7 @@ def config(module_config, params):
     return c, ps, h
 
 
-def sample_pairs(gr, c, batch_size=256, once=False):
+def sample_pairs(gr, c, batch_size, once=False):
     """ A generator that produces random pairs from the dataset """
     # XXX: We drop the last few samples if (1e6 % batch_size != 0)
     # XXX: We never swap samples between batches, does it matter?
@@ -139,7 +144,7 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt):
     model = anssel_train.build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad)
 
     print('Training')
-    model.fit_generator(sample_pairs(gr, c),
+    model.fit_generator(sample_pairs(gr, c, c['batch_size']),
                         callbacks=[#ValSampleCB(grt, c),  # loss function & ubuntu metrics
                                    AnsSelCB(grt['si0'], grt),  # MRR
                                    ModelCheckpoint('ubu-weights-'+runid+'-bestval.h5', save_best_only=True, monitor='mrr', mode='max')],
