@@ -50,7 +50,7 @@ import pysts.kerasts.blocks as B
 
 
 def config(c):
-    c['dropout'] = 3/3
+    c['dropout'] = 3/4
     c['l2reg'] = 1e-4
 
     c['rnnbidi'] = True
