@@ -36,6 +36,9 @@ able to process large datasets:
 
     (see instructions on top of the file re preprocessing csv to the pickle files)
 
+  * **ubuntu_eval.py** to produce evaluation metrics including those used in
+    past papers (1-in-k Recall@N)
+
 
 Semantic Text Similarity Task
 -----------------------------

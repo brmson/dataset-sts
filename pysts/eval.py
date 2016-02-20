@@ -31,12 +31,11 @@ def binclass_accuracy(y, ypred):
     return (rawacc, y0acc, y1acc, balacc)
 
 
-def mrr(s0, y, ypred):
+def aggregate_s0(s0, y, ypred, k=None):
     """
-    Compute MRR (mean reciprocial rank) of y-predictions, by grouping
-    y-predictions for the same s0 together.  This metric is relevant
-    e.g. for the "answer sentence selection" task where we want to
-    identify and take top N most relevant sentences.
+    Generate tuples (s0, [(y, ypred), ...]) where the list is sorted
+    by the ypred score.  This is useful for a variety of list-based
+    measures in the "anssel"-type tasks.
     """
     ybys0 = dict()
     for i in range(len(s0)):
@@ -49,9 +48,34 @@ def mrr(s0, y, ypred):
         else:
             ybys0[s0is] = [(y[i], ypred[i])]
 
+    for s, yl in ybys0.items():
+        if k is not None:
+            yl = yl[:k]
+        ys = sorted(yl, key=lambda yy: yy[1], reverse=True)
+        yield (s, ys)
+
+
+def recall_at(s0, y, ypred, N, k=None):
+    """
+    Compute Recall@N, that is, the expected probability of whether
+    y==1 is within the top N samples sorted by ypred, considering first
+    k samples in dataset (per each s0).
+    """
+    acc = []
+    for s, ys in aggregate_s0(s0, y, ypred, k):
+        acc.append(np.sum([yy[0] for yy in ys[:N]]) > 0)
+    return np.mean(acc)
+
+
+def mrr(s0, y, ypred):
+    """
+    Compute MRR (mean reciprocial rank) of y-predictions, by grouping
+    y-predictions for the same s0 together.  This metric is relevant
+    e.g. for the "answer sentence selection" task where we want to
+    identify and take top N most relevant sentences.
+    """
     rr = []
-    for s in ybys0.keys():
-        ys = sorted(ybys0[s], key=lambda yy: yy[1], reverse=True)
+    for s, ys in aggregate_s0(s0, y, ypred):
         if np.sum([yy[0] for yy in ys]) == 0:
             continue  # do not include s0 with no right answers in MRR
         # to get rank, if we are in a larger cluster of same-scored sentences,
@@ -97,5 +121,17 @@ def eval_anssel(ypred, s0, y, name):
     rawacc, y0acc, y1acc, balacc = binclass_accuracy(y, ypred)
     mrr_ = mrr(s0, y, ypred)
     print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
-    print('%s MRR: %f  %s' % (name, mrr_, '(on training set, y=0 is subsampled!)' if name == 'Train' else ''))
+    print('%s MRR: %f  %s' % (name, mrr_, '(on training set, y=0 may be subsampled!)' if name == 'Train' else ''))
     return mrr_
+
+
+def eval_ubuntu(ypred, s0, y, name):
+    mrr_ = mrr(s0, y, ypred)
+    r1_2 = recall_at(s0, y, ypred, N=1, k=2)
+    r1_10 = recall_at(s0, y, ypred, N=1)
+    r2_10 = recall_at(s0, y, ypred, N=2)
+    r5_10 = recall_at(s0, y, ypred, N=5)
+    print('%s MRR: %f' % (name, mrr_))
+    print('%s 2-R@1: %f' % (name, r1_2))
+    print('%s 10-R@1: %f  10-R@2: %f  10-R@5: %f' % (name, r1_10, r2_10, r5_10))
+    return (mrr_, r1_2, r1_10, r2_10, r5_10)
