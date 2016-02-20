@@ -45,6 +45,23 @@ Run these commands in this (data/anssel/ubuntu/) directory:
 	./preprocess.py ubuntu-ranking-dataset-creator/src/valid.csv v2-valset.csv test
 	./preprocess.py ubuntu-ranking-dataset-creator/src/test.csv v2-testset.csv test
 
+There are no officially published reference results on the v2.0 corpus yet
+(Feb 2016), but Ryan Lowe kindly shared the results of the originally published
+baselines on the new corpus:
+
+	TF-IDF:
+	2-R@1: 0.749260042283
+	10-R@1: 0.48810782241  10-R@2: 0.587315010571  10-R@5: 0.763054968288
+
+	RNN:
+	2-R@1: 0.776539210705
+	10-R@1: 0.379139142954  10-R@2: 0.560689786585  10-R@5: 0.836350355691
+
+	LSTM:
+	2-R@1: 0.868730970907
+	10-R@1: 0.552213717862  10-R@2: 0.72099120433  10-R@5: 0.924285351827
+
+
 Corpus v1.0
 -----------
 
