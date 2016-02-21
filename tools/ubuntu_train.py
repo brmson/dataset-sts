@@ -111,7 +111,7 @@ def config(module_config, params):
     c['Ddim'] = 1
 
     c['batch_size'] = 192
-    c['loss'] = ranknet
+    c['loss'] = 'binary_crossentropy'
     module_config(c)
 
     for p in params:
