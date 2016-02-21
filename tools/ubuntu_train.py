@@ -50,7 +50,7 @@ import pickle
 import random
 import sys
 
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.core import Activation, Dropout
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 from keras.models import Graph
@@ -147,7 +147,8 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt):
     model.fit_generator(sample_pairs(gr, c, c['batch_size']),
                         callbacks=[#ValSampleCB(grt, c),  # loss function & ubuntu metrics
                                    AnsSelCB(grt['si0'], grt),  # MRR
-                                   ModelCheckpoint('ubu-weights-'+runid+'-bestval.h5', save_best_only=True, monitor='mrr', mode='max')],
+                                   ModelCheckpoint('ubu-weights-'+runid+'-bestval.h5', save_best_only=True, monitor='mrr', mode='max'),
+                                   EarlyStopping(monitor='mrr', mode='max', patience=6)],
                         nb_epoch=32, samples_per_epoch=200000)
     model.save_weights('ubu-weights-'+runid+'-final.h5', overwrite=True)
 
