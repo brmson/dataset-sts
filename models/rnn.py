@@ -63,6 +63,7 @@ def config(c):
 
     c['project'] = True
     c['pdim'] = 2.5
+    c['pact'] = 'linear'
 
     # model-external:
     c['inp_e_dropout'] = 3/4
@@ -82,7 +83,7 @@ def prep_model(model, N, s0pad, s1pad, c):
     if c['project']:
         model.add_shared_node(name='proj', inputs=['e0s_', 'e1s_'], outputs=['e0p', 'e1p'],
                               layer=Dense(input_dim=int(N*c['sdim']), output_dim=int(N*c['pdim']),
-                                          W_regularizer=l2(c['l2reg'])))
+                                          W_regularizer=l2(c['l2reg']), activation=c['pact']))
         # This dropout is controversial; it might be harmful to apply,
         # or at least isn't a clear win.
         # model.add_shared_node(name='projdrop', inputs=['e0p', 'e1p'], outputs=['e0p_', 'e1p_'],
