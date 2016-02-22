@@ -152,6 +152,8 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt):
                         nb_epoch=32, samples_per_epoch=200000)
     model.save_weights('ubu-weights-'+runid+'-final.h5', overwrite=True)
 
+    print('Predict&Eval (best epoch)')
+    model.load_weights('ubu-weights-'+runid+'-bestval.h5')
     ypredt = model.predict(grt)['score'][:,0]
     ev.eval_ubuntu(ypredt, grt['si0'], grt['score'], 'Val')
 

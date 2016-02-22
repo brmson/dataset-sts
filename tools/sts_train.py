@@ -127,6 +127,8 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt):
               batch_size=160, nb_epoch=32)
     model.save_weights('sts-weights-'+runid+'-final.h5', overwrite=True)
 
+    print('Predict&Eval')
+    model.load_weights('sts-weights-'+runid+'-bestval.h5')
     ev.eval_sts(model.predict(gr)['classes'], gr['classes'], 'Train')
     ev.eval_sts(model.predict(grt)['classes'], grt['classes'], 'Val')
 

@@ -138,6 +138,8 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
               batch_size=160, nb_epoch=16, samples_per_epoch=5000)
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
 
+    print('Predict&Eval (best epoch)')
+    model.load_weights('weights-'+runid+'-bestval.h5')
     ev.eval_anssel(model.predict(gr)['score'][:,0], s0, gr['score'], 'Train')
     ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, grt['score'], 'Val')
 
