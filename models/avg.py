@@ -1,5 +1,16 @@
 """
 A simple averaging model.
+
+TODO: Support pre-averaging non-linear projection.  These should help with
+anssel-wang as they could give more weight to per-token overlap features.
+
+
+Performance:
+    * anssel-wang:
+      devMRR=0.738617, testMRR=0.630773, testMAP=0.556700
+
+    * anssel-yodaqa:
+      valMRR=0.334864
 """
 
 from __future__ import print_function
@@ -20,7 +31,7 @@ def config(c):
 
     c['project'] = True
     c['pdim'] = 1
-    c['pact'] = 'linear'
+    c['pact'] = 'tanh'
 
     # model-external:
     c['inp_e_dropout'] = 1/3
