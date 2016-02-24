@@ -18,11 +18,9 @@ The key metric here is MRR when ranking sentences answering the same question
 by their score, but raw accuracy may be also interesting.  The dataset is
 heavily unbalanced!  In our models, we subsample 0-entries as well as
 supersample 1-entries.  First 80% entries result in the training set, last 20%
-is validation set; if you need a dev set (e.g. for early stopping), use last 5%
-of training set.
+is validation set.  The test set is generated from the ``curated-test`` set.
 
-This dataset is subject to change and evolution, hence the ``v1``.  (Most
-importantly, we want to let Turkers update the gold standard answer regex.)
+This dataset is subject to change and evolution, hence the ``v2``.
 
 Older Datasets
 --------------
