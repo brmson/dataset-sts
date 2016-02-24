@@ -182,6 +182,7 @@ def prep_model(model, N, s0pad, s1pad, c):
         model.add_node(name='e1sa', input='e1sa_', layer=Activation('linear'))
         e1_attn = 'e1sa'
     else:
+        awidth = int(N*c['sdim'])
         e1_attn = 'e1s'
         e0_aggreg_attn = e0_aggreg
 
