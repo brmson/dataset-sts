@@ -28,7 +28,7 @@ from __future__ import division
 import importlib
 import sys
 
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.core import Activation, Dropout
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 from keras.models import Graph
@@ -135,8 +135,9 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
     model.fit(gr, validation_data=grt,
               callbacks=[AnsSelCB(s0t, grt),
-                         ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='mrr', mode='max')],
-              batch_size=160, nb_epoch=c['nb_epoch'], samples_per_epoch=5000)
+                         ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='mrr', mode='max'),
+                         EarlyStopping(monitor='mrr', mode='max', patience=4)],
+              batch_size=160, nb_epoch=c['nb_epoch'], samples_per_epoch=20000)
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
 
     print('Predict&Eval (best epoch)')
