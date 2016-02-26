@@ -14,8 +14,8 @@ from keras.regularizers import l2
 import pysts.nlp as nlp
 
 
-def embedding(model, glove, vocab, s0pad, s1pad, dropout, trainable=True,
-              add_flags=True):
+def embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w,
+              trainable=True, add_flags=True):
     """ The universal sequence input layer.
 
     Declare inputs si0, si1, f0, f1 (vectorized sentences and NLP flags)
@@ -38,7 +38,8 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, trainable=True,
     model.add_shared_node(name='emb', inputs=['si0', 'si1'], outputs=outputs,
                           layer=Embedding(input_dim=vocab.size(), input_length=p,
                                           output_dim=glove.N, mask_zero=True,
-                                          weights=[vocab.embmatrix(glove)], trainable=trainable))
+                                          weights=[vocab.embmatrix(glove)], trainable=trainable,
+                                          dropout=dropout_w))
     if add_flags:
         for m in [0, 1]:
             model.add_node(name='e%d'%(m,), inputs=['e%d[0]'%(m,), 'f%d'%(m,)], merge_mode='concat', layer=Activation('linear'))
@@ -52,7 +53,8 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, trainable=True,
     return N
 
 
-def rnn_input(model, N, spad, dropout=3/4, sdim=2, rnnbidi=True, return_sequences=False,
+def rnn_input(model, N, spad, dropout=3/4, dropoutfix_inp=0, dropoutfix_rec=0,
+              sdim=2, rnnbidi=True, return_sequences=False,
               rnn=GRU, rnnact='tanh', rnninit='glorot_uniform', rnnbidi_mode='sum',
               rnnlevels=1,
               inputs=['e0_', 'e1_'], pfx=''):
@@ -78,11 +80,13 @@ def rnn_input(model, N, spad, dropout=3/4, sdim=2, rnnbidi=True, return_sequence
         model.add_shared_node(name=pfx+'rnnf', inputs=inputs, outputs=[pfx+'e0sf', pfx+'e1sf'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
-                                        return_sequences=return_sequences))
+                                        return_sequences=return_sequences,
+                                        dropout_W=dropoutfix_inp, dropout_U=dropoutfix_rec))
         model.add_shared_node(name=pfx+'rnnb', inputs=inputs, outputs=[pfx+'e0sb', pfx+'e1sb'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
-                                        return_sequences=return_sequences, go_backwards=True))
+                                        return_sequences=return_sequences, go_backwards=True,
+                                        dropout_W=dropoutfix_inp, dropout_U=dropoutfix_rec))
         model.add_node(name=pfx+'e0s', inputs=[pfx+'e0sf', pfx+'e0sb'], merge_mode=rnnbidi_mode, layer=Activation('linear'))
         model.add_node(name=pfx+'e1s', inputs=[pfx+'e1sf', pfx+'e1sb'], merge_mode=rnnbidi_mode, layer=Activation('linear'))
 
@@ -90,7 +94,8 @@ def rnn_input(model, N, spad, dropout=3/4, sdim=2, rnnbidi=True, return_sequence
         model.add_shared_node(name=pfx+'rnn', inputs=inputs, outputs=[pfx+'e0s', pfx+'e1s'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
-                                        return_sequences=return_sequences))
+                                        return_sequences=return_sequences,
+                                        dropout_W=dropoutfix_inp, dropout_U=dropoutfix_rec))
 
     model.add_shared_node(name=pfx+'rnndrop', inputs=[pfx+'e0s', pfx+'e1s'], outputs=[pfx+'e0s_', pfx+'e1s_'],
                           layer=Dropout(dropout, input_shape=(spad, int(N*sdim)) if return_sequences else (int(N*sdim),)))

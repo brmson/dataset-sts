@@ -79,13 +79,13 @@ def load_set(fname, vocab=None):
     return (s0, s1, y, vocab, gr)
 
 
-def prep_model(glove, vocab, dropout=1/2, dropout_in=4/5, l2reg=1e-4,
+def prep_model(glove, vocab, dropout=1/2, dropout_w=0, dropout_in=4/5, l2reg=1e-4,
                cnnact='tanh', cnninit='glorot_uniform', cdim={1: 1, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2},
                project=True, pdim=2.5,
                ptscorer=B.mlp_ptscorer, mlpsum='sum', Ddim=1,
                oact='sigmoid'):
     model = Graph()
-    N = B.embedding(model, glove, vocab, s0pad, s1pad, dropout)
+    N = B.embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w)
 
     if dropout_in is None:
         dropout_in = dropout
