@@ -35,6 +35,7 @@ def config(c):
 
     # model-external:
     c['inp_e_dropout'] = 1/3
+    c['inp_w_dropout'] = 0
     # anssel-specific:
     c['ptscorer'] = B.dot_ptscorer
     c['mlpsum'] = 'sum'
