@@ -157,6 +157,10 @@ this repo for some time.  (We may also want to include the Elementary dataset.)
   * [ ] bAbI has a variety of datasets, especially re memory networks (memory
 relevant to a given question), though with an extremely limited vocabulary.
 
+  * [ ] [Machine Comprehension Test (MCTest)](http://research.microsoft.com/en-us/um/redmond/projects/mctest/)
+contains 300 children stories with many sentences and 4 questions each.
+A share-alike type licence.
+
   * [ ] More "Entrance Exam" tasks solving multiple-choice school tests.
 
 

@@ -1,6 +1,15 @@
 Example Models
 ==============
 
+**Note:** If you want to just try out some existing state-of-art models on
+your own task, or you want to implement a new model and try it on the included
+tasks, please proceed to the **tools/** and **models/** directories instead,
+and use the **KeraSTS** framework.  This directory contains just examples of
+how to work with the datasets and implement some very trivial models specific
+for various tasks.
+
+----
+
 Yu et al., 1412 baseline - mean embeddings, projection matrix and dot-product
 distance measure:
 
