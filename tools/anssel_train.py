@@ -44,6 +44,7 @@ from pysts.kerasts import graph_input_anssel
 import pysts.kerasts.blocks as B
 from pysts.kerasts.callbacks import AnsSelCB
 from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
+import models  # importlib python3 compatibility requirement
 
 
 s0pad = 60

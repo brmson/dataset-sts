@@ -69,6 +69,7 @@ from pysts.kerasts.callbacks import AnsSelCB
 from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
 
 import anssel_train
+import models  # importlib python3 compatibility requirement
 
 
 # XXX: We didn't verify this really covers all sentences.  It should cover

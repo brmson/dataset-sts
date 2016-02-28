@@ -39,6 +39,7 @@ from pysts.kerasts import graph_input_sts
 import pysts.kerasts.blocks as B
 from pysts.kerasts.callbacks import STSPearsonCB
 from pysts.kerasts.objectives import pearsonobj
+import models  # importlib python3 compatibility requirement
 
 
 spad = 60

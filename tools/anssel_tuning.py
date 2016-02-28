@@ -23,6 +23,7 @@ from pysts.kerasts.objectives import ranknet
 from pysts.hyperparam import RandomSearch
 
 import anssel_train
+import models  # importlib python3 compatibility requirement
 
 
 if __name__ == "__main__":

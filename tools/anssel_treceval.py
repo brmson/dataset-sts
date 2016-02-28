@@ -24,6 +24,7 @@ import pysts.kerasts.blocks as B
 from pysts.kerasts.objectives import ranknet
 
 import anssel_train
+import models  # importlib python3 compatibility requirement
 
 
 def save_trec_qrels(f, s0, s1, y):
