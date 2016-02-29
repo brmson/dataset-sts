@@ -22,6 +22,15 @@ is validation set.  The test set is generated from the ``curated-test`` set.
 
 This dataset is subject to change and evolution, hence the ``v2``.
 
+Moreover, an extended dataset which is probably even more noisy (as the
+questions haven't been so carefully curated, and gold standard regexes not
+so carefully reviewed either) but about 3-4 times bigger is available as
+``large2470``.  The splits of this dataset are supersets of the ``curated``
+dataset.
+
+TODO: Figure out whether it's better to report final results on the large2470
+or curated test split.
+
 Older Datasets
 --------------
 
