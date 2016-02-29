@@ -69,6 +69,7 @@ def config(module_config, params):
     c = dict()
     c['embdim'] = 300
     c['inp_e_dropout'] = 3/4
+    c['inp_w_dropout'] = 0
     c['e_add_flags'] = True
 
     c['ptscorer'] = B.dot_ptscorer
@@ -89,7 +90,7 @@ def config(module_config, params):
 def prep_model(glove, vocab, module_prep_model, c):
     # Input embedding and encoding
     model = Graph()
-    N = B.embedding(model, glove, vocab, spad, spad, c['inp_e_dropout'], add_flags=c['e_add_flags'])
+    N = B.embedding(model, glove, vocab, spad, spad, c['inp_e_dropout'], c['inp_w_dropout'], add_flags=c['e_add_flags'])
 
     # Sentence-aggregate embeddings
     final_outputs = module_prep_model(model, N, spad, spad, c)

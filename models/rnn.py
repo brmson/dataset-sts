@@ -51,6 +51,8 @@ import pysts.kerasts.blocks as B
 
 def config(c):
     c['dropout'] = 3/4
+    c['dropoutfix_inp'] = 0
+    c['dropoutfix_rec'] = 0
     c['l2reg'] = 1e-4
 
     c['rnnbidi'] = True
@@ -67,6 +69,7 @@ def config(c):
 
     # model-external:
     c['inp_e_dropout'] = 3/4
+    c['inp_w_dropout'] = 0
     # anssel-specific:
     c['ptscorer'] = B.mlp_ptscorer
     c['mlpsum'] = 'sum'
@@ -75,7 +78,8 @@ def config(c):
 
 def prep_model(model, N, s0pad, s1pad, c):
     B.rnn_input(model, N, s0pad,
-                dropout=c['dropout'], sdim=c['sdim'],
+                dropout=c['dropout'], dropoutfix_inp=c['dropoutfix_inp'], dropoutfix_rec=c['dropoutfix_rec'],
+                sdim=c['sdim'],
                 rnnbidi=c['rnnbidi'], rnn=c['rnn'], rnnact=c['rnnact'], rnninit=c['rnninit'],
                 rnnbidi_mode=c['rnnbidi_mode'], rnnlevels=c['rnnlevels'])
 
