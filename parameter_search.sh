@@ -6,7 +6,7 @@ models=(rnn cnn cnnrnn attn1511)
 
 dropouts=(0.0 0.2 0.4 0.6 0.75)
 
-embd=(50 100 200 300)
+embd=(50 100 300)
 
 for model in ${models[@]}; do
 	for dropout in ${dropouts[@]}; do
