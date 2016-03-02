@@ -1,26 +1,4 @@
 #!/usr/bin/python3
-"""
-Train a KeraSTS model on the Answer Sentence Selection task.
-
-Usage: tools/anssel_train.py MODEL TRAINDATA VALDATA [PARAM=VALUE]...
-
-Example: tools/anssel_train.py cnn data/anssel/wang/train-all.csv data/anssel/wang/dev.csv inp_e_dropout=1/2
-
-This applies the given text similarity model to the anssel task.
-Extra input pre-processing is done:
-Rather than relying on the hack of using the word overlap counts as additional
-features for final classification, individual tokens are annotated by overlap
-features and that's passed to the model along with the embeddings.
-
-Final comparison of summary embeddings is by default performed by
-a multi-layered perceptron with elementwise products and sums as the input,
-while the Ranknet loss function is used as an objective.  You may also try
-e.g. dot-product (non-normalized cosine similarity) and binary crossentropy
-or ranksvm as loss function, but it doesn't seem to make a lot of difference.
-
-Prerequisites:
-    * Get glove.6B.300d.txt from http://nlp.stanford.edu/projects/glove/
-"""
 
 from __future__ import print_function
 from __future__ import division
@@ -75,10 +53,10 @@ def config(module_config, params):
 
     c['ptscorer'] = B.mlp_ptscorer
     c['mlpsum'] = 'sum'
-    c['Ddim'] = 1
+    c['Ddim'] = 2
 
     c['loss'] = 'binary_crossentropy'
-    c['nb_epoch'] = 2
+    c['nb_epoch'] = 1
     module_config(c)
 
     for p in params:
@@ -147,8 +125,8 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     prediction_t = model.predict(grt)['score'][:,0]
     ev.eval_anssel(prediction, s0, gr['score'], 'Train')
     ev.eval_anssel(prediction_t, s0t, grt['score'], 'Val')
-    eval_questions(s0, s1t, gr['score'], prediction, 'Train')
-    eval_questions(s0t, s1, grt['score'], prediction_t, 'Val')
+    eval_questions(s0, s1, gr['score'], prediction, 'Train')
+    eval_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
 
 
 def eval_questions(sq, sa, labels, results, text):
@@ -183,7 +161,7 @@ def eval_questions(sq, sa, labels, results, text):
     print('precision on separate questions ('+text+'):', correct/q_num)
 
 
-
+import pickle
 if __name__ == "__main__":
     modelname, trainf, valf = sys.argv[1:4]
     # modelname, trainf, valf = 'rnn', 'data/hypev/argus/argus_train.csv', 'data/hypev/argus/argus_test.csv'
@@ -201,6 +179,7 @@ if __name__ == "__main__":
     print('Dataset')
     s0, s1, y, vocab, gr = load_set(trainf)
     s0t, s1t, yt, _, grt = load_set(valf, vocab)
+    pickle.dump(vocab, open('vocab.txt', 'wb'))
 
     train_and_eval(runid, module.prep_model, conf, glove, vocab, gr, s0, grt, s0t)
 
