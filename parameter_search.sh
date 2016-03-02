@@ -12,7 +12,7 @@ for model in ${models[@]}; do
 	for dropout in ${dropouts[@]}; do
 		for num in ${embd[@]}; do
 			echo $model $dropout $num
-			python argus_tests.py cnn data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv inp_e_dropout=0.0 dropout=$dropout nb_epoch=3 embdim=$num
+			python argus_tests.py $model data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv inp_e_dropout=0.0 dropout=$dropout nb_epoch=3 embdim=$num
 		done
 	done
 done
