@@ -20,7 +20,7 @@ import pysts.eval as ev
 import pysts.kerasts.blocks as B
 from pysts.kerasts.callbacks import AnsSelCB
 from pysts.kerasts.objectives import ranknet
-from pysts.hyperparam import RandomSearch
+from pysts.hyperparam import RandomSearch, hash_params
 
 import anssel_train
 import models  # importlib python3 compatibility requirement
@@ -44,8 +44,11 @@ if __name__ == "__main__":
                       ptscorer=[B.mlp_ptscorer], Ddim=[1, 2, 2.5, 3])
 
     for ps, h, pardict in rs():
-        print(' ...... %s .................... %s' % (h, ps))
-        conf, ps, h = anssel_train.config(module.config, ps)
+        print(' ...... %x .................... %s' % (h, ps))
+        conf, ps, h = anssel_train.config(module.config, [])
+        for k, v in pardict.items():
+            conf[k] = v
+        ps, h = hash_params(conf)
         model = anssel_train.build_model(glove, vocab, module.prep_model, conf)
         runid = '%s_%x' % (modelname, h)
 
