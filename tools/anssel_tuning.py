@@ -56,7 +56,7 @@ if __name__ == "__main__":
                   callbacks=[AnsSelCB(s0t, grt),
                              ModelCheckpoint('weights-'+runid+'.h5', save_best_only=True, monitor='mrr', mode='max'),
                              EarlyStopping(monitor='mrr', mode='max', patience=4)],
-                  batch_size=160, nb_epoch=16, samples_per_epoch=5000)
+                  batch_size=160, nb_epoch=16, samples_per_epoch=int(len(s0)/4))
         # mrr = max(hist.history['mrr'])
         model.load_weights('weights-'+runid+'.h5')
         ev.eval_anssel(model.predict(gr)['score'][:,0], s0, y, 'Train')
