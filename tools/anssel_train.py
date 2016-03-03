@@ -27,6 +27,8 @@ from __future__ import division
 
 import importlib
 import sys
+import os.path
+import pickle
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.core import Activation, Dropout
@@ -51,7 +53,25 @@ s0pad = 60
 s1pad = 60
 
 
-def load_set(fname, vocab=None):
+def load_set(fname, vocab=None, cache_dir=None):
+    """ Caching: If cache_dir is set: it tries to load finished dataset from it 
+        (filename of cache is hash of fname), and if that fails, it will compute 
+        dataset and try to save it."""
+    save_cache = False
+    if cache_dir:
+        fname_abs = os.path.abspath(fname)
+        from hashlib import md5
+        cache_filename = "%s/%s.p" % (cache_dir, md5(fname_abs.encode("utf-8")).hexdigest())
+
+        try:
+            with open(cache_filename, "rb") as f:
+                obj = pickle.load(f)
+
+                s0, s1, y, vocab, gr = obj["s0"], obj["s1"], obj["y"], obj["vocab"], obj["gr"]
+                return (s0, s1, y, vocab, gr)
+        except (IOError, TypeError, KeyError):
+            save_cache=True
+    
     s0, s1, y, t = loader.load_anssel(fname)
     # TODO: Make use of the t-annotations
 
@@ -62,6 +82,11 @@ def load_set(fname, vocab=None):
     si1 = vocab.vectorize(s1, spad=s1pad)
     f0, f1 = nlp.sentence_flags(s0, s1, s0pad, s1pad)
     gr = graph_input_anssel(si0, si1, y, f0, f1)
+
+    if save_cache:
+        with open(cache_filename, "wb") as f:
+            obj = {"s0": s0, "s1": s1, "y": y, "vocab": vocab, "gr": gr}
+            pickle.dump(obj, f)
 
     return (s0, s1, y, vocab, gr)
 
@@ -162,7 +187,7 @@ if __name__ == "__main__":
     glove = emb.GloVe(N=conf['embdim'])
 
     print('Dataset')
-    s0, s1, y, vocab, gr = load_set(trainf)
-    s0t, s1t, yt, _, grt = load_set(valf, vocab)
+    s0, s1, y, vocab, gr = load_set(trainf, cache_dir=conf.get("cache_dir"))
+    s0t, s1t, yt, _, grt = load_set(valf, cache_dir=conf.get("cache_dir"))
 
     train_and_eval(runid, module.prep_model, conf, glove, vocab, gr, s0, grt, s0t)
