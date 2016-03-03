@@ -4,7 +4,6 @@ Script used for training on argus anssel dataset.
 Prerequisites:
     * Get glove.6B.50d.txt from http://nlp.stanford.edu/projects/glove/
 """
-# TODO: glove 300d, delete this file
 from __future__ import print_function
 from __future__ import division
 
