@@ -99,6 +99,24 @@ def mrr(s0, y, ypred):
     return np.mean(rr)
 
 
+def precision(s0, y, ypred):
+    """
+    Compute mean precision over questions.
+    """
+    prec = []
+    for s, ys in aggregate_s0(s0, y, ypred):
+        t = []
+        y = 0
+        for y_, t_ in ys:
+            y = y_
+            t.append(t_)
+        if np.abs(y-np.mean(t)) < 0.5:
+            prec.append(1.)
+        else:
+            prec.append(0.)
+    return np.mean(prec)
+
+
 def eval_sts(ycat, y, name, quiet=False):
     """ Evaluate given STS regression-classification predictions and print results. """
     if ycat.ndim == 1:
@@ -123,6 +141,14 @@ def eval_anssel(ypred, s0, y, name):
     print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
     print('%s MRR: %f  %s' % (name, mrr_, '(on training set, y=0 may be subsampled!)' if name == 'Train' else ''))
     return mrr_
+
+
+def eval_anssel_precision(ypred, s0, y, name):
+    rawacc, y0acc, y1acc, balacc = binclass_accuracy(y, ypred)
+    prec = precision(s0, y, ypred)
+    print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
+    print('%s Precision: %f (mean over questions)' % (name, prec))
+    return prec
 
 
 def eval_ubuntu(ypred, s0, y, name):
