@@ -9,34 +9,17 @@ Download and unzip the standard GloVe embeddings to use this.
 from __future__ import print_function
 
 import numpy as np
+import os
 
-class GloVe:
-    """ A GloVe dictionary and the associated N-dimensional vector space """
-    def __init__(self, N=300, glovepath=None, use_w2v=False):
-        """ Load GloVe dictionary from the standard distributed text file.
-
-        Glovepath should contain %d, which is substituted for the embedding
-        dimension N. """
-
-        if not use_w2v:
-            if not glovepath:
-                glovepath = 'glove.6B.%dd.txt' % (N,)
-            self.N = N
-            self.g = dict()
-            with open(glovepath % (N,), 'r') as f:
-                for line in f:
-                    l = line.split()
-                    word = l[0]
-                    self.g[word] = np.array(l[1:]).astype(float)
-        else:
-            if not glovepath:
-                glovepath = 'glove.6B.%dd.txt' % (N,)
-
-            import gensim
-            self.g = gensim.models.Word2Vec.load_word2vec_format(glovepath, binary=True)
-            self.N = self.g.vector_size
+try:
+    import skipthoughts
+    skipthoughts_available = True
+except ImportError:
+    skipthoughts_available = False
 
 
+class Embedder(object):
+    """ required: attributes g and N """
     def map_tokens(self, tokens, ndim=2):
         """ for the given list of tokens, return a list of GloVe embeddings,
         or a single plain bag-of-words average embedding if ndim=1.
@@ -80,3 +63,94 @@ class GloVe:
                 s = s[:spad]
             ss2.append(s)
         return np.array(ss2)
+    
+    def load():
+        pass
+
+class GloVe(Embedder):
+    """ A GloVe dictionary and the associated N-dimensional vector space """
+    def __init__(self, N=300, glovepath=None, use_w2v=False):
+        """ Load GloVe dictionary from the standard distributed text file.
+
+        Glovepath should contain %d, which is substituted for the embedding
+        dimension N.
+
+        It is necessary to call glove.load() before use of dict .g.
+        """
+        self.glovepath = glovepath
+        self.use_w2v = use_w2v
+        if use_w2v:
+            if not self.glovepath:
+                self.glovepath = 'GoogleNews-vectors-negative300.bin'
+            # this is not loaded lazily since N is available only after loading.
+            import gensim
+            self.g = gensim.models.Word2Vec.load_word2vec_format(glovepath, binary=True)
+            self.N = self.g.vector_size
+        else:
+            if not self.glovepath:
+                self.glovepath = 'glove.6B.%dd.txt'
+            self.N = N
+
+    def load(self):
+        if not self.use_w2v:
+            self.g = dict()
+            with open(self.glovepath % (self.N,), 'r') as f:
+                for line in f:
+                    l = line.split()
+                    word = l[0]
+                    self.g[word] = np.array(l[1:]).astype(float)
+
+
+class SkipThought(Embedder):
+    def __init__(self, datadir, uni_bi="combined"):
+        """ Embed Skip_Thought vectors, using precomputed model in npy format.
+
+        Args:
+            uni_bi: possible values are "uni", "bi" or "combined" determining what kind of embedding should be used.
+
+
+        todo: is argument ndim working properly?
+        """
+
+        import skipthoughts
+        self.encode = skipthoughts.encode
+
+        if datadir is None:
+            datadir = os.path.realpath('__file__')
+
+        # table for memoizing embeddings
+        self.cache_table = {}
+
+        self.uni_bi = uni_bi
+        if uni_bi in ("uni", "bi"):
+            self.N = 2400
+        elif uni_bi == "combined":
+            self.N = 4800
+        else:
+            raise ValueError("uni_bi has invalid value. Valid values: 'uni', 'bi', 'combined'")
+
+    def load(self):
+        import skipthoughts
+        self.skipthoughts.path_to_models = datadir
+        self.skipthoughts.path_to_tables = datadir
+        self.skipthoughts.path_to_umodel = skipthoughts.path_to_models + 'uni_skip.npz'
+        self.skipthoughts.path_to_bmodel = skipthoughts.path_to_models + 'bi_skip.npz'
+        self.st = skipthoughts.load_model()
+
+    def map_tokens(self, tokens, ndim=2):
+        """
+        Args:
+            tokens list of words, together forming a sentence.
+
+        Returns:
+            its embedding as a ndarray."""
+
+        assert ndim == 1, "ndim has to be equal to 1 for skipthoughts embedding"
+
+        sentence = " ".join(tokens)
+        if sentence in self.cache_table:
+            output_vector = self.cache_table[sentence]
+        else:
+            output_vector, = self.encode(self.st, [sentence, ], verbose=False)
+            self.cache_table[sentence] = output_vector
+        return output_vector

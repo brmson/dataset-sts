@@ -65,10 +65,7 @@ def load_set(fname, vocab=None, cache_dir=None):
 
         try:
             with open(cache_filename, "rb") as f:
-                obj = pickle.load(f)
-
-                s0, s1, y, vocab, gr = obj["s0"], obj["s1"], obj["y"], obj["vocab"], obj["gr"]
-                return (s0, s1, y, vocab, gr)
+                return pickle.load(f)
         except (IOError, TypeError, KeyError):
             save_cache=True
     
@@ -85,8 +82,8 @@ def load_set(fname, vocab=None, cache_dir=None):
 
     if save_cache:
         with open(cache_filename, "wb") as f:
-            obj = {"s0": s0, "s1": s1, "y": y, "vocab": vocab, "gr": gr}
-            pickle.dump(obj, f)
+            pickle.dump((s0, s1, y, vocab, gr), f)
+            print("save")
 
     return (s0, s1, y, vocab, gr)
 
@@ -185,7 +182,6 @@ if __name__ == "__main__":
 
     print('GloVe')
     glove = emb.GloVe(N=conf['embdim'])
-
     print('Dataset')
     s0, s1, y, vocab, gr = load_set(trainf, cache_dir=conf.get("cache_dir"))
     s0t, s1t, yt, _, grt = load_set(valf, cache_dir=conf.get("cache_dir"))
