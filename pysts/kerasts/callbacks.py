@@ -21,6 +21,19 @@ class AnsSelCB(Callback):
         logs['mrr'] = mrr
 
 
+class AnsSelBinCB(Callback):
+    """ A callback that monitors answer selection validation precision after each epoch """
+    def __init__(self, val_s0, val_gr):
+        self.val_s0 = val_s0
+        self.val_gr = val_gr  # graph_input()
+
+    def on_epoch_end(self, epoch, logs={}):
+        ypred = self.model.predict(self.val_gr)['score'][:,0]
+        prec = ev.precision(self.val_s0, self.val_gr['score'], ypred)
+        print('                                                       val prec %f' % (prec,))
+        logs['prec'] = prec
+
+
 class STSPearsonCB(Callback):
     def __init__(self, train_gr, val_gr):
         self.train_gr = train_gr
