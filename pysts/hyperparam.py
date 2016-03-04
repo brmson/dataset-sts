@@ -35,10 +35,8 @@ class RandomSearch:
                 else:
                     pardict[p] = random.choice(vset)
             ps, h = hash_params(pardict)
-            print('%s %s' % (h, ps), file=self.rlog)
-            self.rlog.flush()
             yield (ps, h, pardict)
 
     def report(self, ps, h, mrr):
-        print('%s %f' % (h, mrr), file=self.rlog)
+        print('%x %f %s' % (h, mrr, ps), file=self.rlog)
         self.rlog.flush()
