@@ -99,6 +99,35 @@ def mrr(s0, y, ypred):
     return np.mean(rr)
 
 
+def hypev_classify_mean(s0, y, ypred):
+    """
+    Baseline strategy for question classification for the "hypothesis
+    evaluation" task where we produce a prediction for the question
+    based on multiple (q, a) pairs.
+
+    This simple strategy simply predicts question class by averaging
+    the (q, a) pair predictions.
+
+    Generates instances of (q, y, ypred) tuples, one per question.
+    """
+    for s, ys in aggregate_s0(s0, y, ypred):
+        y = ys[0][0]
+        ypred = np.mean([t[1] for t in ys])
+        yield (s, y, ypred)
+
+
+def hypev_accuracy(qpred):
+    """
+    Compute accuracy of question classification in case of the
+    "hypothesis evaluation" task.  As a parameter, takes an iterable
+    of (q, y, ypred) tuples.
+
+    Example: hypev_accuracy(hypev_classify_mean(s0, y, ypred))
+    """
+    prec = [(np.abs(y - ypred) < 0.5) for s, y, ypred in qpred]
+    return np.mean(prec)
+
+
 def eval_sts(ycat, y, name, quiet=False):
     """ Evaluate given STS regression-classification predictions and print results. """
     if ycat.ndim == 1:
@@ -123,6 +152,14 @@ def eval_anssel(ypred, s0, y, name):
     print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
     print('%s MRR: %f  %s' % (name, mrr_, '(on training set, y=0 may be subsampled!)' if name == 'Train' else ''))
     return mrr_
+
+
+def eval_hypev(ypred, s0, y, name):
+    rawacc, y0acc, y1acc, balacc = binclass_accuracy(y, ypred)
+    prec = hypev_accuracy(hypev_classify_mean(s0, y, ypred))
+    print('%s Pair Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
+    print('%s HypEv Accuracy: %f (qclass based on pairs mean)' % (name, prec))
+    return prec
 
 
 def eval_ubuntu(ypred, s0, y, name):

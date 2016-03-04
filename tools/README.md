@@ -53,3 +53,15 @@ output is a number between 0 and 5 and Pearson correlation is the metric.
   * **sts_train.py** to train a model on 2012-2014 and evaluate on 2015:
 
 	tools/sts_train.py rnn data/sts/semeval-sts/all/201[0-4]* -- data/sts/semeval-sts/all/2015*
+
+
+Hypothesis Evaluation Task
+--------------------------
+
+This task is like "Answer Sentence Selection" in that we have many s1 for
+a single s0, but the goal is to produce an aggregate judgement on s0 based
+on the pairs.
+
+  * **hypev_train.py** to train a model e.g. on the argus dataset:
+
+	tools/hypev_train.py rnn data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv
