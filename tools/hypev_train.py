@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 """
-Script used for training on argus anssel dataset.
+Script used for training on hypev datasets (principally, argus).
+
 Prerequisites:
     * Get glove.6B.50d.txt from http://nlp.stanford.edu/projects/glove/
 """
+
 from __future__ import print_function
 from __future__ import division
 
