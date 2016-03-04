@@ -126,7 +126,7 @@ def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad):
     return model
 
 
-def eval_questions(sq, sa, labels, results, text):
+def dump_questions(sq, sa, labels, results, text):
     question = ''
     label = 1
     avg = 0
@@ -176,8 +176,8 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     prediction_t = model.predict(grt)['score'][:,0]
     ev.eval_hypev(prediction, s0, gr['score'], 'Train')
     ev.eval_hypev(prediction_t, s0t, grt['score'], 'Val')
-    eval_questions(s0, s1, gr['score'], prediction, 'Train')
-    eval_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
+    dump_questions(s0, s1, gr['score'], prediction, 'Train')
+    dump_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
 
 
 def load_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
@@ -190,8 +190,8 @@ def load_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     prediction_t = model.predict(grt)['score'][:,0]
     ev.eval_hypev(prediction, s0, gr['score'], 'Train')
     ev.eval_hypev(prediction_t, s0t, grt['score'], 'Val')
-    eval_questions(s0, s1, gr['score'], prediction, 'Train')
-    eval_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
+    dump_questions(s0, s1, gr['score'], prediction, 'Train')
+    dump_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
 
 
 def test_qa(q, a, prep_model, conf, glove, vocab):
