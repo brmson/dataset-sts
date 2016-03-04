@@ -2,6 +2,10 @@
 """
 Script used for training on hypev datasets (principally, argus).
 
+Usage: tools/hypev_train.py MODEL TRAINDATA VALDATA [PARAM=VALUE]...
+
+Example: tools/hypev_train.py rnn data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv dropout=0
+
 Prerequisites:
     * Get glove.6B.50d.txt from http://nlp.stanford.edu/projects/glove/
 """
