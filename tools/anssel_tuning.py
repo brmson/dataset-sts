@@ -12,6 +12,7 @@ from __future__ import division
 
 import importlib
 import sys
+import time
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
@@ -51,15 +52,18 @@ if __name__ == "__main__":
         runid = '%s_%x' % (modelname, h)
         print(' ...... %x .................... %s' % (h, ps))
 
-        model = anssel_train.build_model(glove, vocab, module.prep_model, conf)
-
-        model.fit(gr, validation_data=grt,
-                  callbacks=[AnsSelCB(s0t, grt),
-                             ModelCheckpoint('weights-'+runid+'.h5', save_best_only=True, monitor='mrr', mode='max'),
-                             EarlyStopping(monitor='mrr', mode='max', patience=4)],
-                  batch_size=160, nb_epoch=16, samples_per_epoch=int(len(s0)/4))
-        # mrr = max(hist.history['mrr'])
-        model.load_weights('weights-'+runid+'.h5')
-        ev.eval_anssel(model.predict(gr)['score'][:,0], s0, y, 'Train')
-        mrr = ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, yt, 'Val')
-        rs.report(ps, h, mrr)
+        try:
+            model = anssel_train.build_model(glove, vocab, module.prep_model, conf)
+            model.fit(gr, validation_data=grt,
+                      callbacks=[AnsSelCB(s0t, grt),
+                                 ModelCheckpoint('weights-'+runid+'.h5', save_best_only=True, monitor='mrr', mode='max'),
+                                 EarlyStopping(monitor='mrr', mode='max', patience=4)],
+                      batch_size=160, nb_epoch=16, samples_per_epoch=int(len(s0)/4))
+            # mrr = max(hist.history['mrr'])
+            model.load_weights('weights-'+runid+'.h5')
+            ev.eval_anssel(model.predict(gr)['score'][:,0], s0, y, 'Train')
+            mrr = ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, yt, 'Val')
+            rs.report(ps, h, mrr)
+        except Exception as e:
+            print(e)
+            time.sleep(1)
