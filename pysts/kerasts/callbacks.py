@@ -21,17 +21,17 @@ class AnsSelCB(Callback):
         logs['mrr'] = mrr
 
 
-class AnsSelBinCB(Callback):
-    """ A callback that monitors answer selection validation precision after each epoch """
+class HypEvCB(Callback):
+    """ A callback that monitors hypothesis evaluation validation accuracy after each epoch """
     def __init__(self, val_s0, val_gr):
         self.val_s0 = val_s0
         self.val_gr = val_gr  # graph_input()
 
     def on_epoch_end(self, epoch, logs={}):
         ypred = self.model.predict(self.val_gr)['score'][:,0]
-        prec = ev.precision(self.val_s0, self.val_gr['score'], ypred)
-        print('                                                       val prec %f' % (prec,))
-        logs['prec'] = prec
+        acc = ev.hypev_accuracy(ev.hypev_classify_mean(self.val_s0, self.val_gr['score'], ypred))
+        print('                                                       val acc %f' % (acc,))
+        logs['acc'] = acc
 
 
 class STSPearsonCB(Callback):

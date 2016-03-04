@@ -24,7 +24,7 @@ from pysts.hyperparam import hash_params
 from pysts.vocab import Vocabulary
 
 from pysts.kerasts import graph_input_anssel
-from pysts.kerasts.callbacks import AnsSelBinCB
+from pysts.kerasts.callbacks import HypEvCB
 import pysts.kerasts.blocks as B
 
 
@@ -163,8 +163,8 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     print('Training')
     # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
     model.fit(gr, validation_data=grt,
-              callbacks=[AnsSelBinCB(s0t, grt),
-                         ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='prec', mode='max')],
+              callbacks=[HypEvCB(s0t, grt),
+                         ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='acc', mode='max')],
               batch_size=160, nb_epoch=c['nb_epoch'])
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
 
@@ -172,8 +172,8 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     model.load_weights('weights-'+runid+'-bestval.h5')
     prediction = model.predict(gr)['score'][:,0]
     prediction_t = model.predict(grt)['score'][:,0]
-    ev.eval_anssel_precision(prediction, s0, gr['score'], 'Train')
-    ev.eval_anssel_precision(prediction_t, s0t, grt['score'], 'Val')
+    ev.eval_hypev(prediction, s0, gr['score'], 'Train')
+    ev.eval_hypev(prediction_t, s0t, grt['score'], 'Val')
     eval_questions(s0, s1, gr['score'], prediction, 'Train')
     eval_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
 
@@ -186,8 +186,8 @@ def load_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     model.load_weights('keras_model100.h5')
     prediction = model.predict(gr)['score'][:,0]
     prediction_t = model.predict(grt)['score'][:,0]
-    ev.eval_anssel_precision(prediction, s0, gr['score'], 'Train')
-    ev.eval_anssel_precision(prediction_t, s0t, grt['score'], 'Val')
+    ev.eval_hypev(prediction, s0, gr['score'], 'Train')
+    ev.eval_hypev(prediction_t, s0t, grt['score'], 'Val')
     eval_questions(s0, s1, gr['score'], prediction, 'Train')
     eval_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
 
