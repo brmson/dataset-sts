@@ -66,6 +66,7 @@ def config(module_config, params):
     c = dict()
     c['embdim'] = 50
     c['inp_e_dropout'] = 1/2
+    c['inp_w_dropout'] = 0
     c['e_add_flags'] = True
 
     c['ptscorer'] = B.mlp_ptscorer
@@ -87,7 +88,7 @@ def config(module_config, params):
 def prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad):
     # Input embedding and encoding
     model = Graph()
-    N = B.embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'], add_flags=c['e_add_flags'])
+    N = B.embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'], c['inp_w_dropout'], add_flags=c['e_add_flags'])
 
     # Sentence-aggregate embeddings
     final_outputs = module_prep_model(model, N, s0pad, s1pad, c)
