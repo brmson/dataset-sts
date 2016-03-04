@@ -26,6 +26,7 @@ from pysts.vocab import Vocabulary
 from pysts.kerasts import graph_input_anssel
 from pysts.kerasts.callbacks import HypEvCB
 import pysts.kerasts.blocks as B
+import models  # importlib python3 compatibility requirement
 
 
 s0pad = 60
