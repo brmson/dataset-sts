@@ -48,21 +48,6 @@ def load_set(fname, vocab=None):
     return s0, s1, y, vocab, gr
 
 
-def load_sent(q, a, vocab=None):
-    s0, s1, y = [q], [a], 1
-    # s0=questions, s1=answers
-
-    if vocab is None:
-        vocab = Vocabulary(s0 + s1)
-
-    si0 = vocab.vectorize(s0, spad=s0pad)
-    si1 = vocab.vectorize(s1, spad=s1pad)
-    f0, f1 = nlp.sentence_flags(s0, s1, s0pad, s1pad)
-    gr = graph_input_anssel(si0, si1, y, f0, f1)
-
-    return gr
-
-
 def config(module_config, params):
     c = dict()
     c['embdim'] = 50
@@ -130,7 +115,6 @@ def dump_questions(sq, sa, labels, results, text):
     question = ''
     label = 1
     avg = 0
-    avg_all = 0
     q_num = 0
     correct = 0
     n = 0
@@ -180,30 +164,6 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     dump_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
 
 
-def load_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
-    print('Model')
-    model = build_model(glove, vocab, module_prep_model, c)
-
-    print('Predict&Eval (best epoch)')
-    model.load_weights('keras_model100.h5')
-    prediction = model.predict(gr)['score'][:,0]
-    prediction_t = model.predict(grt)['score'][:,0]
-    ev.eval_hypev(prediction, s0, gr['score'], 'Train')
-    ev.eval_hypev(prediction_t, s0t, grt['score'], 'Val')
-    dump_questions(s0, s1, gr['score'], prediction, 'Train')
-    dump_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
-
-
-def test_qa(q, a, prep_model, conf, glove, vocab):
-    gr = load_sent(q, a, vocab)
-    print('Model')
-    model = build_model(glove, vocab, prep_model, conf)
-    model.load_weights('keras_model.h5')
-    print('Predict')
-    prediction = model.predict(gr)['score'][:, 0][0]
-    print('PREDICTION', prediction)
-
-
 if __name__ == "__main__":
     modelname, trainf, valf = sys.argv[1:4]
     # modelname, trainf, valf = 'avg', 'data/hypev/argus/argus_train.csv', 'data/hypev/argus/argus_test.csv'
@@ -224,10 +184,3 @@ if __name__ == "__main__":
     pickle.dump(vocab, open('vocab.txt', 'wb'))
 
     train_and_eval(runid, module.prep_model, conf, glove, vocab, gr, s0, grt, s0t)
-    # load_and_eval(runid, module.prep_model, conf, glove, vocab, gr, s0, grt, s0t)
-    # q = 'Will Donald Trump run for president of the united states ?'
-    # a = 'Neil Young , a Canadian citizen , is a supporter of Bernie Sanders for president of the United States of America , manager Elliot Roberts said .'
-    # test_qa(q, a, module.prep_model, conf, glove, vocab)
-
-
-
