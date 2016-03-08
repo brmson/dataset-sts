@@ -66,6 +66,7 @@ def config(module_config, params):
     c['Ddim'] = 1
 
     c['loss'] = 'binary_crossentropy'
+    c['batch_size'] = 160
     c['nb_epoch'] = 2
     module_config(c)
 
@@ -156,8 +157,9 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
     model.fit(gr, validation_data=grt,
               callbacks=[HypEvCB(s0t, grt),
-                         ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='acc', mode='max')],
-              batch_size=160, nb_epoch=c['nb_epoch'])
+                         ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='acc', mode='max'),
+                         EarlyStopping(monitor='pearson', mode='max', patience=4)],
+              batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
 
     print('Predict&Eval (best epoch)')

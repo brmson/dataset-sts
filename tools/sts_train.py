@@ -77,6 +77,8 @@ def config(module_config, params):
     c['Ddim'] = 2
 
     c['loss'] = pearsonobj  # ...or 'categorical_crossentropy'
+    c['batch_size'] = 160
+    c['nb_epoch'] = 32
     module_config(c)
 
     for p in params:
@@ -126,7 +128,7 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt):
               callbacks=[STSPearsonCB(gr, grt),
                          ModelCheckpoint('sts-weights-'+runid+'-bestval.h5', save_best_only=True, monitor='pearson', mode='max'),
                          EarlyStopping(monitor='pearson', mode='max', patience=3)],
-              batch_size=160, nb_epoch=32)
+              batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
     model.save_weights('sts-weights-'+runid+'-final.h5', overwrite=True)
 
     print('Predict&Eval')

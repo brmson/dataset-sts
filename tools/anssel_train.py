@@ -78,7 +78,9 @@ def config(module_config, params):
     c['Ddim'] = 1
 
     c['loss'] = ranknet
+    c['batch_size'] = 160
     c['nb_epoch'] = 16
+    c['epoch_fract'] = 1/4
     module_config(c)
 
     for p in params:
@@ -139,7 +141,7 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, 
               callbacks=[AnsSelCB(s0t, grt),
                          ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='mrr', mode='max'),
                          EarlyStopping(monitor='mrr', mode='max', patience=4)],
-              batch_size=160, nb_epoch=c['nb_epoch'], samples_per_epoch=20000)
+              batch_size=c['batch_size'], nb_epoch=c['nb_epoch'], samples_per_epoch=int(len(s0)*c['epoch_fract']))
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
 
     print('Predict&Eval (best epoch)')

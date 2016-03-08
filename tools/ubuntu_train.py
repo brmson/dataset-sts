@@ -111,8 +111,10 @@ def config(module_config, params):
     c['mlpsum'] = 'sum'
     c['Ddim'] = 1
 
-    c['batch_size'] = 192
     c['loss'] = 'binary_crossentropy'
+    c['batch_size'] = 192
+    c['nb_epoch'] = 16
+    c['epoch_fract'] = 1/4
     module_config(c)
 
     for p in params:
