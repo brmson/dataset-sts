@@ -18,7 +18,7 @@ import sys
 import csv
 import pickle
 
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.layers.core import Activation
 from keras.models import Graph
 
@@ -158,7 +158,7 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     model.fit(gr, validation_data=grt,
               callbacks=[HypEvCB(s0t, grt),
                          ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='acc', mode='max'),
-                         EarlyStopping(monitor='pearson', mode='max', patience=4)],
+                         EarlyStopping(monitor='acc', mode='max', patience=4)],
               batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
 
