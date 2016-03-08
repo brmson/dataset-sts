@@ -51,7 +51,7 @@ s0pad = 60
 s1pad = 60
 
 
-def load_set(fname, vocab=None):
+def load_set(fname, vocab=None, s0pad=s0pad, s1pad=s1pad):
     s0, s1, y, t = loader.load_anssel(fname)
     # TODO: Make use of the t-annotations
 
@@ -117,7 +117,7 @@ def prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad):
     return model
 
 
-def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad):
+def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, optimizer='adam'):
     if c['loss'] == 'binary_crossentropy':
         oact = 'sigmoid'
     else:
@@ -125,13 +125,13 @@ def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad):
         oact = 'linear'
 
     model = prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad)
-    model.compile(loss={'score': c['loss']}, optimizer='adam')
+    model.compile(loss={'score': c['loss']}, optimizer=optimizer)
     return model
 
 
-def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
+def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, s0pad=s0pad, s1pad=s1pad):
     print('Model')
-    model = build_model(glove, vocab, module_prep_model, c)
+    model = build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad)
 
     print('Training')
     # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
