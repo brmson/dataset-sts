@@ -32,6 +32,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.core import Activation, Dropout
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 from keras.models import Graph
+import numpy as np
 
 import pysts.embedding as emb
 import pysts.eval as ev
@@ -78,6 +79,7 @@ def config(module_config, params):
     c['Ddim'] = 1
 
     c['loss'] = ranknet
+    c['balance_class'] = False
     c['batch_size'] = 160
     c['nb_epoch'] = 16
     c['epoch_fract'] = 1/4
@@ -136,11 +138,17 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, 
     model = build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad)
 
     print('Training')
+    if c.get('balance_class', False):
+        one_ratio = np.sum(gr['score'] == 1) / len(gr['score'])
+        class_weight = {'score': {0: one_ratio, 1: 0.5}}
+    else:
+        class_weight = {}
     # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
     model.fit(gr, validation_data=grt,
               callbacks=[AnsSelCB(s0t, grt),
                          ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='mrr', mode='max'),
                          EarlyStopping(monitor='mrr', mode='max', patience=4)],
+              class_weight=class_weight,
               batch_size=c['batch_size'], nb_epoch=c['nb_epoch'], samples_per_epoch=int(len(s0)*c['epoch_fract']))
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
 

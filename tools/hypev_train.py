@@ -21,6 +21,7 @@ import pickle
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.layers.core import Activation
 from keras.models import Graph
+import numpy as np
 
 import pysts.embedding as emb
 import pysts.eval as ev
@@ -66,6 +67,7 @@ def config(module_config, params):
     c['Ddim'] = 1
 
     c['loss'] = 'binary_crossentropy'
+    c['balance_class'] = False
     c['batch_size'] = 160
     c['nb_epoch'] = 2
     module_config(c)
@@ -154,11 +156,17 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
     model = build_model(glove, vocab, module_prep_model, c)
 
     print('Training')
+    if c.get('balance_class', False):
+        one_ratio = np.sum(gr['score'] == 1) / len(gr['score'])
+        class_weight = {'score': {0: one_ratio, 1: 0.5}}
+    else:
+        class_weight = {}
     # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
     model.fit(gr, validation_data=grt,
               callbacks=[HypEvCB(s0t, grt),
                          ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='acc', mode='max'),
                          EarlyStopping(monitor='acc', mode='max', patience=4)],
+              class_weight=class_weight,
               batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
 
