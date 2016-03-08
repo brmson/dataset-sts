@@ -40,7 +40,7 @@ s1pad = 60
 
 
 def load_set(fname, vocab=None):
-    s0, s1, y, t = loader.load_anssel(fname, skip_oneclass=False)
+    s0, s1, y = loader.load_hypev(fname)
     # s0=questions, s1=answers
 
     if vocab is None:

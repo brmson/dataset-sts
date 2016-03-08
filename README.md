@@ -153,7 +153,6 @@ We are going to produce a dataset that merges questions and answers in a single
 sentence, and pairs each with potential-evidencing sentences from Wikipedia and
 CK12 textbooks.  This will be probably the hardest dataset by far included in
 this repo for some time.  (We may also want to include the Elementary dataset.)
-(TODO: pysts manipulation tools)
 
   * [ ] bAbI has a variety of datasets, especially re memory networks (memory
 relevant to a given question), though with an extremely limited vocabulary.

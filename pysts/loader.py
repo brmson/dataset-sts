@@ -82,6 +82,31 @@ def load_anssel(dsfile, subsample0=1, skip_oneclass=True):
     return (s0, s1, np.array(labels), toklabels if toklabels else None)
 
 
+def load_hypev(dsfile):
+    """ load a dataset in the hypev csv format;
+
+    TODO: the (optional) semantic token labels (linked entities etc.)
+    are not loaded. """
+    s0 = []
+    s1 = []
+    labels = []
+
+    with open(dsfile) as f:
+        c = csv.DictReader(f)
+        for l in c:
+            label = int(l['label'])
+            try:
+                htext = l['htext'].decode('utf8')
+                mtext = l['mtext'].decode('utf8')
+            except AttributeError:  # python3 has no .decode()
+                htext = l['htext']
+                mtext = l['mtext']
+            labels.append(label)
+            s0.append(htext.split(' '))
+            s1.append(mtext.split(' '))
+    return (s0, s1, np.array(labels))
+
+
 def load_sick2014(dsfile, mode='relatedness'):
     """ load a dataset in the sick2014 tsv .txt format;
 
