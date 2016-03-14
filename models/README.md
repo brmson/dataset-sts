@@ -48,6 +48,9 @@ directory.
   * **cnnrnn.py** uses a model popular in Keras examples, using CNN to
     "smear" the input sentence, then RNN on top of that to generate the
     summary sentence embedding
+  * **rnncnn.py** uses a model introduced in
+    [Tan et al., 1511.04108](http://arxiv.org/abs/1511.04108)), CNN on
+    top of an RNN sequence output - simple combination of rnn and cnn
   * **attn1511.py** is a modular and configurable pipeline using RNNs, CNNs
     and attention to generate sentence embeddings that depend on the other
     sentence as well (reimplementation and extension of
