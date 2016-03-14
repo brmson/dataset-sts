@@ -34,8 +34,8 @@ def config(c):
     # disable Keras training
     c['ptscorer'] = None
 
+    # weight terms by their inverse document frequency
     c['idf'] = True
-    c['idf_bool'] = False  # XXX remove this gizmo
 
     # scoring may be performed using either:
     # * 'overlap' (count overlapping words, possibly reweighting it)
@@ -86,9 +86,6 @@ class TFModel:
             counter = defaultdict(float)
             for i in range(len(gr['si0'])):
                 for k in ['si0', 'si1']:
-                    s = gr[k][i]
-                    if self.c['idf_bool']:
-                        s = set(s)
                     for ti in gr[k][i]:
                         counter[self._normidx(ti)] += 1
             for k, v in counter.items():
@@ -125,7 +122,8 @@ class TFModel:
             tf1 = TFVec(s1, idf)
             return tf0.cos(tf1)
         elif self.c['score_mode'] == 'overlap':
-            tf = TFVec(set(s0) & set(s1), idf)
+            s = [ti for ti in s0 if ti in s1]
+            tf = TFVec(s, idf)
             return tf.norm()
         else:
             raise ValueError
