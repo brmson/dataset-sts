@@ -5,11 +5,16 @@ This general model can count TFIDF as well as Okapi BM25,
 count (un)weighed overlaps as well as compute cosine distance,
 deal with boolean as well as raw frequencies...
 
-At least it's designed to.  Many TODO items remain (mainly BM25).
+At least it's designed to, some TODO items remain.
 
 Stopwords and punctuation are removed and terms are normalized
 to lowercase whenever possible, based on Yih et al., 2013
 (http://research.microsoft.com/pubs/192357/QA-SentSel-Updated-PostACL.pdf).
+
+BM25 parameters (and the whole idea) come from Wang+Nyberg, 2015
+(http://www.aclweb.org/anthology/P15-2116).
+
+Defaults are tuned for anssel-wang devMRR.
 """
 
 from __future__ import print_function
@@ -32,6 +37,16 @@ def config(c):
     # weight terms by their inverse document frequency
     c['idf'] = True
 
+    # frequency computation mode can be either:
+    # * 'tf' for normal tf-idf with raw counts (N.B. raw/bool has almost no
+    #   effect as there are few term repetitions in the sentences)
+    # * 'BM25' for the Okapi BM25; c['K1'] and c['B'] parameters are used
+    c['freq_mode'] = 'BM25'
+
+    # Okapi BM25 parameters; from http://www.aclweb.org/anthology/P15-2116:
+    c['K1'] = 1.2
+    c['B'] = 0.75
+
     # scoring may be performed using either:
     # * 'overlap' (count overlapping words, possibly reweighting it)
     # * 'cos' (compute tfidf vectors for each sentence, then measure
@@ -42,12 +57,18 @@ def config(c):
 class TFVec:
     """ tf(idf) sparse vector (dict-based) """
 
-    def __init__(self, s, idf):
+    def __init__(self, s, idf, conf, avglen):
+        """ idf is an (idfdict, oovidfval) tuple """
         self.w = dict()
         for w, c in Counter(s).items():
             if w == '':
                 continue
-            x = c
+
+            if conf['freq_mode'] == 'tf':
+                x = c
+            elif conf['freq_mode'] == 'BM25':
+                x = (c * (conf['K1'] + 1)) / (c + conf['K1'] * (1 - conf['B'] + conf['B'] * len(s) / avglen))
+
             if idf is not None:
                 x *= idf[0].get(w, idf[1])
             self.w[w] = x
@@ -77,7 +98,9 @@ class TFModel:
         self.output = output
 
     def fit(self, gr, **kwargs):
-        # our "fitting" is just computing the idf table
+        # our "fitting" is just computing the idf table; for BM25,
+        # we also need average sentence length
+        lens = []
         if self.c['idf']:
             self.N = len(gr['s0'])
             counter = defaultdict(float)
@@ -85,9 +108,21 @@ class TFModel:
                 for k in ['s0', 's1']:
                     for w in gr[k][i]:
                         counter[self._norm(w)] += 1
-            for k, v in counter.items():
-                counter[k] = np.log(self.N / (v + 1))
+                    lens.append(len(gr[k]))
+
+            if self.c['freq_mode'] == 'tf':
+                # basic idf
+                for k, v in counter.items():
+                    counter[k] = np.log(self.N / (v + 1))
+
+            elif self.c['freq_mode'] == 'BM25':
+                # Okapi idf
+                for k, v in counter.items():
+                    counter[k] = np.log((self.N - v + 0.5) / (v + 0.5))
+
             self.idf = counter
+
+        self.avglen = np.mean(lens)
 
     def load_weights(self, f, **kwargs):
         pass
@@ -113,8 +148,8 @@ class TFModel:
 
     def _score(self, s0, s1):
         idf = (self.idf, np.log(self.N)) if self.c['idf'] else None
-        tf0 = TFVec(s0, idf)
-        tf1 = TFVec(s1, idf)
+        tf0 = TFVec(s0, idf, self.c, self.avglen)
+        tf1 = TFVec(s1, idf, self.c, self.avglen)
         if self.c['score_mode'] == 'cos':
             return tf0.cos(tf1)
         elif self.c['score_mode'] == 'overlap':
