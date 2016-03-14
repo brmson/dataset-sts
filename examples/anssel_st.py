@@ -2,10 +2,18 @@
 """
 Simple example of using skipthoughts for answer sentence selection.
 example of usage:
-python examples/anssel_st.py  --skipthoughts_datadir /storage/ostrava1/home/nadvorj1/skip-thoughts/
+python examples/anssel_st.py  --skipthoughts_datadir skip-thoughts/
 
 todo:
 - add example of cache_dir
+
+To set up the skipthoughts datadir contents:
+    * git clone https://github.com/ryankiros/skip-thoughts
+    * Execute the "Getting started" wgets in its README
+
+When starting this example script for the first time, the sentence
+level embeddings are generated (about 2 sentences per second, so
+long time); they are cached and reused the next time.
 
 """
 

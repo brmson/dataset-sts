@@ -3,6 +3,7 @@ A toolkit you may find useful for mapping sentences to embeddings.
 
 Download and unzip the standard GloVe embeddings to use this.
 
+Uses unigram/bigram information from the Children Book dataset.
 """
 
 
