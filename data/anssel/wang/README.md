@@ -24,6 +24,7 @@ All models are trained on train-all.
 | termfreq TF-IDF cos      | 0.601831    | 0.696384 |          |          | ``freq_mode='tf' score_mode='cos'``
 | termfreq BM25 #w         | 0.813992    | 0.829004 |          |          | (defaults)
 | termfreq BM25 cos        | 0.602093    | 0.684234 |          |          | ``score_mode='cos'``
+| avg mean+project         |             | 0.738617 | 0.630773 | 0.556700 | (defaults)
 
 Dataset
 -------

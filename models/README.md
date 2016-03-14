@@ -45,7 +45,7 @@ directory.
   * **avg.py** is a trivial baseline that produces bag-of-words average
     embedding across all input words, then projects it to a similarity
     vector space; this is analogous to [(Yu, 1412.1632)](http://arxiv.org/abs/1412.1632)
-    as well as the MemN2N model
+    as well as the MemN2N model; it also supports the Deep Averaging Networks
   * **rnn.py** is a simple model that generates summary sentence embeddings
     based on GRU hidden states
   * **cnn.py** is another simple model that generates summary sentence
@@ -70,5 +70,3 @@ Model Wishlist
   * [Learning Hybrid Representations to Retrieve Semantically Equivalent Questions](http://www.aclweb.org/anthology/P15-2114)
   * [Learning to Rank Short Text Pairs with Convolutional Deep Neural Networks](http://disi.unitn.it/~severyn/papers/sigir-2015-long.pdf)
   * [Tree-LSTM](http://arxiv.org/abs/1503.00075)
-  * [Deep Averaging Networks](http://cs.umd.edu/~miyyer/pubs/2015_acl_dan.pdf)
-    should be a trivial extension of avg; just word-level dropout is required
