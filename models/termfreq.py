@@ -36,7 +36,7 @@ def config(c):
     # * 'overlap' (count overlapping words, possibly reweighting it)
     # * 'cos' (compute tfidf vectors for each sentence, then measure
     #   cosine distance)
-    c['score_mode'] = 'cos'
+    c['score_mode'] = 'overlap'
 
 
 class TFVec:
@@ -63,6 +63,10 @@ class TFVec:
 
     def cos(self, v2):
         return self.dot(v2) / (self.norm() * v2.norm())
+
+    def overlap(self, v2):
+        """ sum tfidf scores of v2 words overlapping with v1 """
+        return np.sum([score for w, score in v2.w.items() if w in self.w])
 
 
 class TFModel:
@@ -109,14 +113,12 @@ class TFModel:
 
     def _score(self, s0, s1):
         idf = (self.idf, np.log(self.N)) if self.c['idf'] else None
+        tf0 = TFVec(s0, idf)
+        tf1 = TFVec(s1, idf)
         if self.c['score_mode'] == 'cos':
-            tf0 = TFVec(s0, idf)
-            tf1 = TFVec(s1, idf)
             return tf0.cos(tf1)
         elif self.c['score_mode'] == 'overlap':
-            s = [w for w in s0 if w in s1]
-            tf = TFVec(s, idf)
-            return tf.norm()
+            return tf0.overlap(tf1)
         else:
             raise ValueError
 
