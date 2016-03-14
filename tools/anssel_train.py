@@ -62,7 +62,7 @@ def load_set(fname, vocab=None, s0pad=s0pad, s1pad=s1pad):
     si0 = vocab.vectorize(s0, spad=s0pad)
     si1 = vocab.vectorize(s1, spad=s1pad)
     f0, f1 = nlp.sentence_flags(s0, s1, s0pad, s1pad)
-    gr = graph_input_anssel(si0, si1, y, f0, f1)
+    gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
 
     return (s0, s1, y, vocab, gr)
 

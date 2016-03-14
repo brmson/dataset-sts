@@ -10,11 +10,6 @@ At least it's designed to.  Many TODO items remain (mainly BM25).
 Stopwords and punctuation are removed and terms are normalized
 to lowercase whenever possible, based on Yih et al., 2013
 (http://research.microsoft.com/pubs/192357/QA-SentSel-Updated-PostACL.pdf).
-
-Unlike a commonsense implementation, tokens not occuring in the
-training set are ignored when computing the score - this is a
-consequence of embedding-oriented PySTS handling of dataset
-loading.
 """
 
 from __future__ import print_function
@@ -49,13 +44,13 @@ class TFVec:
 
     def __init__(self, s, idf):
         self.w = dict()
-        for ti, c in Counter(s).items():
-            if ti == 0:
+        for w, c in Counter(s).items():
+            if w == '':
                 continue
             x = c
             if idf is not None:
-                x *= idf[0].get(ti, idf[1])
-            self.w[ti] = x
+                x *= idf[0].get(w, idf[1])
+            self.w[w] = x
 
     def norm(self):
         return np.sum(list(self.w.values()))
@@ -73,21 +68,19 @@ class TFVec:
 class TFModel:
     """ Quacks (a little) like a Keras model. """
 
-    def __init__(self, vocab, c, output):
-        self.vocab = vocab
-        self.idx2word = {v: k for k, v in self.vocab.word_idx.items()}
+    def __init__(self, c, output):
         self.c = c
         self.output = output
 
     def fit(self, gr, **kwargs):
         # our "fitting" is just computing the idf table
         if self.c['idf']:
-            self.N = len(gr['si0'])
+            self.N = len(gr['s0'])
             counter = defaultdict(float)
-            for i in range(len(gr['si0'])):
-                for k in ['si0', 'si1']:
-                    for ti in gr[k][i]:
-                        counter[self._normidx(ti)] += 1
+            for i in range(len(gr['s0'])):
+                for k in ['s0', 's1']:
+                    for w in gr[k][i]:
+                        counter[self._norm(w)] += 1
             for k, v in counter.items():
                 counter[k] = np.log(self.N / (v + 1))
             self.idf = counter
@@ -100,20 +93,19 @@ class TFModel:
 
     def predict(self, gr):
         scores = []
-        for i in range(len(gr['si0'])):
-            s0 = [self._normidx(ti) for ti in gr['si0'][i]]
-            s1 = [self._normidx(ti) for ti in gr['si1'][i]]
+        for i in range(len(gr['s0'])):
+            s0 = [self._norm(w) for w in gr['s0'][i]]
+            s1 = [self._norm(w) for w in gr['s1'][i]]
             scores.append([self._score(s0, s1)])
         return {'score': np.array(scores)}
 
-    def _normidx(self, ti):
+    def _norm(self, w):
         """ map punctuation and stopwords to 0, non-lowercase words to lowercase indices """
-        w = self.idx2word[ti]
         if w in stop:
-            return 0
+            return ''
         if re.match('^[,.:;`\'"!?()/-]+$', w):
-            return 0
-        return self.vocab.word_idx.get(w.lower(), ti)
+            return ''
+        return w.lower()
 
     def _score(self, s0, s1):
         idf = (self.idf, np.log(self.N)) if self.c['idf'] else None
@@ -122,7 +114,7 @@ class TFModel:
             tf1 = TFVec(s1, idf)
             return tf0.cos(tf1)
         elif self.c['score_mode'] == 'overlap':
-            s = [ti for ti in s0 if ti in s1]
+            s = [w for w in s0 if w in s1]
             tf = TFVec(s, idf)
             return tf.norm()
         else:
@@ -131,4 +123,4 @@ class TFModel:
 
 def prep_model(vocab, c, output='score'):
     # TODO: the output parameter is there for sts, output='classes'
-    return TFModel(vocab, c, output)
+    return TFModel(c, output)
