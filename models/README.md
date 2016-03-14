@@ -12,6 +12,9 @@ state-of-art results.
 You are encouraged to contribute more strong models, especially if you
 publish a paper on them with the help of this repository.
 
+Performance of the models on individual tasks are listed in the tasks
+respective READMEs.
+
 Model API
 ---------
 

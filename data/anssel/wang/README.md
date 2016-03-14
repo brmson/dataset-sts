@@ -9,6 +9,22 @@ The classic academic standard stems from the TREC-based dataset originally
 by Wang et al., 2007, in the form by Yao et al., 2013 as downloaded from
 https://code.google.com/p/jacana/
 
+Model Comparison
+----------------
+
+For third-party measurements, see
+
+	http://aclweb.org/aclwiki/index.php?title=Question_Answering_(State_of_the_art)
+
+All models are trained on train-all.
+
+| Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings
+|--------------------------|-------------|----------|----------|----------|---------
+| termfreq TF-IDF #w       | 0.715266    | 0.725217 |          |          | ``freq_mode='tf'`` weighed count of common words
+| termfreq TF-IDF cos      | 0.601831    | 0.696384 |          |          | ``freq_mode='tf' score_mode='cos'``
+| termfreq BM25 #w         | 0.813992    | 0.829004 |          |          | (defaults)
+| termfreq BM25 cos        | 0.602093    | 0.684234 |          |          | ``score_mode='cos'``
+
 Dataset
 -------
 
