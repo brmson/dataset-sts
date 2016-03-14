@@ -84,8 +84,6 @@ def config(c):
     c['project'] = True
     c['adim'] = 1/2
     c['attn_mode'] = 'sum'
-    # focus_act may be suffixed with "/norm" to make it normalized across
-    # the sentence; softmax is, by default
     c['focus_act'] = 'softmax'
 
     # model-external:
@@ -146,15 +144,21 @@ class NormalizedActivation(MaskedLayer):
             (see: [activations](../activations.md)),
             or alternatively, a Theano or TensorFlow operation.
     '''
-    def __init__(self, activation, **kwargs):
+    def __init__(self, activation, norm_mode, **kwargs):
         super(NormalizedActivation, self).__init__(**kwargs)
         self.activation = activations.get(activation)
+        self.norm_mode = norm_mode
 
     def get_output(self, train=False):
         import keras.backend as K
         X = self.get_input(train)
         a = self.activation(X)
-        s = K.sum(a, axis=-1, keepdims=True)
+        if self.norm_mode == 'norm':
+            s = K.sum(a, axis=-1, keepdims=True)
+        elif self.norm_mode == 'maxnorm':
+            s = K.max(a, axis=-1, keepdims=True)
+        else:
+            raise ValueError
         return a / s
 
     def get_config(self):
@@ -165,9 +169,11 @@ class NormalizedActivation(MaskedLayer):
 
 
 def focus_activation(focus_act):
-    if focus_act.endswith('/norm'):
-        focus_act = focus_act.split('/')[0]
-        return NormalizedActivation(focus_act)
+    """ .../norm: normalize activation to sum to 1;
+    .../maxnorm: normalize activation to peak at 1 """
+    if '/' in focus_act:
+        focus_act, norm_mode = focus_act.split('/')
+        return NormalizedActivation(focus_act, norm_mode)
     else:
         return Activation(focus_act)
 
