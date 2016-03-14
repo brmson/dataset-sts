@@ -37,6 +37,8 @@ Models
 To try out any given model, use task-specific training tools in the **tools/**
 directory.
 
+  * **termfreq.py** is a trivial non-neural baseline that just determines
+    word-level overlap between sentences - TFIDF or BM25
   * **avg.py** is a trivial baseline that produces bag-of-words average
     embedding across all input words, then projects it to a similarity
     vector space; this is analogous to [(Yu, 1412.1632)](http://arxiv.org/abs/1412.1632)

@@ -135,7 +135,10 @@ def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, op
 
 def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, s0pad=s0pad, s1pad=s1pad):
     print('Model')
-    model = build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad)
+    if c['ptscorer'] is not None:
+        model = build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad)
+    else:
+        model = module_prep_model(vocab, c)
 
     print('Training')
     if c.get('balance_class', False):
@@ -168,8 +171,11 @@ if __name__ == "__main__":
     runid = '%s-%x' % (modelname, h)
     print('RunID: %s  (%s)' % (runid, ps))
 
-    print('GloVe')
-    glove = emb.GloVe(N=conf['embdim'])
+    if conf['embdim'] is not None:
+        print('GloVe')
+        glove = emb.GloVe(N=conf['embdim'])
+    else:
+        glove = None
 
     print('Dataset')
     s0, s1, y, vocab, gr = load_set(trainf)
