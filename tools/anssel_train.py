@@ -122,6 +122,10 @@ def prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad):
 
 
 def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, optimizer='adam'):
+    if c['ptscorer'] is None:
+        # non-neural model
+        return module_prep_model(vocab, c)
+
     if c['loss'] == 'binary_crossentropy':
         oact = 'sigmoid'
     else:
@@ -135,10 +139,7 @@ def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, op
 
 def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, s0pad=s0pad, s1pad=s1pad):
     print('Model')
-    if c['ptscorer'] is not None:
-        model = build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad)
-    else:
-        model = module_prep_model(vocab, c)
+    model = build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad)
 
     print('Training')
     if c.get('balance_class', False):
@@ -154,6 +155,8 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, 
               class_weight=class_weight,
               batch_size=c['batch_size'], nb_epoch=c['nb_epoch'], samples_per_epoch=int(len(s0)*c['epoch_fract']))
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
+    if c['ptscorer'] is None:
+        model.save_weights('weights-'+runid+'-bestval.h5', overwrite=True)
 
     print('Predict&Eval (best epoch)')
     model.load_weights('weights-'+runid+'-bestval.h5')

@@ -21,6 +21,7 @@ from __future__ import print_function
 from __future__ import division
 
 from collections import defaultdict, Counter
+import h5py
 from nltk.corpus import stopwords
 import numpy as np
 import re
@@ -125,10 +126,21 @@ class TFModel:
         self.avglen = np.mean(lens)
 
     def load_weights(self, f, **kwargs):
-        pass
+        h5 = h5py.File(f, "r")
+        self.avglen = h5['avglen'].value
+        self.N = h5['N'].value
+        self.idf = defaultdict(float)
+        for w, v in h5['idf'].items():
+            self.idf[w.replace('__SL__', '/')] = v.value
 
     def save_weights(self, f, **kwargs):
-        pass
+        h5 = h5py.File(f, "w")
+        h5.create_dataset('avglen', data=self.avglen)
+        h5.create_dataset('N', data=self.N)
+        for w, v in self.idf.items():
+            if w == '':
+                continue
+            h5.create_dataset('idf/'+w.replace('/', '__SL__'), data=v)
 
     def predict(self, gr):
         scores = []
