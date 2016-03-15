@@ -16,15 +16,22 @@ For third-party measurements, see
 
 	http://aclweb.org/aclwiki/index.php?title=Question_Answering_(State_of_the_art)
 
-All models are trained on train-all.
+All models are trained on train-all.  For randomized models, 95% confidence
+intervals (t-distribution) are reported.
 
 | Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings
 |--------------------------|-------------|----------|----------|----------|---------
-| termfreq TF-IDF #w       | 0.715266    | 0.725217 |          |          | ``freq_mode='tf'`` weighed count of common words
-| termfreq TF-IDF cos      | 0.601831    | 0.696384 |          |          | ``freq_mode='tf' score_mode='cos'``
-| termfreq BM25 #w         | 0.813992    | 0.829004 |          |          | (defaults)
-| termfreq BM25 cos        | 0.602093    | 0.684234 |          |          | ``score_mode='cos'``
-| avg mean+project         |             | 0.738617 | 0.630773 | 0.556700 | (defaults)
+| termfreq TF-IDF #w       | 0.715266    | 0.725217 | 0.634500 | 0.708957 | ``freq_mode='tf'`` weighed count of common words
+| termfreq TF-IDF cos      | 0.601831    | 0.696384 | 0.583100 | 0.634582 | ``freq_mode='tf' score_mode='cos'``
+| termfreq BM25 #w         | 0.813992    | 0.829004 | 0.693800 | 0.765363 | (defaults)
+| termfreq BM25 cos        | 0.602093    | 0.684234 | 0.641078 | 0.582000 | ``score_mode='cos'``
+| avg mean+project (dot)   |             | 0.752555 | 0.630773 | 0.556700 | ``ptscorer=B.dot_ptscorer``
+|                          |             |±0.024913 |          |          |
+| avg mean+project (MLP)   |             | 0.815309 | 0.729056 | 0.635900 | (defaults)
+|                          |             |±0.032678 |          |          |
+| avg DAN (MLP)            |             | 0.815309 | 0.729056 | 0.635900 | DAN
+|                          |             |          |          |          |
+|--------------------------|-------------|----------|----------|----------|---------
 
 Dataset
 -------
