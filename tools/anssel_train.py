@@ -137,7 +137,7 @@ def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, op
     return model
 
 
-def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, s0pad=s0pad, s1pad=s1pad):
+def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, s0pad=s0pad, s1pad=s1pad, do_eval=True):
     print('Model')
     model = build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad)
 
@@ -157,11 +157,13 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, 
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
     if c['ptscorer'] is None:
         model.save_weights('weights-'+runid+'-bestval.h5', overwrite=True)
-
-    print('Predict&Eval (best epoch)')
     model.load_weights('weights-'+runid+'-bestval.h5')
-    ev.eval_anssel(model.predict(gr)['score'][:,0], s0, gr['score'], 'Train')
-    ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, grt['score'], 'Val')
+
+    if do_eval:
+        print('Predict&Eval (best epoch)')
+        ev.eval_anssel(model.predict(gr)['score'][:,0], s0, gr['score'], 'Train')
+        ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, grt['score'], 'Val')
+    return model
 
 
 if __name__ == "__main__":

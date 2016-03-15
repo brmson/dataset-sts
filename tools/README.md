@@ -24,6 +24,9 @@ Answer Sentence Selection
 
   * **anssel_tuning.py** tunes the model parameters using random search
 
+  * **anssel_fineval.py** evaluates the model N times on all sets, producing
+    statistical measurements suitable for publication
+
   * **anssel-visual.ipynb** showcases IPython/Jupyter notebook for model
     development and visualizing attention models using a token heatmap
 
