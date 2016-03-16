@@ -256,3 +256,21 @@ def sts_categorical2labels(Y, nclass=6):
     """
     r = np.arange(nclass)
     return np.dot(Y, r)
+
+
+def graph_adapt_ubuntu(gr, vocab):
+    """ modify an anssel graph dataset to look like ubuntu's; XXX move elsewhere? """
+    gr2 = dict(gr)
+    for k in ['si0', 'si1']:
+        gr2[k] = []
+        for s in gr[k]:
+            s2 = list(s)
+            try:
+                s2[s2.index(0)] = vocab.word_idx['__eou__']
+                if k == 'si0':
+                    s2[s2.index(0)] = vocab.word_idx['__eot__']
+            except ValueError:
+                pass
+            gr2[k].append(s2)
+        gr2[k] = np.array(gr2[k])
+    return gr2
