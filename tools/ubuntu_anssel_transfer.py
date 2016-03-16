@@ -17,29 +17,20 @@ try:
 except ImportError:  # python3
     import pickle as cPickle
 import pickle
-import random
 import sys
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.layers.core import Activation, Dropout
-from keras.layers.recurrent import SimpleRNN, GRU, LSTM
-from keras.models import Graph
-from keras.preprocessing.sequence import pad_sequences
 
 import pysts.embedding as emb
 import pysts.eval as ev
 import pysts.loader as loader
-import pysts.nlp as nlp
 from pysts.hyperparam import hash_params
-from pysts.vocab import Vocabulary
 
-from pysts.kerasts import graph_input_anssel, graph_input_slice
 import pysts.kerasts.blocks as B
 from pysts.kerasts.callbacks import AnsSelCB
 from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
 
 import anssel_train
-import ubuntu_train
 import models  # importlib python3 compatibility requirement
 
 
@@ -47,29 +38,6 @@ import models  # importlib python3 compatibility requirement
 # of big models.
 s0pad = 80
 s1pad = 80
-
-
-def pad_3d_sequence(seqs, maxlen, nd, dtype='int32'):
-    pseqs = np.zeros((len(seqs), maxlen, nd)).astype(dtype)
-    for i, seq in enumerate(seqs):
-        trunc = np.array(seq[-maxlen:], dtype=dtype)  # trunacting='pre'
-        pseqs[i, :trunc.shape[0]] = trunc  # padding='post'
-    return pseqs
-
-
-def pad_graph(gr, s0pad=s0pad, s1pad=s1pad):
-    """ pad sequences in the graph """
-    gr['si0'] = pad_sequences(gr['si0'], maxlen=s0pad, truncating='pre', padding='post')
-    gr['si1'] = pad_sequences(gr['si1'], maxlen=s1pad, truncating='pre', padding='post')
-    gr['f0'] = pad_3d_sequence(gr['f0'], maxlen=s0pad, nd=nlp.flagsdim)
-    gr['f1'] = pad_3d_sequence(gr['f1'], maxlen=s1pad, nd=nlp.flagsdim)
-    gr['score'] = np.array(gr['score'])
-
-
-def load_set(fname, vocab):
-    si0, si1, f0, f1, labels = cPickle.load(open(fname, "rb"))
-    gr = graph_input_anssel(si0, si1, labels, f0, f1)
-    return gr
 
 
 def config(module_config, params):
@@ -99,23 +67,6 @@ def config(module_config, params):
 
     ps, h = hash_params(c)
     return c, ps, h
-
-
-def sample_pairs(gr, c, batch_size, once=False):
-    """ A generator that produces random pairs from the dataset """
-    # XXX: We drop the last few samples if (1e6 % batch_size != 0)
-    # XXX: We never swap samples between batches, does it matter?
-    ids = range(int(len(gr['si0']) / batch_size))
-    while True:
-        random.shuffle(ids)
-        for i in ids:
-            sl = slice(i * batch_size, (i+1) * batch_size)
-            ogr = graph_input_slice(gr, sl)
-            # TODO: Add support for discarding too long samples?
-            pad_graph(ogr)
-            yield ogr
-        if once:
-            break
 
 
 def transfer_eval(runid, weightsf, module_prep_model, c, glove, vocab, gr, grv):
