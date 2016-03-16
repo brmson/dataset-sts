@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# vim: set fileencoding=utf8:
 """
 Evaluate a KeraSTS model on the Answer Sentence Selection task
 for publication.
@@ -39,11 +40,13 @@ import models  # importlib python3 compatibility requirement
 
 
 def ev_map(s0, s1, y, ypred, fname):
-    qrf = tempfile.NamedTemporaryFile(mode="wt")
-    anssel_treceval.save_trec_qrels(qrf, s0, s1, y)
-    topf = tempfile.NamedTemporaryFile(mode="wt")
-    anssel_treceval.save_trec_top(topf, s0, s1, ypred, '.')
-    mapt = anssel_treceval.trec_eval_get(qrf.name, topf.name, 'map')
+    with tempfile.NamedTemporaryFile(mode="wt", delete=False) as qrf:
+        anssel_treceval.save_trec_qrels(qrf, s0, s1, y)
+        qrf.flush()
+        with tempfile.NamedTemporaryFile(mode="wt", delete=False) as topf:
+            anssel_treceval.save_trec_top(topf, s0, s1, ypred, '.')
+            topf.flush()
+            mapt = anssel_treceval.trec_eval_get(qrf.name, topf.name, 'map')
     print('%s MAP: %f' % (fname, mapt))
     return mapt
 
