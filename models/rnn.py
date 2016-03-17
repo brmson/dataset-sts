@@ -10,33 +10,6 @@ external similarity space.
 
 This will be a part of our upcoming paper; meanwhile, if you need to cite this,
 refer to the dataset-sts GitHub repo, please.
-
-
-Performance:
-    * anssel-wang:  (the model parameters were tuned to maximize devMRR on wang)
-      * project=False, dot_ptscorer
-                rnnbidi=False - devMRR=0.773352, testMRR=0.745151
-                rnnbidi=True - devMRR=0.796154, testMRR=0.774527
-
-      * project=True, dot_ptscorer
-                rnnbidi=False - devMRR=0.818654, testMRR=0.709342
-                rnnbidi=True - devMRR=0.840403, testMRR=0.762395
-
-      * project=False, mlp_ptscorer
-                rnnbidi=False - devMRR=0.829890, testMRR=0.756679
-                rnnbidi=True - devMRR=0.869744, testMRR=0.787051
-
-      * project=True, mlp_ptscorer (dropout after project)
-                rnnbidi=False - devMRR=0.830641, testMRR=0.797059, testMAP=0.7097
-                rnnbidi=True - devMRR=0.833887, testMRR=0.808252, testMAP=0.7262
-
-      * project=True, mlp_ptscorer (CURRENT)
-                rnnbidi=False - devMRR=0.844359, testMRR=0.813130, testMAP=0.7249
-                rnnbidi=True - devMRR=0.857949, testMRR=0.797496, testMAP=0.7275
-
-    * anssel-yodaqa:  (using the wang-tuned parameters)
-      valMRR=0.312343
-
 """
 
 from __future__ import print_function
@@ -50,7 +23,7 @@ import pysts.kerasts.blocks as B
 
 
 def config(c):
-    c['dropout'] = 3/4
+    c['dropout'] = 4/5
     c['dropoutfix_inp'] = 0
     c['dropoutfix_rec'] = 0
     c['l2reg'] = 1e-4
@@ -64,11 +37,11 @@ def config(c):
     c['rnnlevels'] = 1
 
     c['project'] = True
-    c['pdim'] = 2.5
-    c['pact'] = 'linear'
+    c['pdim'] = 2
+    c['pact'] = 'tanh'
 
     # model-external:
-    c['inp_e_dropout'] = 3/4
+    c['inp_e_dropout'] = 4/5
     c['inp_w_dropout'] = 0
     # anssel-specific:
     c['ptscorer'] = B.mlp_ptscorer

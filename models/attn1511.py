@@ -62,7 +62,7 @@ import pysts.kerasts.blocks as B
 
 
 def config(c):
-    c['dropout'] = 3/4
+    c['dropout'] = 1/2
     c['dropoutfix_inp'] = 0
     c['dropoutfix_rec'] = 0
     c['l2reg'] = 1e-4
@@ -72,7 +72,7 @@ def config(c):
     c['rnnbidi_mode'] = 'sum'
     c['rnnact'] = 'tanh'
     c['rnninit'] = 'glorot_uniform'
-    c['sdim'] = 2
+    c['sdim'] = 1
     c['rnnlevels'] = 1
 
     c['pool_layer'] = MaxPooling1D
@@ -87,7 +87,7 @@ def config(c):
     c['focus_act'] = 'softmax'
 
     # model-external:
-    c['inp_e_dropout'] = 3/4
+    c['inp_e_dropout'] = 1/2
     c['inp_w_dropout'] = 0
     # anssel-specific:
     c['ptscorer'] = B.mlp_ptscorer
