@@ -14,7 +14,7 @@ import pysts.kerasts.blocks as B
 
 
 def config(c):
-    c['dropout'] = 3/4
+    c['dropout'] = 0
     c['dropoutfix_inp'] = 0
     c['dropoutfix_rec'] = 0
     c['l2reg'] = 1e-4
@@ -24,19 +24,19 @@ def config(c):
     c['rnnbidi_mode'] = 'sum'
     c['rnnact'] = 'tanh'
     c['rnninit'] = 'glorot_uniform'
-    c['sdim'] = 2
+    c['sdim'] = 1
     c['rnnlevels'] = 1
 
-    c['cnnact'] = 'tanh'
+    c['cnnact'] = 'relu'
     c['cnninit'] = 'glorot_uniform'
     c['cdim'] = {1: 1, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2}
 
     c['project'] = True
-    c['pdim'] = 2.5
-    c['pact'] = 'linear'
+    c['pdim'] = 2
+    c['pact'] = 'tanh'
 
     # model-external:
-    c['inp_e_dropout'] = 3/4
+    c['inp_e_dropout'] = 0
     c['inp_w_dropout'] = 0
     # anssel-specific:
     c['ptscorer'] = B.mlp_ptscorer
