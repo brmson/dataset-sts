@@ -51,6 +51,7 @@ def config(module_config, params):
     c['mlpsum'] = 'sum'
     c['Ddim'] = 1
 
+    c['opt'] = 'adam'
     c['loss'] = ranknet  # XXX: binary_crossentropy back?
     c['balance_class'] = True  # seems essential
     c['batch_size'] = 64
@@ -71,7 +72,7 @@ def config(module_config, params):
 
 def transfer_eval(runid, weightsf, module_prep_model, c, glove, vocab, gr, grv):
     print('Model')
-    model = anssel_train.build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad)
+    model = anssel_train.build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, optimizer=c['opt'])
     print('Model (weights)')
     model.load_weights(weightsf)
 
