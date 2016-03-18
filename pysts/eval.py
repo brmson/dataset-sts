@@ -154,6 +154,12 @@ def eval_anssel(ypred, s0, y, name):
     return mrr_
 
 
+def eval_para(ypred, y, name):
+    rawacc, y0acc, y1acc, balacc = binclass_accuracy(y, ypred)
+    print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
+    return rawacc
+
+
 def eval_hypev(ypred, s0, y, name):
     rawacc, y0acc, y1acc, balacc = binclass_accuracy(y, ypred)
     prec = hypev_accuracy(hypev_classify_mean(s0, y, ypred))

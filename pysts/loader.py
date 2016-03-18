@@ -164,6 +164,25 @@ def load_sts(dsfile, skip_unlabeled=True):
     return (s0, s1, np.array(labels))
 
 
+def load_msrpara(dsfile):
+    """ load a dataset in the msrpara tsv format """
+    s0 = []
+    s1 = []
+    labels = []
+    with codecs.open(dsfile, encoding='utf8') as f:
+        firstline = True
+        for line in f:
+            if firstline:
+                firstline = False
+                continue
+            line = line.rstrip()
+            label, s0id, s1id, s0x, s1x = line.split('\t')
+            labels.append(float(label))
+            s0.append(word_tokenize(s0x))
+            s1.append(word_tokenize(s1x))
+    return (s0, s1, np.array(labels))
+
+
 def concat_datasets(datasets):
     """ Concatenate multiple loaded datasets into a single large one.
 
