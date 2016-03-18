@@ -18,6 +18,23 @@ Otherwise: Use scipy.stats.pearson.  The evaluation code is also
 the same as in ../sick2014 - refer e.g. to the python example from
 skip-thoughts, or in our own examples/ directory.
 
+Model Comparison
+----------------
+
+For randomized models, 95% confidence intervals (t-distribution) are reported.
+
+Because SemEval 2016 competition results weren't published at the test time,
+we train on -2014 and test on 2015.  We use 2014.tweet-news as a validation
+set.
+
+| Model                    | train    | val      | ans.for. | ans.stud | belief   | headline | images   | t. mean  | settings
+|--------------------------|----------|----------|----------|----------|----------|----------|----------|----------|---------
+| termfreq TF-IDF #w       | 0.497085 | 0.651653 | 0.607226 | 0.676746 | 0.622920 | 0.725578 | 0.714331 | 0.669360 | ``freq_mode='tf'``
+| termfreq BM25 #w         | 0.503736 | 0.656081 | 0.626950 | 0.690302 | 0.632223 | 0.725748 | 0.718185 | 0.678681 | (defaults)
+| DLS@CU-S1                |          |          | 0.7390   | 0.7725   | 0.7491   | 0.8250   | 0.8644   | 0.8015   | STS2015 winner
+|--------------------------|----------|----------|----------|----------|----------|----------|----------|----------|---------
+
+
 Changes
 -------
 
