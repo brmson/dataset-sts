@@ -52,7 +52,14 @@ def load_set(files, vocab=None, skip_unlabeled=True):
             return loader.load_sick2014(fname)
         else:
             return loader.load_sts(fname, skip_unlabeled=skip_unlabeled)
-    s0, s1, y = loader.concat_datasets([load_file(d, skip_unlabeled=skip_unlabeled) for d in files])
+    try:
+        strtype = basestring
+    except NameError:
+        strtype = str
+    if isinstance(files, strtype):
+        s0, s1, y = load_file(files, skip_unlabeled=skip_unlabeled)
+    else:
+        s0, s1, y = loader.concat_datasets([load_file(d, skip_unlabeled=skip_unlabeled) for d in files])
 
     if vocab is None:
         vocab = Vocabulary(s0 + s1)
@@ -122,7 +129,7 @@ def build_model(glove, vocab, module_prep_model, c):
     return model
 
 
-def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt):
+def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt, do_eval=True):
     print('Model')
     model = build_model(glove, vocab, module_prep_model, c)
 
@@ -136,11 +143,13 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt):
     model.save_weights('sts-weights-'+runid+'-final.h5', overwrite=True)
     if c['ptscorer'] is None:
         model.save_weights('sts-weights-'+runid+'-bestval.h5', overwrite=True)
-
-    print('Predict&Eval (best val epoch)')
     model.load_weights('sts-weights-'+runid+'-bestval.h5')
-    ev.eval_sts(model.predict(gr)['classes'], gr['classes'], 'Train')
-    ev.eval_sts(model.predict(grt)['classes'], grt['classes'], 'Val')
+
+    if do_eval:
+        print('Predict&Eval (best val epoch)')
+        ev.eval_sts(model.predict(gr)['classes'], gr['classes'], 'Train')
+        ev.eval_sts(model.predict(grt)['classes'], grt['classes'], 'Val')
+    return model
 
 
 if __name__ == "__main__":

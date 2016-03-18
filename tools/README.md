@@ -58,7 +58,10 @@ output is a number between 0 and 5 and Pearson correlation is the metric.
 
   * **sts_train.py** to train a model on 2012-2014 and evaluate on 2015:
 
-	tools/sts_train.py rnn data/sts/semeval-sts/all/201[0-4]* -- data/sts/semeval-sts/all/2015*
+	tools/sts_train.py rnn data/sts/semeval-sts/all/201[-4].[^t]* -- data/sts/semeval-sts/all/2014.tweet-news.test.tsv
+
+  * **sts_fineval.py** evaluates the model N times on all sets, producing
+    statistical measurements suitable for publication
 
 
 Hypothesis Evaluation Task
