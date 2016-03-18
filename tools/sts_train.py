@@ -60,7 +60,7 @@ def load_set(files, vocab=None, skip_unlabeled=True):
     si0 = vocab.vectorize(s0, spad=spad)
     si1 = vocab.vectorize(s1, spad=spad)
     f0, f1 = nlp.sentence_flags(s0, s1, spad, spad)
-    gr = graph_input_sts(si0, si1, y, f0, f1)
+    gr = graph_input_sts(si0, si1, y, f0, f1, s0, s1)
 
     return (s0, s1, y, vocab, gr)
 
@@ -113,6 +113,10 @@ def prep_model(glove, vocab, module_prep_model, c):
 
 
 def build_model(glove, vocab, module_prep_model, c):
+    if c['ptscorer'] is None:
+        # non-neural model
+        return module_prep_model(vocab, c, 'classes')
+
     model = prep_model(glove, vocab, module_prep_model, c)
     model.compile(loss={'classes': c['loss']}, optimizer='adam')
     return model
@@ -130,8 +134,10 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt):
                          EarlyStopping(monitor='pearson', mode='max', patience=3)],
               batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
     model.save_weights('sts-weights-'+runid+'-final.h5', overwrite=True)
+    if c['ptscorer'] is None:
+        model.save_weights('sts-weights-'+runid+'-bestval.h5', overwrite=True)
 
-    print('Predict&Eval')
+    print('Predict&Eval (best val epoch)')
     model.load_weights('sts-weights-'+runid+'-bestval.h5')
     ev.eval_sts(model.predict(gr)['classes'], gr['classes'], 'Train')
     ev.eval_sts(model.predict(grt)['classes'], grt['classes'], 'Val')
@@ -154,8 +160,11 @@ if __name__ == "__main__":
     runid = '%s-%x' % (modelname, h)
     print('RunID: %s  (%s)' % (runid, ps))
 
-    print('GloVe')
-    glove = emb.GloVe(N=conf['embdim'])
+    if conf['embdim'] is not None:
+        print('GloVe')
+        glove = emb.GloVe(N=conf['embdim'])
+    else:
+        glove = None
 
     print('Dataset')
     s0, s1, y, vocab, gr = load_set(trainf)

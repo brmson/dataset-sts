@@ -26,6 +26,8 @@ from nltk.corpus import stopwords
 import numpy as np
 import re
 
+import pysts.loader as loader
+
 stop = stopwords.words('english')
 
 
@@ -148,7 +150,12 @@ class TFModel:
             s0 = [self._norm(w) for w in gr['s0'][i]]
             s1 = [self._norm(w) for w in gr['s1'][i]]
             scores.append([self._score(s0, s1)])
-        return {'score': np.array(scores)}
+        scores = np.array(scores)
+        if self.output == 'score':
+            return {'score': scores}
+        elif self.output == 'classes':
+            scores0 = scores - np.min(scores)
+            return {'classes': loader.sts_labels2categorical(scores0 * 5. / np.max(scores0))}
 
     def _norm(self, w):
         """ map punctuation and stopwords to 0, non-lowercase words to lowercase indices """
