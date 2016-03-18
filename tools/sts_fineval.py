@@ -109,7 +109,8 @@ if __name__ == "__main__":
     for ti in range(len(testf)):
         prtt[testf[ti]] = [prt0[testf[ti]] for prt0 in prt]
 
-    mprt = [np.mean(prtt[testf[ti]]) for ti in range(len(testf))]
+    mprt = [np.mean(prtt[testf[ti]]) for ti in range(len(testf))]  # (n_testf,) mean across epochs
+    prmt = [np.mean(list(prt0.values())) for prt0 in prt]  # (n_epochs,) mean across datasets
 
     brr = stat(niter, trainf, 'Pearson', pr)
     brrv = stat(niter, valf, 'Pearson', prv)
@@ -120,11 +121,11 @@ if __name__ == "__main__":
 
     # README table format:
     print(                  '| % -24s | %.6f | %.6f | %s | %.6f | %s' % (modelname, np.mean(pr), np.mean(prv),
-                                                                         ' | '.join(['%.6f' % (m,) for m in mprt]), np.mean(mprt),
+                                                                         ' | '.join(['%.6f' % (m,) for m in mprt]), np.mean(prmt),
                                                                          '(defaults)' if not params else ' '.join(['``%s``' % (p,) for p in params])))
     print('|                          |±%.6f |±%.6f |%s |±%.6f | ' % (brr, brrv,
                                                                       ' |'.join(['±%.6f' % (np.mean(brrt[testf[ti]]),) for ti in range(len(testf))]),
                                                                       bmrrt))
 
     print('train-val Pearson Pearsonr: %f' % (ss.pearsonr(pr, prv)[0],))
-    print('val-test Pearson Pearsonr: %f' % (ss.pearsonr(prv, mprt)[0],))
+    print('val-test Pearson Pearsonr: %f' % (ss.pearsonr(prv, prmt)[0],))
