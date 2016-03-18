@@ -72,13 +72,10 @@ def config(module_config, params):
 
 def transfer_eval(runid, weightsf, module_prep_model, c, glove, vocab, gr, grv):
     print('Model')
-    model = anssel_train.build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, optimizer=c['opt'])
+    model = anssel_train.build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, optimizer=c['opt'], fix_layers=c['fix_layers'])
     print('Model (weights)')
     model.load_weights(weightsf)
     ev.eval_anssel(model.predict(grv)['score'][:,0], grv['si0'], grv['score'], 'anssel Val (bef. train)')
-
-    for lname in c['fix_layers']:
-        model.nodes[lname].trainable = False
 
     print('Training')
     if c.get('balance_class', False):
