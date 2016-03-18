@@ -121,7 +121,7 @@ class TFModel:
             elif self.c['freq_mode'] == 'BM25':
                 # Okapi idf
                 for k, v in counter.items():
-                    counter[k] = np.log((self.N - v + 0.5) / (v + 0.5))
+                    counter[k] = np.log((self.N - v + 0.5) / (v + 0.5)) if v < self.N else 0.1
 
             self.idf = counter
 
