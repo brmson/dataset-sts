@@ -153,6 +153,10 @@ class TFModel:
         scores = np.array(scores)
         if self.output == 'score':
             return {'score': scores}
+        elif self.output == 'binary':
+            # XXX: we should tune the threshold to maximize accuracy
+            scores0 = scores - np.min(scores)
+            return {'score': scores0 * 5. / np.max(scores0)}
         elif self.output == 'classes':
             scores0 = scores - np.min(scores)
             return {'classes': loader.sts_labels2categorical(scores0 * 5. / np.max(scores0))}

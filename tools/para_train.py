@@ -106,7 +106,7 @@ def prep_model(glove, vocab, module_prep_model, c):
 def build_model(glove, vocab, module_prep_model, c, optimizer='adam'):
     if c['ptscorer'] is None:
         # non-neural model
-        return module_prep_model(vocab, c)
+        return module_prep_model(vocab, c, output='binary')
 
     model = prep_model(glove, vocab, module_prep_model, c)
     model.compile(loss={'score': c['loss']}, optimizer=optimizer)
