@@ -24,8 +24,8 @@ intervals (t-distribution) are reported.
 | termfreq TF-IDF #w       | 0.714169    | 0.725217 | 0.578200 | 0.708957 | ``freq_mode='tf'``
 | termfreq BM25 #w         | 0.813992    | 0.829004 | 0.630100 | 0.765363 | (defaults)
 | Tan (2015)               |             |          | 0.728    | 0.832    | QA-LSTM/CNN+attention; state-of-art 2015
-| dos Santos (2016)        |             |          | 0.753    | 0.851    | Attentive Pooling CNN; state-of-art 2015
-| Wang et al. (2016)       |             |          | 0.771    | 0.845    | Lexical Decomposition and Composition; state-of-art 2015
+| dos Santos (2016)        |             |          | 0.753    | 0.851    | Attentive Pooling CNN; state-of-art 2016
+| Wang et al. (2016)       |             |          | 0.771    | 0.845    | Lexical Decomposition and Composition; state-of-art 2016
 |--------------------------|-------------|----------|----------|----------|---------
 | avg                      | 0.786983    | 0.799939 | 0.607031 | 0.689948 | (defaults)
 |                          |±0.019449    |±0.007218 |±0.005516 |±0.009912 |
@@ -40,6 +40,7 @@ intervals (t-distribution) are reported.
 |                          |±0.019407    |±0.006259 |±0.007169 |±0.011460 |
 | attn1511                 | 0.852364    | 0.851368 | 0.708163 | 0.789822 | (defaults)
 |                          |±0.017280    |±0.005533 |±0.008958 |±0.013308 |
+
 
 Dataset
 -------

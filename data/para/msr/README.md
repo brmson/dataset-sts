@@ -20,6 +20,8 @@ For randomized models, 95% confidence intervals (t-distribution) are reported.
 | always y=1               | 0.673378  | 0.804748 | 0.694000 | 0.818935 | 0.665507 | 0.799025 | (defaults)
 | termfreq TF-IDF #w       | 0.694911  | 0.810557 | 0.704000 | 0.817734 | 0.695652 | 0.811625 | ``freq_mode='tf'``
 | termfreq BM25 #w         | 0.696588  | 0.812251 | 0.704000 | 0.820388 | 0.695072 | 0.811063 | (defaults)
+| Ji and Eisenstein (2013) |           |          |          |          | 0.804    | 0.859    | Matrix factorization with supervised reweighting
+| He et al. (2015)         |           |          |          |          | 0.786    | 0.847    | Multi-perspective Convolutional NNs and structured similarity layer
 |--------------------------|-----------|----------|----------|----------|----------|----------|---------
 | avg                      | 0.739094  | 0.827013 | 0.715750 | 0.816781 | 0.704710 | 0.803187 | (defaults)
 |                          |±0.017685  |±0.008274 |±0.006054 |±0.004489 |±0.004266 |±0.005541 | 8-wise
