@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# vim: set fileencoding=utf8:
 """
 Evaluate a KeraSTS model on the Paraphrasing task
 for publication.
