@@ -45,7 +45,7 @@ import models  # importlib python3 compatibility requirement
 spad = 60
 
 
-def load_set(files, vocab=None, skip_unlabeled=True):
+def load_set(files, vocab=None, skip_unlabeled=True, spad=spad):
     def load_file(fname, skip_unlabeled=True):
         # XXX: ugly logic
         if 'sick2014' in fname:
@@ -96,7 +96,7 @@ def config(module_config, params):
     return c, ps, h
 
 
-def prep_model(glove, vocab, module_prep_model, c):
+def prep_model(glove, vocab, module_prep_model, c, spad=spad):
     # Input embedding and encoding
     model = Graph()
     N = B.embedding(model, glove, vocab, spad, spad, c['inp_e_dropout'], c['inp_w_dropout'], add_flags=c['e_add_flags'])
@@ -119,13 +119,17 @@ def prep_model(glove, vocab, module_prep_model, c):
     return model
 
 
-def build_model(glove, vocab, module_prep_model, c):
+def build_model(glove, vocab, module_prep_model, c, spad=spad, optimizer='adam', fix_layers=[]):
     if c['ptscorer'] is None:
         # non-neural model
         return module_prep_model(vocab, c, 'classes')
 
-    model = prep_model(glove, vocab, module_prep_model, c)
-    model.compile(loss={'classes': c['loss']}, optimizer='adam')
+    model = prep_model(glove, vocab, module_prep_model, c, spad=spad)
+
+    for lname in fix_layers:
+        model.nodes[lname].trainable = False
+
+    model.compile(loss={'classes': c['loss']}, optimizer=optimizer)
     return model
 
 

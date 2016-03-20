@@ -42,8 +42,14 @@ able to process large datasets:
   * **ubuntu_eval.py** to produce evaluation metrics including those used in
     past papers (1-in-k Recall@N)
 
-  * **ubuntu_anssel_transfer.py** to adapt a model trained on an Ubuntu-trained
+  * **ubuntu_anssel_transfer.py** to adapt a model trained on an Ubuntu Dialog
     dataset towards a particular anssel task instance
+
+  * **ubuntu_para_transfer.py** to adapt a model trained on Ubuntu Dialog
+    dataset onto a Paraphrasing dataset
+
+  * **ubuntu_sts_transfer.py** to adapt a model trained on Ubuntu Dialog
+    dataset onto an STS dataset
 
   * **ubuntu-visual.ipynb** is a simple transposition of anssel-visual for
     attention visualization on the Ubuntu corpus
@@ -61,6 +67,20 @@ output is a number between 0 and 5 and Pearson correlation is the metric.
 	tools/sts_train.py rnn data/sts/semeval-sts/all/201[-4].[^t]* -- data/sts/semeval-sts/all/2014.tweet-news.test.tsv
 
   * **sts_fineval.py** evaluates the model N times on all sets, producing
+    statistical measurements suitable for publication
+
+
+Paraphrasing Task
+-----------------
+
+This task is like the STS task, but rather than regressing a numerical score
+on output, it is a binary classification task.
+
+  * **para_train.py** to train a model e.g. on the MSR dataset:
+
+	tools/para_train.py rnn data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv
+
+  * **para_fineval.py** evaluates the model N times on all sets, producing
     statistical measurements suitable for publication
 
 

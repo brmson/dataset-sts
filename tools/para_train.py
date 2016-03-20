@@ -5,13 +5,9 @@ STS but with boolean output.
 
 Usage: tools/para_train.py MODEL TRAINDATA VALDATA [PARAM=VALUE]...
 
-Example: tools/anssel_train.py cnn data/anssel/wang/train-all.csv data/anssel/wang/dev.csv inp_e_dropout=1/2
+Example: tools/para_train.py cnn data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv inp_e_dropout=1/2
 
-This applies the given text similarity model to the anssel task.
-Extra input pre-processing is done:
-Rather than relying on the hack of using the word overlap counts as additional
-features for final classification, individual tokens are annotated by overlap
-features and that's passed to the model along with the embeddings.
+This applies the given text similarity model to the paraphrasing task.
 
 Prerequisites:
     * Get glove.6B.300d.txt from http://nlp.stanford.edu/projects/glove/
@@ -46,7 +42,7 @@ import models  # importlib python3 compatibility requirement
 spad = 60
 
 
-def load_set(fname, vocab=None):
+def load_set(fname, vocab=None, spad=spad):
     s0, s1, y = loader.load_msrpara(fname)
 
     if vocab is None:
@@ -85,7 +81,7 @@ def config(module_config, params):
     return c, ps, h
 
 
-def prep_model(glove, vocab, module_prep_model, c):
+def prep_model(glove, vocab, module_prep_model, c, spad=spad):
     # Input embedding and encoding
     model = Graph()
     N = B.embedding(model, glove, vocab, spad, spad, c['inp_e_dropout'], c['inp_w_dropout'], add_flags=c['e_add_flags'])
@@ -103,12 +99,16 @@ def prep_model(glove, vocab, module_prep_model, c):
     return model
 
 
-def build_model(glove, vocab, module_prep_model, c, optimizer='adam'):
+def build_model(glove, vocab, module_prep_model, c, spad=spad, optimizer='adam', fix_layers=[]):
     if c['ptscorer'] is None:
         # non-neural model
-        return module_prep_model(vocab, c, output='binary')
+        return module_prep_model(vocab, c, output='binary', spad=spad)
 
-    model = prep_model(glove, vocab, module_prep_model, c)
+    model = prep_model(glove, vocab, module_prep_model, c, spad=spad)
+
+    for lname in fix_layers:
+        model.nodes[lname].trainable = False
+
     model.compile(loss={'score': c['loss']}, optimizer=optimizer)
     return model
 
