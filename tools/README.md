@@ -70,6 +70,20 @@ output is a number between 0 and 5 and Pearson correlation is the metric.
     statistical measurements suitable for publication
 
 
+Paraphrasing Task
+-----------------
+
+This task is like the STS task, but rather than regressing a numerical score
+on output, it is a binary classification task.
+
+  * **para_train.py** to train a model e.g. on the MSR dataset:
+
+	tools/para_train.py rnn data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv
+
+  * **para_fineval.py** evaluates the model N times on all sets, producing
+    statistical measurements suitable for publication
+
+
 Hypothesis Evaluation Task
 --------------------------
 

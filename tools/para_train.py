@@ -5,13 +5,9 @@ STS but with boolean output.
 
 Usage: tools/para_train.py MODEL TRAINDATA VALDATA [PARAM=VALUE]...
 
-Example: tools/anssel_train.py cnn data/anssel/wang/train-all.csv data/anssel/wang/dev.csv inp_e_dropout=1/2
+Example: tools/para_train.py cnn data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv inp_e_dropout=1/2
 
-This applies the given text similarity model to the anssel task.
-Extra input pre-processing is done:
-Rather than relying on the hack of using the word overlap counts as additional
-features for final classification, individual tokens are annotated by overlap
-features and that's passed to the model along with the embeddings.
+This applies the given text similarity model to the paraphrasing task.
 
 Prerequisites:
     * Get glove.6B.300d.txt from http://nlp.stanford.edu/projects/glove/
