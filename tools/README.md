@@ -48,6 +48,9 @@ able to process large datasets:
   * **ubuntu_para_transfer.py** to adapt a model trained on Ubuntu Dialog
     dataset onto a Paraphrasing dataset
 
+  * **ubuntu_sts_transfer.py** to adapt a model trained on Ubuntu Dialog
+    dataset onto an STS dataset
+
   * **ubuntu-visual.ipynb** is a simple transposition of anssel-visual for
     attention visualization on the Ubuntu corpus
 

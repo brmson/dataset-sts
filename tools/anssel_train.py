@@ -121,7 +121,7 @@ def prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad):
     return model
 
 
-def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, optimizer='adam', fix_layers=[]):
+def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, optimizer='adam', fix_layers=[], do_compile=True):
     if c['ptscorer'] is None:
         # non-neural model
         return module_prep_model(vocab, c)
@@ -137,7 +137,8 @@ def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, op
     for lname in fix_layers:
         model.nodes[lname].trainable = False
 
-    model.compile(loss={'score': c['loss']}, optimizer=optimizer)
+    if do_compile:
+        model.compile(loss={'score': c['loss']}, optimizer=optimizer)
     return model
 
 
