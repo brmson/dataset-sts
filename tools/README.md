@@ -42,8 +42,11 @@ able to process large datasets:
   * **ubuntu_eval.py** to produce evaluation metrics including those used in
     past papers (1-in-k Recall@N)
 
-  * **ubuntu_anssel_transfer.py** to adapt a model trained on an Ubuntu-trained
+  * **ubuntu_anssel_transfer.py** to adapt a model trained on an Ubuntu Dialog
     dataset towards a particular anssel task instance
+
+  * **ubuntu_para_transfer.py** to adapt a model trained on Ubuntu Dialog
+    dataset onto a Paraphrasing dataset
 
   * **ubuntu-visual.ipynb** is a simple transposition of anssel-visual for
     attention visualization on the Ubuntu corpus
