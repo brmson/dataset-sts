@@ -134,7 +134,7 @@ def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, op
 
     model = prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad)
 
-    for lname in c['fix_layers']:
+    for lname in fix_layers:
         model.nodes[lname].trainable = False
 
     model.compile(loss={'score': c['loss']}, optimizer=optimizer)
