@@ -64,9 +64,22 @@ directory.
 Model Wishlist
 --------------
 
-  * [Attentive Pooling Networks](http://arxiv.org/abs/1602.03609)
-  * [Reasoning about Entailment with Neural Attention](http://arxiv.org/abs/1509.06664)
-  * [Denoising Bodies to Titles: Retrieving Similar Questions with Recurrent Convolutional Models](http://arxiv.org/abs/1512.05726)
-  * [Learning Hybrid Representations to Retrieve Semantically Equivalent Questions](http://www.aclweb.org/anthology/P15-2114)
-  * [Learning to Rank Short Text Pairs with Convolutional Deep Neural Networks](http://disi.unitn.it/~severyn/papers/sigir-2015-long.pdf)
-  * [Tree-LSTM](http://arxiv.org/abs/1503.00075)
+Roughly with (imho) the most interesting coming first in each category.
+
+### "Simple" Models
+
+  * [Sentence Similarity Learning by Lexical Decomposition and Composition](http://arxiv.org/pdf/1602.07019v1.pdf) (anssel)
+  * [Tree-LSTM](http://arxiv.org/abs/1503.00075) (anssel)
+  * [Denoising Bodies to Titles: Retrieving Similar Questions with Recurrent Convolutional Models](http://arxiv.org/abs/1512.05726) (para)
+  * [Learning to Rank Short Text Pairs with Convolutional Deep Neural Networks](http://disi.unitn.it/~severyn/papers/sigir-2015-long.pdf) (anssel)
+  * [Learning Hybrid Representations to Retrieve Semantically Equivalent Questions](http://www.aclweb.org/anthology/P15-2114) (para)
+  * [Siamese Recurrent Architectures for Learning Sentence Similarity](https://pdfs.semanticscholar.org/6812/fb9ef1c2dad497684a9020d8292041a639ff.pdf) (sts, ent)
+
+### Attention-based Models
+
+  * [Reasoning about Entailment with Neural Attention](http://arxiv.org/abs/1509.06664) and [followups](http://nlp.stanford.edu/projects/snli/) (ent)
+  * [Attentive Pooling Networks](http://arxiv.org/abs/1602.03609) (anssel)
+  * [ABCNN: Attention-Based Convolutional Neural Network for Modeling Sentence Pairs](http://arxiv.org/pdf/1512.05193v2.pdf) (anssel, para, ent)
+    and [Attention-Based Convolutional Neural Network for Machine Comprehension](http://www.aclweb.org/anthology/P15-2114) (hypev)
+    (what are the differences? also seems similar to attentive pooling above)
+  * [Multi-Perspective Sentence Similarity Modeling with Convolutional Neural Networks](http://ttic.uchicago.edu/~kgimpel/papers/he+etal.emnlp15.pdf) (para, sts)
