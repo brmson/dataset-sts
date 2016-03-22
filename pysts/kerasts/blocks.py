@@ -172,7 +172,8 @@ def cos_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
 def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
     """ Element-wise features from the pair fed to an MLP. """
     if sum_mode == 'absdiff':
-        model.add_node(name=pfx+'sum', layer=absdiff_merge(model, inputs))
+        # model.add_node(name=pfx+'sum', layer=absdiff_merge(model, inputs))
+        absdiff_merge(model, inputs, pfx, "sum")
     else:
         model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
     model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
@@ -197,22 +198,27 @@ def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
     return pfx+'cat'
 
 
-def absdiff_merge(model, layers):
+
+def absdiff_merge(model, inputs, pfx="out", layer_name="absdiff"):
     """ Merging two layers into one, via element-wise subtraction and then taking absolute value.
 
-    Example of usage: model.add_node(name="diff", layer=absdiff_merge(["e0_", "e1_"]))
+    Example of usage: layer_name = absdiff_merge(model, inputs=["e0_", "e1_"])
 
     TODO: The more modern way appears to be to use "join" merge mode and Lambda layer.
     """
+    if len(inputs) != 2:
+        raise ValueError("absdiff_merge has to got exactly 2 inputs")
+
     def diff(X):
-        if len(X)!=2:
-            raise ValueError("")
-        return K.abs(X[0]-X[1])
+        return K.abs(X[0] - X[1])
 
     def output_shape(input_shapes):
         return input_shapes[0]
 
-    return LambdaMerge([model.nodes[l] for l in layers], diff, output_shape)
+    full_name = "%s%s" % (pfx, layer_name)
+    model.add_node(name=layer_name, inputs=inputs,
+                   layer=LambdaMerge([model.nodes[l] for l in inputs], diff, output_shape))
+    return full_name
 
 
 def dot_time_distributed_merge(model, layers, cos_norm=False):
