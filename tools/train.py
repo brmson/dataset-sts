@@ -6,6 +6,14 @@ to a weights file and evaluate it on a validation set.
 Usage: tools/train.py MODEL TASK TRAINDATA VALDATA [PARAM=VALUE]...
 
 Example: tools/train.py cnn para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv inp_e_dropout=1/2
+
+Parameters are mostly task-specific and model-specific, see the
+respective config() routines.  The training process itslef is
+influenced by:
+
+    * batch_size=N denotes number of samples per batch
+    * nb_epoch=N denotes maximum number of epochs (tasks will
+      typically include a val-dependent early stopping mechanism too)
 """
 
 from __future__ import print_function
