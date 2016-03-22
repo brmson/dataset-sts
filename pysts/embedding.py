@@ -71,13 +71,13 @@ class GloVe:
             ss2.append(s)
         return np.array(ss2)
 
+
 class Word2Vec(GloVe):
     """ A word2vec dictionary and the associated N-dimensional vector space """
-    def __init__(self, N=-1, pretrained_filename='GoogleNews-vectors-negative300.bin.gz'):
+    def __init__(self, N=300, w2vpath='GoogleNews-vectors-negative%d.bin.gz'):
         """ Load word2vec pretrained dictionary from the binary archive.
         """
         import gensim
 
-        self.g = gensim.models.Word2Vec.load_word2vec_format(pretrained_filename, binary=True)
-        self.N = self.g.vector_size
-
+        self.g = gensim.models.Word2Vec.load_word2vec_format(w2vpath % (N,), binary=True)
+        assert self.N == self.g.vector_size
