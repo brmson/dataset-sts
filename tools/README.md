@@ -11,9 +11,14 @@ Basically, you pick a model from the **models/** directory, then pass its
 name, dataset paths and possibly some parameter tweaks to the training tool
 to train the model on that task/dataset and show validation set performance.
 
+**Legacy:**
+In the past, each task had a separate suite of scripts.  We are currently
+converting the tasks to the generic interface, but meanwhile their scripts
+are listed in sections below.
 
-Answer Sentence Selection
--------------------------
+
+Task: Answer Sentence Selection
+-------------------------------
 
   * **annssel_train.py** to train a model and evaluate on validation/dev set:
 
@@ -55,8 +60,8 @@ able to process large datasets:
     attention visualization on the Ubuntu corpus
 
 
-Semantic Text Similarity Task
------------------------------
+Task: Semantic Text Similarity
+------------------------------
 
 The main differences to the anssel task are that (i) this task is symmetric
 and both sentences should be considered from the same viewpoint; (ii) the
@@ -70,8 +75,8 @@ output is a number between 0 and 5 and Pearson correlation is the metric.
     statistical measurements suitable for publication
 
 
-Paraphrasing Task
------------------
+Task: Paraphrasing
+------------------
 
 This task is like the STS task, but rather than regressing a numerical score
 on output, it is a binary classification task.
@@ -84,8 +89,8 @@ on output, it is a binary classification task.
     statistical measurements suitable for publication
 
 
-Hypothesis Evaluation Task
---------------------------
+Task: Hypothesis Evaluation
+---------------------------
 
 This task is like "Answer Sentence Selection" in that we have many s1 for
 a single s0, but the goal is to produce an aggregate judgement on s0 based

@@ -46,7 +46,7 @@ Software Tools
 To get started with simple classifiers that use task-specific code,
 look at the **examples/** directory.
 To get started with task-universal deep learning models, look at the
-**tools/** and **models/** directory.
+**tools/**, **models/** and **tasks/** directory.
 
   * **pysts/** Python module contains various tools for easy loading,
     manipulation and evaluation of the dataset.
@@ -57,11 +57,14 @@ To get started with task-universal deep learning models, look at the
   * **examples/** contains a couple of simple, self-contained baselines
     on various tasks.
 
-  * **tools/** directory contains tools to run, tune and evaluate the
-    KeraSTS models from the models/ directory
-
   * **models/** directory contains various strong baseline models using
     the KeraSTS toolkit, including state-of-art neural networks
+
+  * **tasks/** directory contains model-independent interfaces to datasets
+    for various tasks (from Answer Sentence Selection to Paraphrasing)
+
+  * **tools/** directory contains tools that put models and tasks together;
+    training, evaluating, tuning and transferring models on tasks
 
 Datasets
 --------
