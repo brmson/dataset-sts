@@ -3,6 +3,7 @@ A toolkit you may find useful for mapping sentences to embeddings.
 
 Download and unzip the standard GloVe embeddings to use this.
 
+FIXME - there's no reason why word2vec wouldn't work too. Rename the class!
 """
 
 
@@ -10,32 +11,21 @@ from __future__ import print_function
 
 import numpy as np
 
+
 class GloVe:
     """ A GloVe dictionary and the associated N-dimensional vector space """
-    def __init__(self, N=300, glovepath=None, use_w2v=False):
+    def __init__(self, N=300, glovepath='glove.6B.%dd.txt'):
         """ Load GloVe dictionary from the standard distributed text file.
 
         Glovepath should contain %d, which is substituted for the embedding
         dimension N. """
-
-        if not use_w2v:
-            if not glovepath:
-                glovepath = 'glove.6B.%dd.txt' % (N,)
-            self.N = N
-            self.g = dict()
-            with open(glovepath % (N,), 'r') as f:
-                for line in f:
-                    l = line.split()
-                    word = l[0]
-                    self.g[word] = np.array(l[1:]).astype(float)
-        else:
-            if not glovepath:
-                glovepath = 'glove.6B.%dd.txt' % (N,)
-
-            import gensim
-            self.g = gensim.models.Word2Vec.load_word2vec_format(glovepath, binary=True)
-            self.N = self.g.vector_size
-
+        self.N = N
+        self.g = dict()
+        with open(glovepath % (N,), 'r') as f:
+            for line in f:
+                l = line.split()
+                word = l[0]
+                self.g[word] = np.array(l[1:]).astype(float)
 
     def map_tokens(self, tokens, ndim=2):
         """ for the given list of tokens, return a list of GloVe embeddings,
@@ -80,3 +70,14 @@ class GloVe:
                 s = s[:spad]
             ss2.append(s)
         return np.array(ss2)
+
+class Word2Vec(GloVe):
+    """ A word2vec dictionary and the associated N-dimensional vector space """
+    def __init__(self, N=-1, pretrained_filename='GoogleNews-vectors-negative300.bin.gz'):
+        """ Load word2vec pretrained dictionary from the binary archive.
+        """
+        import gensim
+
+        self.g = gensim.models.Word2Vec.load_word2vec_format(pretrained_filename, binary=True)
+        self.N = self.g.vector_size
+
