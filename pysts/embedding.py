@@ -12,20 +12,10 @@ from __future__ import print_function
 import numpy as np
 
 
-class GloVe:
-    """ A GloVe dictionary and the associated N-dimensional vector space """
-    def __init__(self, N=300, glovepath='glove.6B.%dd.txt'):
-        """ Load GloVe dictionary from the standard distributed text file.
+class Embedder(object):
+    """ Generic embedding interface.
 
-        Glovepath should contain %d, which is substituted for the embedding
-        dimension N. """
-        self.N = N
-        self.g = dict()
-        with open(glovepath % (N,), 'r') as f:
-            for line in f:
-                l = line.split()
-                word = l[0]
-                self.g[word] = np.array(l[1:]).astype(float)
+    Required: attributes g and N """
 
     def map_tokens(self, tokens, ndim=2):
         """ for the given list of tokens, return a list of GloVe embeddings,
@@ -72,7 +62,23 @@ class GloVe:
         return np.array(ss2)
 
 
-class Word2Vec(GloVe):
+class GloVe(Embedder):
+    """ A GloVe dictionary and the associated N-dimensional vector space """
+    def __init__(self, N=300, glovepath='glove.6B.%dd.txt'):
+        """ Load GloVe dictionary from the standard distributed text file.
+
+        Glovepath should contain %d, which is substituted for the embedding
+        dimension N. """
+        self.N = N
+        self.g = dict()
+        with open(glovepath % (N,), 'r') as f:
+            for line in f:
+                l = line.split()
+                word = l[0]
+                self.g[word] = np.array(l[1:]).astype(float)
+
+
+class Word2Vec(Embedder):
     """ A word2vec dictionary and the associated N-dimensional vector space """
     def __init__(self, N=300, w2vpath='GoogleNews-vectors-negative%d.bin.gz'):
         """ Load word2vec pretrained dictionary from the binary archive.
