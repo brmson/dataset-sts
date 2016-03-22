@@ -10,3 +10,9 @@ the scripts in the **tools/** directory.
 In a sense, task is a class of datasets.  Find the datasets we include
 (either as sources or as scripts that'll post-process external sources)
 in **data/TASKNAME/** subdirectories.
+
+  * **para.py** - Paraphrasing Task.  This task is like the STS task,
+    but rather than regressing a numerical score on output, it is
+    a binary classification task.  Example:
+
+        tools/train.py cnn para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv

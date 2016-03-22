@@ -15,6 +15,13 @@ publish a paper on them with the help of this repository.
 Performance of the models on individual tasks are listed in the tasks
 respective READMEs.
 
+Prerequisites
+-------------
+
+Most models require an embedding matrix.  By default,
+
+  * **glove.6B.300d.txt** from http://nlp.stanford.edu/projects/glove/
+
 Model API
 ---------
 
