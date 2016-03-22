@@ -71,15 +71,15 @@ def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
         class_weight = {'score': {0: one_ratio, 1: 0.5}}
     else:
         class_weight = {}
-    callbacks = task.fit_callbacks() + [ModelCheckpoint(task.name+'-weights-'+runid+'-bestval.h5', save_best_only=True)]
+    callbacks = task.fit_callbacks() + [ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True)]
     # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
     model.fit(task.gr, validation_data=task.grv,  # show_accuracy=True,
               callbacks=callbacks, class_weight=class_weight,
               batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
-    # model.save_weights(task.name+'-weights-'+runid+'-final.h5', overwrite=True)
+    # model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
     if c['ptscorer'] is None:
-        model.save_weights(task.name+'-weights-'+runid+'-bestval.h5', overwrite=True)
-    model.load_weights(task.name+'-weights-'+runid+'-bestval.h5')
+        model.save_weights('weights-'+runid+'-bestval.h5', overwrite=True)
+    model.load_weights('weights-'+runid+'-bestval.h5')
 
     if do_eval:
         print('Predict&Eval (best val epoch)')
