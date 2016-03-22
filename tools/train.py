@@ -12,8 +12,15 @@ respective config() routines.  The training process itslef is
 influenced by:
 
     * batch_size=N denotes number of samples per batch
+
     * nb_epoch=N denotes maximum number of epochs (tasks will
       typically include a val-dependent early stopping mechanism too)
+
+    * nb_runs=N denotes number of re-trainings to attempt (1 by default);
+      final weights are stored for each re-training, this is useful to
+      control for randomness-induced evaluation instability (see also
+      tools/eval.py); it's very much like just running this script
+      N times, except faster (no embedding and dataset reloading)
 """
 
 from __future__ import print_function
@@ -50,6 +57,7 @@ def config(model_config, task_config, params):
     c['balance_class'] = False
     c['batch_size'] = 160
     c['nb_epoch'] = 16
+    c['nb_runs'] = 1
     task_config(c)
     model_config(c)
 
@@ -96,9 +104,6 @@ if __name__ == "__main__":
     task = task_module.task()
     conf, ps, h = config(model_module.config, task.config, params)
 
-    runid = '%s-%s-%x' % (taskname, modelname, h)
-    print('RunID: %s  (%s)' % (runid, ps))
-
     # TODO configurable embedding class
     if conf['embdim'] is not None:
         print('GloVe')
@@ -107,4 +112,11 @@ if __name__ == "__main__":
     print('Dataset')
     task.load_data(trainf, valf)
 
-    train_and_eval(runid, model_module.prep_model, task, conf)
+    for i_run in range(conf['nb_runs']):
+        if conf['nb_runs'] == 1:
+            runid = '%s-%s-%x' % (taskname, modelname, h)
+        else:
+            runid = '%s-%s-%x-%02d' % (taskname, modelname, h, i_run)
+        print('RunID: %s  (%s)' % (runid, ps))
+
+        train_and_eval(runid, model_module.prep_model, task, conf)
