@@ -3,13 +3,20 @@ A toolkit you may find useful for mapping sentences to embeddings.
 
 Download and unzip the standard GloVe embeddings to use this.
 
-FIXME - there's no reason why word2vec wouldn't work too. Rename the class!
+Skip-thoughts use unigram/bigram information from the Children Book dataset.
 """
 
 
 from __future__ import print_function
 
 import numpy as np
+import os
+
+try:
+    import skipthoughts
+    skipthoughts_available = True
+except ImportError:
+    skipthoughts_available = False
 
 
 class Embedder(object):
@@ -61,6 +68,9 @@ class Embedder(object):
             ss2.append(s)
         return np.array(ss2)
 
+    def load():
+        pass
+
 
 class GloVe(Embedder):
     """ A GloVe dictionary and the associated N-dimensional vector space """
@@ -71,7 +81,10 @@ class GloVe(Embedder):
         dimension N. """
         self.N = N
         self.g = dict()
-        with open(glovepath % (N,), 'r') as f:
+        self.glovepath = glovepath % (N,)
+
+    def load(self):
+        with open(self.glovepath, 'r') as f:
             for line in f:
                 l = line.split()
                 word = l[0]
@@ -83,7 +96,68 @@ class Word2Vec(Embedder):
     def __init__(self, N=300, w2vpath='GoogleNews-vectors-negative%d.bin.gz'):
         """ Load word2vec pretrained dictionary from the binary archive.
         """
+        self.N = N
+        self.g = dict()
+        self.w2vpath = w2vpath % (N,)
+
+    def load(self):
         import gensim
 
-        self.g = gensim.models.Word2Vec.load_word2vec_format(w2vpath % (N,), binary=True)
+        self.g = gensim.models.Word2Vec.load_word2vec_format(self.w2vpath, binary=True)
         assert self.N == self.g.vector_size
+
+
+class SkipThought(Embedder):
+    def __init__(self, datadir, uni_bi="combined"):
+        """ Embed Skip_Thought vectors, using precomputed model in npy format.
+
+        Args:
+            uni_bi: possible values are "uni", "bi" or "combined" determining what kind of embedding should be used.
+
+
+        todo: is argument ndim working properly?
+        """
+
+        import skipthoughts
+        self.encode = skipthoughts.encode
+
+        if datadir is None:
+            datadir = os.path.realpath('__file__')
+        self.datadir = self.datadir
+
+        # table for memoizing embeddings
+        self.cache_table = {}
+
+        self.uni_bi = uni_bi
+        if uni_bi in ("uni", "bi"):
+            self.N = 2400
+        elif uni_bi == "combined":
+            self.N = 4800
+        else:
+            raise ValueError("uni_bi has invalid value. Valid values: 'uni', 'bi', 'combined'")
+
+    def load(self):
+        import skipthoughts
+        self.skipthoughts.path_to_models = self.datadir
+        self.skipthoughts.path_to_tables = self.datadir
+        self.skipthoughts.path_to_umodel = skipthoughts.path_to_models + 'uni_skip.npz'
+        self.skipthoughts.path_to_bmodel = skipthoughts.path_to_models + 'bi_skip.npz'
+        self.st = skipthoughts.load_model()
+
+    def map_tokens(self, tokens, ndim=2):
+        """
+        Args:
+            tokens list of words, together forming a sentence.
+
+        Returns:
+            its embedding as a ndarray."""
+
+        assert ndim == 1, "ndim has to be equal to 1 for skipthoughts embedding"
+
+        sentence = " ".join(tokens)
+        if sentence in self.cache_table:
+            output_vector = self.cache_table[sentence]
+        else:
+            output_vector, = self.encode(self.st, [sentence, ], verbose=False)
+            self.cache_table[sentence] = output_vector
+        return output_vector
