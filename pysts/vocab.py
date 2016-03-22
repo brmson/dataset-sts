@@ -51,7 +51,6 @@ class Vocabulary:
         if str(emb) in self.embcache:
             return self.embcache[str(emb)]
         embedding_weights = np.zeros((len(self.word_idx), emb.N))
-        emb.load()
         for word, index in self.word_idx.items():
             try:
                 embedding_weights[index, :] = emb.g[word]

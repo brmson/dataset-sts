@@ -68,9 +68,6 @@ class Embedder(object):
             ss2.append(s)
         return np.array(ss2)
 
-    def load():
-        pass
-
 
 class GloVe(Embedder):
     """ A GloVe dictionary and the associated N-dimensional vector space """
@@ -83,7 +80,6 @@ class GloVe(Embedder):
         self.g = dict()
         self.glovepath = glovepath % (N,)
 
-    def load(self):
         with open(self.glovepath, 'r') as f:
             for line in f:
                 l = line.split()
@@ -97,12 +93,9 @@ class Word2Vec(Embedder):
         """ Load word2vec pretrained dictionary from the binary archive.
         """
         self.N = N
-        self.g = dict()
         self.w2vpath = w2vpath % (N,)
 
-    def load(self):
         import gensim
-
         self.g = gensim.models.Word2Vec.load_word2vec_format(self.w2vpath, binary=True)
         assert self.N == self.g.vector_size
 
@@ -136,8 +129,6 @@ class SkipThought(Embedder):
         else:
             raise ValueError("uni_bi has invalid value. Valid values: 'uni', 'bi', 'combined'")
 
-    def load(self):
-        import skipthoughts
         self.skipthoughts.path_to_models = self.datadir
         self.skipthoughts.path_to_tables = self.datadir
         self.skipthoughts.path_to_umodel = skipthoughts.path_to_models + 'uni_skip.npz'

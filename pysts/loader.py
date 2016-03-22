@@ -236,7 +236,6 @@ def load_embedded(glove, s0, s1, labels, balance=False, ndim=1, s0pad=25, s1pad=
     if balance:
         s0, s1, labels = balance_dataset((s0, s1, labels))
 
-    glove.load()
     if ndim == 1:
         # for averaging:
         e0 = np.array(glove.map_set(s0, ndim=1))
