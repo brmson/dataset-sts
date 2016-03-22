@@ -76,7 +76,7 @@ def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
     model.fit(task.gr, validation_data=task.grv,  # show_accuracy=True,
               callbacks=callbacks, class_weight=class_weight,
               batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
-    model.save_weights(task.name+'-weights-'+runid+'-final.h5', overwrite=True)
+    # model.save_weights(task.name+'-weights-'+runid+'-final.h5', overwrite=True)
     if c['ptscorer'] is None:
         model.save_weights(task.name+'-weights-'+runid+'-bestval.h5', overwrite=True)
     model.load_weights(task.name+'-weights-'+runid+'-bestval.h5')
