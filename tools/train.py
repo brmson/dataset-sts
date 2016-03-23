@@ -30,16 +30,18 @@ import importlib
 import sys
 
 from keras.callbacks import ModelCheckpoint
-from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 import numpy as np
 
 import pysts.embedding as emb
-import pysts.kerasts.blocks as B
 from pysts.hyperparam import hash_params
 
-from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
 import models  # importlib python3 compatibility requirement
 import tasks
+
+# Unused imports for evaluating commandline params
+from keras.layers.recurrent import SimpleRNN, GRU, LSTM
+from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
+import pysts.kerasts.blocks as B
 
 
 def config(model_config, task_config, params):
