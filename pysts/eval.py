@@ -5,6 +5,7 @@ Evaluation tools, mainly non-straightforward methods.
 from __future__ import print_function
 from __future__ import division
 
+from collections import namedtuple
 import numpy as np
 from scipy.stats import pearsonr
 from scipy.stats import spearmanr
@@ -163,10 +164,13 @@ def eval_anssel(ypred, s0, y, name):
     return mrr_
 
 
+ParaRes = namedtuple('ParaRes', ['Accuracy', 'F1'])
+
+
 def eval_para(ypred, y, name):
     rawacc, y0acc, y1acc, balacc, f_score = binclass_accuracy(y, ypred)
     print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f;  F-Score: %f' % (name, rawacc, y0acc, y1acc, balacc, f_score))
-    return (rawacc, f_score)
+    return ParaRes(rawacc, f_score)
 
 
 def eval_hypev(ypred, s0, y, name):

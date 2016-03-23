@@ -13,6 +13,7 @@ from __future__ import division
 from keras.callbacks import EarlyStopping
 from keras.layers.core import Activation
 from keras.models import Graph
+import numpy as np
 
 import pysts.eval as ev
 from pysts.kerasts import graph_input_anssel
@@ -27,16 +28,19 @@ class ParaphrasingTask:
         self.name = 'para'
         self.spad = 60
         self.emb = None
+        self.vocab = None
 
     def config(self, c):
         c['loss'] = 'binary_crossentropy'
         c['nb_epoch'] = 32
 
-    def load_set(self, fname, vocab=None):
+    def load_set(self, fname):
         s0, s1, y = loader.load_msrpara(fname)
 
-        if vocab is None:
+        if self.vocab is None:
             vocab = Vocabulary(s0 + s1)
+        else:
+            vocab = self.vocab
 
         si0 = vocab.vectorize(s0, spad=self.spad)
         si1 = vocab.vectorize(s1, spad=self.spad)
@@ -45,9 +49,21 @@ class ParaphrasingTask:
 
         return (gr, y, vocab)
 
-    def load_data(self, trainf, valf, vocab=None):
-        self.gr, self.y, self.vocab = self.load_set(trainf, vocab=vocab)
-        self.grv, self.yv, _ = self.load_set(valf, self.vocab)
+    def load_vocab(self, vocabf):
+        _, _, self.vocab = self.load_set(vocabf)
+        return self.vocab
+
+    def load_data(self, trainf, valf, testf=None):
+        self.trainf = trainf
+        self.valf = valf
+        self.testf = testf
+
+        self.gr, self.y, self.vocab = self.load_set(trainf)
+        self.grv, self.yv, _ = self.load_set(valf)
+        if testf is not None:
+            self.grt, self.yt, _ = self.load_set(testf)
+        else:
+            self.grt, self.yt = (None, None)
 
     def prep_model(self, module_prep_model, c):
         # Input embedding and encoding
@@ -83,8 +99,25 @@ class ParaphrasingTask:
         return [EarlyStopping(patience=3)]
 
     def eval(self, model):
-        ev.eval_para(model.predict(self.gr)['score'][:,0], self.gr['score'], 'Train')
-        ev.eval_para(model.predict(self.grv)['score'][:,0], self.grv['score'], 'Val')
+        res = []
+        for gr, fname in [(self.gr, self.trainf), (self.grv, self.valf), (self.grt, self.testf)]:
+            if gr is None:
+                res.append(None)
+                continue
+            ypred = model.predict(gr)['score'][:,0]
+            res.append(ev.eval_para(ypred, gr['score'], fname))
+        return tuple(res)
+
+    def res_columns(self, mres, pfx=' '):
+        """ Produce README-format markdown table row piece summarizing
+        important statistics """
+        return('%c%.6f  |%c%.6f |%c%.6f |%c%.6f |%c%.6f |%c%.6f'
+               % (pfx, mres[self.trainf]['Accuracy'],
+                  pfx, mres[self.trainf]['F1'],
+                  pfx, mres[self.valf]['Accuracy'],
+                  pfx, mres[self.valf]['F1'],
+                  pfx, mres[self.testf].get('Accuracy', np.nan),
+                  pfx, mres[self.testf].get('F1', np.nan)))
 
 
 def task():

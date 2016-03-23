@@ -15,4 +15,5 @@ in **data/TASKNAME/** subdirectories.
     but rather than regressing a numerical score on output, it is
     a binary classification task.  Example:
 
-        tools/train.py cnn para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv
+        tools/train.py cnn para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv nb_runs=4
+	tools/eval.py cnn para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv - weights-para-cnn--69489c8dc3b6ce11-*

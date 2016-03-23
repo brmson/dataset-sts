@@ -26,6 +26,19 @@ Usage: ``tools/train.py MODEL TASK TRAINDATA VALDATA [PARAM=VALUE]...``
 
 Example: ``tools/train.py cnn para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv inp_e_dropout=1/2 nb_epoch=64``
 
+Evaluation
+----------
+
+The training script above creates a file with weights dump for a particular
+trained model instance (or instances, with nb_runs parameter).  You can
+use a set of instances to evaluate performance on datasets, statistically.
+
+Usage: ``tools/eval.py MODEL TASK VOCABDATA TRAINDATA VALDATA TESTDATA WEIGHTFILES... [PARAM=VALUE]...``
+
+Example: ``tools/eval.py cnn para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv - weights-para-cnn--69489c8dc3b6ce11-*``
+
+(Instead of -, you can pass a test set for the very final evaluation.)
+
 
 Task: Answer Sentence Selection
 -------------------------------
@@ -91,10 +104,7 @@ Task: Paraphrasing
 This task is like the STS task, but rather than regressing a numerical score
 on output, it is a binary classification task.
 
-  * For training, use the task-generic interface.
-
-  * **para_fineval.py** evaluates the model N times on all sets, producing
-    statistical measurements suitable for publication
+Please use the task-generic interface.
 
 
 Task: Hypothesis Evaluation
