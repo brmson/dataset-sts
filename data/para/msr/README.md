@@ -36,3 +36,8 @@ For randomized models, 95% confidence intervals (t-distribution) are reported.
 |                          |±0.028483  |±0.015017 |±0.006946 |±0.008944 |±0.006232 |±0.009749 |
 | attn1511                 | 0.741401  | 0.821830 | 0.702250 | 0.801453 | 0.699891 | 0.791798 | (defaults)
 |                          |±0.012435  |±0.005271 |±0.004882 |±0.007168 |±0.004946 |±0.008456 |
+
+These results are obtained like this:
+
+	tools/train.py avg para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv nb_runs=16
+	tools/eval.py avg para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv data/para/msr/msr-para-test.tsv weights-para-avg--69489c8dc3b6ce11-*-bestval.h5
