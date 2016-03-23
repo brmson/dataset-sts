@@ -51,8 +51,8 @@ s0pad = 60
 s1pad = 60
 
 
-def load_set(fname, vocab=None):
-    s0, s1, y, t = loader.load_anssel(fname)
+def load_set(fname, vocab=None, skip=True):
+    s0, s1, y, t = loader.load_anssel(fname, skip_oneclass=skip)
     # TODO: Make use of the t-annotations
 
     if vocab is None:
