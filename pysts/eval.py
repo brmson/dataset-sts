@@ -109,6 +109,51 @@ def mrr(s0, y, ypred):
     return np.mean(rr)
 
 
+def trec_map(s0, s1, y, ypred):
+    """ Use the official trec_eval tool to compute the mean average precision
+    (MAP), a ranking measure that differs from MRR by taking into account also
+    ranking of other than the top-ranked correct samples. """
+    import subprocess
+    import tempfile
+
+    def save_trec_qrels(f, s0, s1, y):
+        n = -1
+        m = 0
+        last_is0 = ''
+        for is0, is1, iy in zip(s0, s1, y):
+            if hash(tuple(is0)) != last_is0:
+                last_is0 = hash(tuple(is0))
+                m = 0
+                n += 1
+            print('%d 0 %d %d' % (n, m, iy), file=f)
+            m += 1
+
+    def save_trec_top(f, s0, s1, y, code):
+        n = -1
+        m = 0
+        last_is0 = ''
+        for is0, is1, iy in zip(s0, s1, y):
+            if hash(tuple(is0)) != last_is0:
+                last_is0 = hash(tuple(is0))
+                m = 0
+                n += 1
+            print('%d 0 %d 1 %f %s' % (n, m, iy, code), file=f)
+            m += 1
+
+    def trec_eval_get(trec_qrels_file, trec_top_file, qty):
+        p = subprocess.Popen('../trec_eval.8.1/trec_eval %s %s | grep %s | sed "s/.*\t//"' % (trec_qrels_file, trec_top_file, qty), stdout=subprocess.PIPE, shell=True)
+        return float(p.communicate()[0])
+
+    with tempfile.NamedTemporaryFile(mode="wt") as qrf:
+        save_trec_qrels(qrf, s0, s1, y)
+        qrf.flush()
+        with tempfile.NamedTemporaryFile(mode="wt") as topf:
+            save_trec_top(topf, s0, s1, ypred, '.')
+            topf.flush()
+            mapt = trec_eval_get(qrf.name, topf.name, 'map')
+    return mapt
+
+
 def hypev_classify_mean(s0, y, ypred):
     """
     Baseline strategy for question classification for the "hypothesis

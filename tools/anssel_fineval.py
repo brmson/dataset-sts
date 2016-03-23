@@ -25,7 +25,6 @@ import numpy as np
 import pickle
 import scipy.stats as ss
 import sys
-import tempfile
 
 from keras.layers.convolutional import MaxPooling1D, AveragePooling1D
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
@@ -40,13 +39,7 @@ import models  # importlib python3 compatibility requirement
 
 
 def ev_map(s0, s1, y, ypred, fname):
-    with tempfile.NamedTemporaryFile(mode="wt", delete=False) as qrf:
-        anssel_treceval.save_trec_qrels(qrf, s0, s1, y)
-        qrf.flush()
-        with tempfile.NamedTemporaryFile(mode="wt", delete=False) as topf:
-            anssel_treceval.save_trec_top(topf, s0, s1, ypred, '.')
-            topf.flush()
-            mapt = anssel_treceval.trec_eval_get(qrf.name, topf.name, 'map')
+    mapt = ev.trec_map(s0, s1, y, ypred)
     print('%s MAP: %f' % (fname, mapt))
     return mapt
 
