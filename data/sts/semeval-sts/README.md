@@ -12,7 +12,11 @@ Let's say you want to compare your model to 2016 entrants. To get
 all the datasets before 2016 for your training set, load the
 ``all/201[0-5]*`` glob.
 
-To evaluate using KeraSTS, refer to ``tools/sts_train.py``.
+Standard train/val/test splits were created like this:
+
+	cat data/sts/semeval-sts/all/201[-4].[^t]* >data/sts/semeval-sts/all/2015.train.tsv
+	cat data/sts/semeval-sts/all/2014.tweet-news.test.tsv >data/sts/semeval-sts/all/2015.val.tsv
+	cat data/sts/semeval-sts/all/2015.* >data/sts/semeval-sts/all/2015.test.tsv
 
 Otherwise: Use scipy.stats.pearson.  The evaluation code is also
 the same as in ../sick2014 - refer e.g. to the python example from

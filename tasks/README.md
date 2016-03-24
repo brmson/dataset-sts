@@ -25,6 +25,15 @@ in **data/TASKNAME/** subdirectories.
   To set up the dataset from source files, refer to the data/ README and
   intro at the top of tasks/ubuntu.py.
 
+  * **sts.py** - Semantic Text Similarity Task.
+  The main differences to the anssel task are that (i) this task is symmetric
+  and both sentences should be considered from the same viewpoint; (ii) the
+  output is a number between 0 and 5 and Pearson correlation is the metric.
+  Example:
+
+	tools/train.py avg sts data/sts/semeval-sts/all/2015.train.tsv data/sts/semeval-sts/all/2015.val.tsv nb_runs=4
+	tools/eval.py avg sts data/sts/semeval-sts/all/2015.train.tsv data/sts/semeval-sts/all/2015.val.tsv - weights-sts-avg--731b5fca12808be0-*
+
   * **para.py** - Paraphrasing Task.  This task is like the STS task,
     but rather than regressing a numerical score on output, it is
     a binary classification task.  Example:
