@@ -60,6 +60,7 @@ def config(model_config, task_config, params):
     c['batch_size'] = 160
     c['nb_epoch'] = 16
     c['nb_runs'] = 1
+    c['epoch_fract'] = 1
     task_config(c)
     model_config(c)
 
@@ -76,16 +77,18 @@ def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
     model = task.build_model(module_prep_model, c)
 
     print('Training')
+    fit_kwargs = dict()
     if c['balance_class']:
         one_ratio = np.sum(task.gr['score'] == 1) / len(task.gr['score'])
-        class_weight = {'score': {0: one_ratio, 1: 0.5}}
-    else:
-        class_weight = {}
+        fit_kwargs['class_weight'] = {'score': {0: one_ratio, 1: 0.5}}
+    if c['epoch_fract'] != 1:
+        # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
+        c['samples_per_epoch'] = int(len(task.gr['s0']) * c['epoch_fract'])
     callbacks = task.fit_callbacks() + [ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True)]
-    # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
     model.fit(task.gr, validation_data=task.grv,  # show_accuracy=True,
-              callbacks=callbacks, class_weight=class_weight,
-              batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
+              callbacks=callbacks,
+              batch_size=c['batch_size'], nb_epoch=c['nb_epoch'],
+              **fit_kwargs)
     # model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
     if c['ptscorer'] is None:
         model.save_weights('weights-'+runid+'-bestval.h5', overwrite=True)
