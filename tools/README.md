@@ -43,17 +43,9 @@ Example: ``tools/eval.py cnn para data/para/msr/msr-para-train.tsv data/para/msr
 Task: Answer Sentence Selection
 -------------------------------
 
-  * **annssel_train.py** to train a model and evaluate on validation/dev set:
-
-	tools/anssel_train.py attn1511 data/anssel/wang/train-all.csv data/anssel/wang/dev.csv
-
-  * **anssel_treceval.py** to measure anssel performance using the official
-    ``trec_eval`` tool
+Please use the task-generic interface for basic tasks (training, eval).
 
   * **anssel_tuning.py** tunes the model parameters using random search
-
-  * **anssel_fineval.py** evaluates the model N times on all sets, producing
-    statistical measurements suitable for publication
 
   * **anssel-visual.ipynb** showcases IPython/Jupyter notebook for model
     development and visualizing attention models using a token heatmap

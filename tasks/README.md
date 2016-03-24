@@ -11,6 +11,11 @@ In a sense, task is a class of datasets.  Find the datasets we include
 (either as sources or as scripts that'll post-process external sources)
 in **data/TASKNAME/** subdirectories.
 
+  * **anssel.py** - Answer Sentence Selection Task.  Example:
+
+	tools/train.py avg anssel data/anssel/yodaqa/curatedv2-training.csv data/anssel/yodaqa/curatedv2-val.csv nb_runs=4
+	tools/eval.py avg anssel data/anssel/yodaqa/curatedv2-training.csv data/anssel/yodaqa/curatedv2-training.csv data/anssel/yodaqa/curatedv2-val.csv - weights-anssel-avg--731b5fca12808be0-*
+
   * **para.py** - Paraphrasing Task.  This task is like the STS task,
     but rather than regressing a numerical score on output, it is
     a binary classification task.  Example:
