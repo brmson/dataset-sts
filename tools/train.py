@@ -81,7 +81,7 @@ def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
         fit_kwargs['class_weight'] = {'score': {0: one_ratio, 1: 0.5}}
     if c['epoch_fract'] != 1:
         # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
-        c['samples_per_epoch'] = int(len(task.gr['s0']) * c['epoch_fract'])
+        fit_kwargs['samples_per_epoch'] = int(len(task.gr['si0']) * c['epoch_fract'])
     callbacks = task.fit_callbacks('weights-'+runid+'-bestval.h5')
     task.fit_model(model, callbacks=callbacks,
                    batch_size=c['batch_size'], nb_epoch=c['nb_epoch'],
