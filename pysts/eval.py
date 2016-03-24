@@ -234,6 +234,9 @@ def eval_hypev(ypred, s0, y, name):
     return prec
 
 
+UbuntuRes = namedtuple('UbuntuRes', ['MRR', 'R2_1', 'R10_1', 'R10_2', 'R10_5'])
+
+
 def eval_ubuntu(ypred, s0, y, name):
     mrr_ = mrr(s0, y, ypred)
     r1_2 = recall_at(s0, y, ypred, N=1, k=2)
@@ -243,4 +246,4 @@ def eval_ubuntu(ypred, s0, y, name):
     print('%s MRR: %f' % (name, mrr_))
     print('%s 2-R@1: %f' % (name, r1_2))
     print('%s 10-R@1: %f  10-R@2: %f  10-R@5: %f' % (name, r1_10, r2_10, r5_10))
-    return (mrr_, r1_2, r1_10, r2_10, r5_10)
+    return UbuntuRes(mrr_, r1_2, r1_10, r2_10, r5_10)

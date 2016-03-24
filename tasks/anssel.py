@@ -93,7 +93,7 @@ class AnsSelTask(AbstractTask):
         return model
 
     def fit_callbacks(self, weightsf):
-        return [AnsSelCB(self.grv['s0'], self.grv),
+        return [AnsSelCB(self.grv['si0'], self.grv),
                 ModelCheckpoint(weightsf, save_best_only=True, monitor='mrr', mode='max'),
                 EarlyStopping(monitor='mrr', mode='max', patience=4)]
 
@@ -104,7 +104,7 @@ class AnsSelTask(AbstractTask):
                 res.append(None)
                 continue
             ypred = model.predict(gr)['score'][:,0]
-            res.append(ev.eval_anssel(ypred, gr['s0'], gr['s1'], gr['score'], fname, MAP=True))
+            res.append(ev.eval_anssel(ypred, gr['si0'], gr['si1'], gr['score'], fname, MAP=True))
         return tuple(res)
 
     def res_columns(self, mres, pfx=' '):

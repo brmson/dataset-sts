@@ -49,7 +49,7 @@ import pysts.eval as ev
 from pysts.kerasts import graph_input_anssel, graph_input_slice
 import pysts.nlp as nlp
 
-from . import AnsSelTask
+from .anssel import AnsSelTask
 
 
 def pad_3d_sequence(seqs, maxlen, nd, dtype='int32'):
@@ -107,23 +107,13 @@ class UbuntuTask(AnsSelTask):
 
     def load_vocab(self, vocabf):
         # use plain pickle because unicode
-        return pickle.load(open(vocabf, "rb"))
-
-    def load_data(self, trainf, valf, testf=None):
-        self.trainf = trainf
-        self.valf = valf
-        self.testf = testf
-
-        self.gr, self.y, self.vocab = self.load_set(trainf)
-        self.grv, self.yv, _ = self.load_set(valf)
-        if testf is not None:
-            self.grt, self.yt, _ = self.load_set(testf)
-        else:
-            self.grt, self.yt = (None, None)
+        self.vocab = pickle.load(open(vocabf, "rb"))
+        return self.vocab
 
     def fit_model(self, model, **kwargs):
         batch_size = kwargs.pop('batch_size')
-        return model.fit_general(sample_pairs(self.gr, batch_size, self.s0pad, self.s1pad), **kwargs)
+        print(kwargs)
+        return model.fit_generator(sample_pairs(self.gr, batch_size, self.s0pad, self.s1pad), **kwargs)
 
     def eval(self, model):
         res = []
@@ -140,13 +130,13 @@ class UbuntuTask(AnsSelTask):
         important statistics """
         return('%c%.6f   |%c%.6f     |%c%.6f   |%c%.6f   |%c%.6f    |%c%.6f  |%c%.6f   '
                % (pfx, mres[self.trainf]['MRR'],
-                  pfx, mres[self.trainf]['2R@1'],
+                  pfx, mres[self.trainf]['2R_1'],
                   pfx, mres[self.valf]['MRR'],
-                  pfx, mres[self.valf]['2R@1'],
-                  pfx, mres[self.valf]['10R@2'],
+                  pfx, mres[self.valf]['R2_1'],
+                  pfx, mres[self.valf]['R10_2'],
                   pfx, mres[self.testf].get('MAP', np.nan),
-                  pfx, mres[self.testf].get('2R@1', np.nan),
-                  pfx, mres[self.testf].get('10R@2', np.nan)))
+                  pfx, mres[self.testf].get('R2_1', np.nan),
+                  pfx, mres[self.testf].get('R10_2', np.nan)))
 
 
 def task():
