@@ -6,7 +6,7 @@
 # Usage:   ./tools/scoring-api.py MODEL_NAME DATASET.CSV WEIGHTSFILE.H5 [PORT] [PARAM=VALUE]...
 # Example: ./tools/scoring-api.py rnn data/anssel/yodaqa/full-dataset.csv weights/weights-rnn-38a84de439de6337-bestval.h5 5001 loss=\"binary_crossentropy\"
 #
-# The script listens on given or default (5000) port and accepts JSON in following format:
+# The script listens on given or default (5000) port and accepts JSON (on address:port/score) in the following format:
 #    {"qtext":"QUESTION_TEXT","atext":["SENTENCE1", "SENTENCE2", ...]}
 # Example:
 #    {"qtext:"what country is the grand bahama island in","atext":["contained by", "contained in", "contained"]}
