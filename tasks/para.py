@@ -94,7 +94,7 @@ class ParaphrasingTask:
         model.add_output(name='score', input='scoreS')
         return model
 
-    def build_model(self, module_prep_model, c, optimizer='adam', fix_layers=[]):
+    def build_model(self, module_prep_model, c, optimizer='adam', fix_layers=[], do_compile=True):
         if c['ptscorer'] is None:
             # non-neural model
             return module_prep_model(self.vocab, c, output='binary')
@@ -104,7 +104,8 @@ class ParaphrasingTask:
         for lname in fix_layers:
             model.nodes[lname].trainable = False
 
-        model.compile(loss={'score': c['loss']}, optimizer=optimizer)
+        if do_compile:
+            model.compile(loss={'score': c['loss']}, optimizer=optimizer)
         return model
 
     def fit_callbacks(self):
