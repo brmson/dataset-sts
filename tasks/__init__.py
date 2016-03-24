@@ -46,3 +46,6 @@ class AbstractTask:
                        layer=Activation(oact))
         model.add_output(name='score', input='scoreS')
         return model
+
+    def fit_model(self, model, **kwargs):
+        return model.fit(self.gr, validation_data=self.grv, **kwargs)

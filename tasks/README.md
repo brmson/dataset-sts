@@ -16,6 +16,15 @@ in **data/TASKNAME/** subdirectories.
 	tools/train.py avg anssel data/anssel/yodaqa/curatedv2-training.csv data/anssel/yodaqa/curatedv2-val.csv nb_runs=4
 	tools/eval.py avg anssel data/anssel/yodaqa/curatedv2-training.csv data/anssel/yodaqa/curatedv2-val.csv - weights-anssel-avg--731b5fca12808be0-*
 
+  * **ubuntu.py** - Ubuntu Dialogue instance of anssel/next utterance task.
+    The data is serialized efficiently and custom metrics reported.  Example:
+
+        tools/train.py avg ubuntu data/anssel/ubuntu/v2-trainset.pickle data/anssel/ubuntu/v2-valset.pickle "vocabf='data/anssel/ubuntu/v2-vocab.pickle'" nb_runs=4
+        tools/eval.py avg ubuntu data/anssel/ubuntu/v2-trainset.pickle data/anssel/ubuntu/v2-valset.pickle - weights-ubuntu-avg--731b5fca12808be0-* "vocabf='data/anssel/ubuntu/v2-vocab.pickle'"
+
+  To set up the dataset from source files, refer to the data/ README and
+  intro at the top of tasks/ubuntu.py.
+
   * **para.py** - Paraphrasing Task.  This task is like the STS task,
     but rather than regressing a numerical score on output, it is
     a binary classification task.  Example:

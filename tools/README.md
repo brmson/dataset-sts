@@ -59,16 +59,8 @@ Please use the task-generic interface for basic tasks (training, eval).
     development and visualizing attention models using a token heatmap
 
 The Ubuntu dialogue corpus is the same task, but uses dedicated scripts to be
-able to process large datasets:
-
-  * **ubuntu_train.py** to train a model and evaluate on validation/dev set:
-
-	tools/ubuntu_train.py rnn data/anssel/ubuntu/v1-vocab.pickle data/anssel/ubuntu/v1-trainset.pickle data/anssel/ubuntu/v1-valset.pickle
-
-    (see instructions on top of the file re preprocessing csv to the pickle files)
-
-  * **ubuntu_eval.py** to produce evaluation metrics including those used in
-    past papers (1-in-k Recall@N)
+able to process large datasets.
+Please use the task-generic interface for basic tasks (training, eval).
 
   * **ubuntu_anssel_transfer.py** to adapt a model trained on an Ubuntu Dialog
     dataset towards a particular anssel task instance

@@ -83,10 +83,9 @@ def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
         # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
         c['samples_per_epoch'] = int(len(task.gr['s0']) * c['epoch_fract'])
     callbacks = task.fit_callbacks('weights-'+runid+'-bestval.h5')
-    model.fit(task.gr, validation_data=task.grv,  # show_accuracy=True,
-              callbacks=callbacks,
-              batch_size=c['batch_size'], nb_epoch=c['nb_epoch'],
-              **fit_kwargs)
+    task.fit_model(model, callbacks=callbacks,
+                   batch_size=c['batch_size'], nb_epoch=c['nb_epoch'],
+                   **fit_kwargs)
     # model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
     if c['ptscorer'] is None:
         model.save_weights('weights-'+runid+'-bestval.h5', overwrite=True)
@@ -113,6 +112,8 @@ if __name__ == "__main__":
         task.emb = emb.GloVe(N=conf['embdim'])
 
     print('Dataset')
+    if 'vocabf' in conf:
+        task.load_vocab(conf['vocabf'])
     task.load_data(trainf, valf)
 
     for i_run in range(conf['nb_runs']):
