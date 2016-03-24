@@ -123,5 +123,5 @@ if __name__ == "__main__":
                      batch_size=20, nb_epoch=2000,
                      validation_data={'e0': e0t, 'e1': e1t, 'score': yt})
 
-    ev.eval_anssel(model.predict({'e0': e0, 'e1': e1})['score'][:, 0], e0, yt, 'Train')
-    ev.eval_anssel(model.predict({'e0': e0t, 'e1': e1t})['score'][:, 0], e0t, yt, 'Test')
+    ev.eval_anssel(model.predict({'e0': e0, 'e1': e1})['score'][:, 0], e0, e1, yt, 'Train')
+    ev.eval_anssel(model.predict({'e0': e0t, 'e1': e1t})['score'][:, 0], e0t, e1t, yt, 'Test')

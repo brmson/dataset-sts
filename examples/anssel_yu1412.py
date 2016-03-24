@@ -72,8 +72,8 @@ if __name__ == "__main__":
 
     logreg = linear_model.LogisticRegression(C=0.01, verbose=1, n_jobs=7)
     logreg.fit(logreg_M(*Xtrain), ytrain)
-    ev.eval_anssel(logreg.predict_proba(logreg_M(*Xtrain))[:, 1], Xtrain[0], ytrain, 'Train')
-    ev.eval_anssel(logreg.predict_proba(logreg_M(*Xtest))[:, 1], Xtest[0], ytest, 'Test')
+    ev.eval_anssel(logreg.predict_proba(logreg_M(*Xtrain))[:, 1], Xtrain[0], Xtrain[1], ytrain, 'Train')
+    ev.eval_anssel(logreg.predict_proba(logreg_M(*Xtest))[:, 1], Xtest[0], Xtest[1], ytest, 'Test')
 
 
 """

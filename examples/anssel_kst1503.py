@@ -97,5 +97,5 @@ if __name__ == "__main__":
     model.fit({'e0': Xtrain[0], 'e1': Xtrain[1], 'score': ytrain},
               batch_size=20, nb_epoch=2000,
               validation_data={'e0': Xtest[0], 'e1': Xtest[1], 'score': ytest})
-    ev.eval_anssel(model.predict({'e0': Xtrain[0], 'e1': Xtrain[1]})['score'][:, 0], Xtrain[0], ytrain, 'Train')
-    ev.eval_anssel(model.predict({'e0': Xtest[0], 'e1': Xtest[1]})['score'][:, 0], Xtest[0], ytest, 'Test')
+    ev.eval_anssel(model.predict({'e0': Xtrain[0], 'e1': Xtrain[1]})['score'][:, 0], Xtrain[0], Xtrain[1], ytrain, 'Train')
+    ev.eval_anssel(model.predict({'e0': Xtest[0], 'e1': Xtest[1]})['score'][:, 0], Xtest[0], Xtest[1], ytest, 'Test')

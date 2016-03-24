@@ -139,5 +139,5 @@ if __name__ == "__main__":
                          ModelCheckpoint('weights-cnn-bestval.h5', save_best_only=True, monitor='mrr', mode='max')],
               batch_size=160, nb_epoch=8)
     model.save_weights('weights-cnn-final.h5', overwrite=True)
-    ev.eval_anssel(model.predict(gr)['score'][:,0], s0, y, 'Train')
-    ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, yt, 'Val')
+    ev.eval_anssel(model.predict(gr)['score'][:,0], s0, s1, y, 'Train')
+    ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, s1t, yt, 'Val')

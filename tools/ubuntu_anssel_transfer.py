@@ -75,7 +75,7 @@ def transfer_eval(runid, weightsf, module_prep_model, c, glove, vocab, gr, grv):
     model = anssel_train.build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, optimizer=c['opt'], fix_layers=c['fix_layers'])
     print('Model (weights)')
     model.load_weights(weightsf)
-    ev.eval_anssel(model.predict(grv)['score'][:,0], grv['si0'], grv['score'], 'anssel Val (bef. train)')
+    ev.eval_anssel(model.predict(grv)['score'][:,0], grv['si0'], grv['si1'], grv['score'], 'anssel Val (bef. train)')
 
     print('Training')
     if c.get('balance_class', False):
@@ -93,7 +93,7 @@ def transfer_eval(runid, weightsf, module_prep_model, c, glove, vocab, gr, grv):
 
     print('Predict&Eval (best epoch)')
     model.load_weights('weights-'+runid+'-bestval.h5')
-    ev.eval_anssel(model.predict(grv)['score'][:,0], grv['si0'], grv['score'], 'anssel Val')
+    ev.eval_anssel(model.predict(grv)['score'][:,0], grv['si0'], grv['si1'], grv['score'], 'anssel Val')
 
 
 if __name__ == "__main__":

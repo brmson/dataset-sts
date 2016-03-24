@@ -201,12 +201,20 @@ def eval_sts(ycat, y, name, quiet=False):
     return pr
 
 
-def eval_anssel(ypred, s0, y, name):
+AnsSelRes = namedtuple('AnsSelRes', ['MRR', 'MAP'])
+
+
+def eval_anssel(ypred, s0, s1, y, name, MAP=False):
     rawacc, y0acc, y1acc, balacc, f_score = binclass_accuracy(y, ypred)
     mrr_ = mrr(s0, y, ypred)
     print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
     print('%s MRR: %f  %s' % (name, mrr_, '(on training set, y=0 may be subsampled!)' if name == 'Train' else ''))
-    return mrr_
+    if MAP:
+        map_ = trec_map(s0, s1, y, ypred)
+        print('%s MAP: %f' % (name, map_))
+    else:
+        map_ = None
+    return AnsSelRes(mrr_, map_)
 
 
 ParaRes = namedtuple('ParaRes', ['Accuracy', 'F1'])

@@ -61,8 +61,8 @@ if __name__ == "__main__":
                       batch_size=160, nb_epoch=16, samples_per_epoch=int(len(s0)/4))
             # mrr = max(hist.history['mrr'])
             model.load_weights('weights-'+runid+'.h5')
-            ev.eval_anssel(model.predict(gr)['score'][:,0], s0, y, 'Train')
-            mrr = ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, yt, 'Val')
+            ev.eval_anssel(model.predict(gr)['score'][:,0], s0, s1, y, 'Train')
+            mrr = ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, s1t, yt, 'Val').MRR
             rs.report(ps, h, mrr)
         except Exception as e:
             print(e)

@@ -85,8 +85,8 @@ if __name__ == "__main__":
     ypred = model.predict(gr)['score'][:,0]
     ypredt = model.predict(grt)['score'][:,0]
 
-    ev.eval_anssel(ypred, s0, y, trainf)
-    ev.eval_anssel(ypredt, s0t, yt, valf)
+    ev.eval_anssel(ypred, s0, s1, y, trainf)
+    ev.eval_anssel(ypredt, s0t, s1t, yt, valf)
 
     with open(trec_qrels_file, 'wt') as f:
         save_trec_qrels(f, s0t, s1t, yt)

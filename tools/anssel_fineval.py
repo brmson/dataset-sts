@@ -87,10 +87,11 @@ if __name__ == "__main__":
         ypredv = model.predict(grv)['score'][:,0]
         ypredt = model.predict(grt)['score'][:,0]
 
-        mrr.append(ev.eval_anssel(ypred, s0, y, trainf))
-        mrrv.append(ev.eval_anssel(ypredv, s0v, yv, valf))
-        mrrt.append(ev.eval_anssel(ypredt, s0t, yt, testf))
-        mapt.append(ev_map(s0t, s1t, yt, ypredt, testf))
+        mrr.append(ev.eval_anssel(ypred, s0, s1, y, trainf).MRR)
+        mrrv.append(ev.eval_anssel(ypredv, s0v, s1v, yv, valf).MRR)
+        rt = ev.eval_anssel(ypredt, s0t, s1t, yt, testf, MAP=True)
+        mrrt.append(rt.MRR)
+        mapt.append(rt.MAP)
 
         rdata = {'ps': ps, 'ypred': (ypred, ypredv, ypredt), 'mrr': (mrr, mrrv, mrrt), 'map': (None, None, mapt)}
         pickle.dump(rdata, open('%s-res.pickle' % (runid,), 'wb'), protocol=2)

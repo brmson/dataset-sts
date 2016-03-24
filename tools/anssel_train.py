@@ -188,8 +188,8 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, 
 
     if do_eval:
         print('Predict&Eval (best epoch)')
-        ev.eval_anssel(model.predict(gr)['score'][:,0], s0, gr['score'], 'Train')
-        ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, grt['score'], 'Val')
+        ev.eval_anssel(model.predict(gr)['score'][:,0], s0, gr['s1'], gr['score'], 'Train')
+        ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, gr['s1t'], grt['score'], 'Val')
     return model
 
 
