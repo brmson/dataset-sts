@@ -1,13 +1,16 @@
 #!/usr/bin/python3
 #
-# Usage:   ./tools/scoring-api.py MODEL_NAME DATASET.CSV WEIGHTSFILE.H5 [PORT] [PARAM=VALUE]...
-# Example: ./tools/scoring-api.py rnn data/anssel/yodaqa/full-dataset.csv weights/weights-rnn-38a84de439de6337-bestval.h5 5001 loss=\"binary_crossentropy\"
 # This script loads keras model and pre-trained weights for sentence/property selection
 # and starts REST API for scoring question - sentence pairs.
+#
+# Usage:   ./tools/scoring-api.py MODEL_NAME DATASET.CSV WEIGHTSFILE.H5 [PORT] [PARAM=VALUE]...
+# Example: ./tools/scoring-api.py rnn data/anssel/yodaqa/full-dataset.csv weights/weights-rnn-38a84de439de6337-bestval.h5 5001 loss=\"binary_crossentropy\"
+#
 # The script listens on given or default (5000) port and accepts JSON in following format:
-#    {"question":"QUESTION_TEXT","labels":["SENTENCE1", "SENTENCE2", ...]}
+#    {"qtext":"QUESTION_TEXT","atext":["SENTENCE1", "SENTENCE2", ...]}
 # Example:
-#    {"question":"what country is the grand bahama island in","labels":["contained by", "contained in", "contained"]}
+#    {"qtext:"what country is the grand bahama island in","atext":["contained by", "contained in", "contained"]}
+#
 # The response is JSON object with key "score" and value containing list of scores, one for each label given
 #    {"score":[SCORE1, SCORE2, ...]}
 
@@ -44,9 +47,9 @@ params = sys.argv[5:]
 
 app = Flask(__name__)
 
-def load_jacana(question, prop_labels):
+def load_samples(question, prop_labels):
     samples = []
-    q = word_tokenize(question.replace("?",""))
+    q = word_tokenize(question)
     for label in prop_labels:
         text = word_tokenize(label.lower())
         samples.append({'qtext': ' '.join(q), 'label': 0, 'atext': ' '.join(text)})    
@@ -69,15 +72,14 @@ def load_model(trainf, model_name, weights_file):
 
 @app.route('/score', methods=['POST'])
 def get_score():
-    # print(request.json)
-    if (request.json['labels'] == []):
+    if (request.json['atext'] == []):
         return jsonify({'score': []}), 200  
     f = tempfile.NamedTemporaryFile(mode='w')
-    write_csv(f.file, load_jacana(request.json['question'], request.json['labels']))
+    # FIXME: Avoid temporary files!!!
+    write_csv(f.file, load_samples(request.json['qtext'], request.json['atext']))
     f.file.close()
     s0t, s1t, yt, _, grt = anssel_train.load_set(f.name, vocab, False)
     res = model.predict(grt)['score'][:,0]
-    # print(res)
     return jsonify({'score': res.tolist()}), 200
 
 module = importlib.import_module('.'+modelname, 'models')
