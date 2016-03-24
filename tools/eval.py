@@ -4,10 +4,10 @@
 Evaluate a set of pre-trained KeraSTS model instances (training runs)
 to get publication-grade results.
 
-Usage: tools/eval.py MODEL TASK VOCABDATA TRAINDATA VALDATA TESTDATA WEIGHTFILES... [PARAM=VALUE]...
+Usage: tools/eval.py MODEL TASK TRAINDATA VALDATA TESTDATA WEIGHTFILES... [vocabf='VOCABF'] [PARAM=VALUE]...
 
 Example:
-    tools/eval.py cnn para data/para/msr/msr-para-train.tsv \
+    tools/eval.py cnn para \
             data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv data/para/msr/msr-para-test.tsv \
             weights-para-avg--2e2c031f78c95c8c-00-bestval.h5 weights-para-avg--2e2c031f78c95c8c-01-bestval.h5 \
             inp_e_dropout=1/2
@@ -61,10 +61,10 @@ def stat(niter, fname, qty, r, alpha=0.95, bonferroni=1.):
 
 
 if __name__ == "__main__":
-    modelname, taskname, vocabf, trainf, valf, testf = sys.argv[1:7]
+    modelname, taskname, trainf, valf, testf = sys.argv[1:6]
     g = ([], [])
     g_i = 0
-    for p in sys.argv[7:]:
+    for p in sys.argv[6:]:
         if '=' in p:  # config param
             g_i += 1
             continue
@@ -87,8 +87,8 @@ if __name__ == "__main__":
         task.emb = None
 
     print('Dataset')
-    if vocabf != trainf:
-        task.load_vocab(vocabf)
+    if 'vocabf' in conf:
+        task.load_vocab(conf['vocabf'])
     task.load_data(trainf, valf, testf)
 
     # Collect eval results

@@ -39,6 +39,14 @@ Example: ``tools/eval.py cnn para data/para/msr/msr-para-train.tsv data/para/msr
 
 (Instead of -, you can pass a test set for the very final evaluation.)
 
+A custom dataset for constructing the vocabulary can be passed as a config
+argument like:
+
+	"vocabf='data/para/msr/msr-para-train.tsv'"
+
+(This is useful for evaluating a model on a different dataset than how it
+was trained, or for datasets with external vocabulary, like ubuntu.)
+
 
 Task: Answer Sentence Selection
 -------------------------------
