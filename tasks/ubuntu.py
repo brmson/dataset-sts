@@ -112,7 +112,6 @@ class UbuntuTask(AnsSelTask):
 
     def fit_model(self, model, **kwargs):
         batch_size = kwargs.pop('batch_size')
-        print(kwargs)
         return model.fit_generator(sample_pairs(self.gr, batch_size, self.s0pad, self.s1pad), **kwargs)
 
     def eval(self, model):
