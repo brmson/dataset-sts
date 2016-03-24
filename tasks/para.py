@@ -10,7 +10,7 @@ Training example:
 from __future__ import print_function
 from __future__ import division
 
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.core import Activation
 from keras.models import Graph
 import numpy as np
@@ -108,8 +108,9 @@ class ParaphrasingTask:
             model.compile(loss={'score': c['loss']}, optimizer=optimizer)
         return model
 
-    def fit_callbacks(self):
-        return [EarlyStopping(patience=3)]
+    def fit_callbacks(self, weightsf):
+        return [ModelCheckpoint(weightsf, save_best_only=True),
+                EarlyStopping(patience=3)]
 
     def eval(self, model):
         res = []

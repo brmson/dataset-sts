@@ -13,7 +13,7 @@ from __future__ import division
 # TODO: cPickle fallfront?
 import pickle
 
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.core import Activation
 from keras.models import Graph
 import numpy as np
@@ -136,8 +136,9 @@ class AnsSelTask:
             model.compile(loss={'score': c['loss']}, optimizer=optimizer)
         return model
 
-    def fit_callbacks(self):
+    def fit_callbacks(self, weightsf):
         return [AnsSelCB(self.grv['s0'], self.grv),
+                ModelCheckpoint(weightsf, save_best_only=True, monitor='mrr', mode='max'),
                 EarlyStopping(monitor='mrr', mode='max', patience=4)]
 
     def eval(self, model):

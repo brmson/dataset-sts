@@ -27,10 +27,8 @@ from __future__ import print_function
 from __future__ import division
 
 import importlib
-import sys
-
-from keras.callbacks import ModelCheckpoint
 import numpy as np
+import sys
 
 import pysts.embedding as emb
 from pysts.hyperparam import hash_params
@@ -84,7 +82,7 @@ def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
     if c['epoch_fract'] != 1:
         # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
         c['samples_per_epoch'] = int(len(task.gr['s0']) * c['epoch_fract'])
-    callbacks = task.fit_callbacks() + [ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True)]
+    callbacks = task.fit_callbacks('weights-'+runid+'-bestval.h5')
     model.fit(task.gr, validation_data=task.grv,  # show_accuracy=True,
               callbacks=callbacks,
               batch_size=c['batch_size'], nb_epoch=c['nb_epoch'],
