@@ -27,6 +27,8 @@ class ParaphrasingTask:
     def __init__(self):
         self.name = 'para'
         self.spad = 60
+        self.s0pad = self.spad
+        self.s1pad = self.spad
         self.emb = None
         self.vocab = None
 
@@ -42,9 +44,9 @@ class ParaphrasingTask:
         else:
             vocab = self.vocab
 
-        si0 = vocab.vectorize(s0, spad=self.spad)
-        si1 = vocab.vectorize(s1, spad=self.spad)
-        f0, f1 = nlp.sentence_flags(s0, s1, self.spad, self.spad)
+        si0 = vocab.vectorize(s0, spad=self.s0pad)
+        si1 = vocab.vectorize(s1, spad=self.s1pad)
+        f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
         gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
 
         return (gr, y, vocab)
@@ -65,20 +67,30 @@ class ParaphrasingTask:
         else:
             self.grt, self.yt = (None, None)
 
-    def prep_model(self, module_prep_model, c):
+    def prep_model(self, module_prep_model, c, oact='sigmoid'):
         # Input embedding and encoding
         model = Graph()
-        N = B.embedding(model, self.emb, self.vocab, self.spad, self.spad, c['inp_e_dropout'], c['inp_w_dropout'], add_flags=c['e_add_flags'])
+        N = B.embedding(model, self.emb, self.vocab, self.s0pad, self.s1pad, c['inp_e_dropout'], c['inp_w_dropout'], add_flags=c['e_add_flags'])
 
         # Sentence-aggregate embeddings
-        final_outputs = module_prep_model(model, N, self.spad, self.spad, c)
+        final_outputs = module_prep_model(model, N, self.s0pad, self.s1pad, c)
 
         # Measurement
+
+        if c['ptscorer'] == '1':
+            # special scoring mode just based on the answer
+            # (assuming that the question match is carried over to the answer
+            # via attention or another mechanism)
+            ptscorer = B.cat_ptscorer
+            final_outputs = final_outputs[1]
+        else:
+            ptscorer = c['ptscorer']
+
         kwargs = dict()
-        if c['ptscorer'] == B.mlp_ptscorer:
+        if ptscorer == B.mlp_ptscorer:
             kwargs['sum_mode'] = c['mlpsum']
-        model.add_node(name='scoreS', input=c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], **kwargs),
-                       layer=Activation('sigmoid'))
+        model.add_node(name='scoreS', input=ptscorer(model, final_outputs, c['Ddim'], N, c['l2reg'], **kwargs),
+                       layer=Activation(oact))
         model.add_output(name='score', input='scoreS')
         return model
 
