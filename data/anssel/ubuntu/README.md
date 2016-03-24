@@ -16,6 +16,27 @@ See instructions on top of ``tools/ubuntu_train.py`` re preprocessing
 the csv files (the dataset is too large to be fed directly to the
 train tool).
 
+Model Comparison
+----------------
+
+For randomized models, 95% confidence intervals (t-distribution) are reported.
+Well, will be.
+
+| Model                    | trainMRR | train-2R@1 | valMRR   | val-2R@1 | val-10R@2 | testMRR | test-2R@1 | test-10R@2 | settings
+|--------------------------|----------|------------|----------|----------|-----------|---------|-----------|------------|---------
+| TF-IDF (Ryan Lowe)       |          |            |          |          |           |         | 0.749260  | 0.587315   | personal communication
+| RNN (Ryan Lowe)          |          |            |          |          |           |         | 0.776539  | 0.560689   | personal communication
+| LSTM (Ryan Lowe)         |          |            |          |          |           |         | 0.868731  | 0.720991   | personal communication
+|--------------------------|----------|------------|----------|----------|-----------|---------|-----------|------------|---------
+| avg                      |          |            | 0.618414 | 0.787679 | 0.601892  |         |           |            | dropout 0
+| DAN                      |          |            | 0.615653 | 0.783129 | 0.594325  |         |           |            | dropout 0
+|--------------------------|----------|------------|----------|----------|-----------|---------|-----------|------------|---------
+| rnn                      |          |            | 0.786334 | 0.910429 | 0.805010  |         |           |            | dropout 0, sdim=1 pdim=1 ptscorer=B.dot_ptscorer
+| cnn                      |          |            | 0.659407 | 0.804703 | 0.639264  |         |           |            | needs rerunning
+| rnncnn                   |          |            | 0.763290 |          |           |         |           |            | needs rerunning
+| attn1511                 |          |            | 0.772967 | 0.902658 | 0.788088  |         |           |            | dropout 0, sdim=1/2 cdim=1/2 ptscorer=B.dot_ptscorer
+
+
 Corpus v2.0
 -----------
 

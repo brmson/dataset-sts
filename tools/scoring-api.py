@@ -78,7 +78,7 @@ def get_score():
     # FIXME: Avoid temporary files!!!
     write_csv(f.file, load_samples(request.json['qtext'], request.json['atext']))
     f.file.close()
-    s0t, s1t, yt, _, grt = anssel_train.load_set(f.name, vocab, False)
+    s0t, s1t, yt, _, grt = anssel_train.load_set(f.name, vocab, skip_oneclass=False)
     res = model.predict(grt)['score'][:,0]
     return jsonify({'score': res.tolist()}), 200
 

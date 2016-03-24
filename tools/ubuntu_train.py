@@ -86,7 +86,7 @@ def pad_3d_sequence(seqs, maxlen, nd, dtype='int32'):
     return pseqs
 
 
-def pad_graph(gr):
+def pad_graph(gr, s0pad=s0pad, s1pad=s1pad):
     """ pad sequences in the graph """
     gr['si0'] = pad_sequences(gr['si0'], maxlen=s0pad, truncating='pre', padding='post')
     gr['si1'] = pad_sequences(gr['si1'], maxlen=s1pad, truncating='pre', padding='post')
@@ -111,8 +111,10 @@ def config(module_config, params):
     c['mlpsum'] = 'sum'
     c['Ddim'] = 1
 
-    c['batch_size'] = 192
     c['loss'] = 'binary_crossentropy'
+    c['batch_size'] = 192
+    c['nb_epoch'] = 16
+    c['epoch_fract'] = 1/4
     module_config(c)
 
     for p in params:

@@ -27,11 +27,14 @@ from __future__ import division
 
 import importlib
 import sys
+import os.path
+import pickle
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.core import Activation, Dropout
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 from keras.models import Graph
+import numpy as np
 
 import pysts.embedding as emb
 import pysts.eval as ev
@@ -51,7 +54,22 @@ s0pad = 60
 s1pad = 60
 
 
-def load_set(fname, vocab=None, skip_oneclass=True):
+def load_set(fname, vocab=None, s0pad=s0pad, s1pad=s1pad, cache_dir=None, skip_oneclass=True):
+    """ Caching: If cache_dir is set: it tries to load finished dataset from it 
+        (filename of cache is hash of fname), and if that fails, it will compute 
+        dataset and try to save it."""
+    save_cache = False
+    if cache_dir:
+        fname_abs = os.path.abspath(fname)
+        from hashlib import md5
+        cache_filename = "%s/%s.p" % (cache_dir, md5(fname_abs.encode("utf-8")).hexdigest())
+
+        try:
+            with open(cache_filename, "rb") as f:
+                return pickle.load(f)
+        except (IOError, TypeError, KeyError):
+            save_cache=True
+
     s0, s1, y, t = loader.load_anssel(fname, skip_oneclass=skip_oneclass)
     # TODO: Make use of the t-annotations
 
@@ -61,7 +79,12 @@ def load_set(fname, vocab=None, skip_oneclass=True):
     si0 = vocab.vectorize(s0, spad=s0pad)
     si1 = vocab.vectorize(s1, spad=s1pad)
     f0, f1 = nlp.sentence_flags(s0, s1, s0pad, s1pad)
-    gr = graph_input_anssel(si0, si1, y, f0, f1)
+    gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
+
+    if save_cache:
+        with open(cache_filename, "wb") as f:
+            pickle.dump((s0, s1, y, vocab, gr), f)
+            print("save")
 
     return (s0, s1, y, vocab, gr)
 
@@ -78,7 +101,10 @@ def config(module_config, params):
     c['Ddim'] = 1
 
     c['loss'] = ranknet
+    c['balance_class'] = False
+    c['batch_size'] = 160
     c['nb_epoch'] = 16
+    c['epoch_fract'] = 1/4
     module_config(c)
 
     for p in params:
@@ -117,7 +143,11 @@ def prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad):
     return model
 
 
-def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad):
+def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad, optimizer='adam', fix_layers=[], do_compile=True):
+    if c['ptscorer'] is None:
+        # non-neural model
+        return module_prep_model(vocab, c)
+
     if c['loss'] == 'binary_crossentropy':
         oact = 'sigmoid'
     else:
@@ -125,27 +155,42 @@ def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad):
         oact = 'linear'
 
     model = prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad)
-    model.compile(loss={'score': c['loss']}, optimizer='adam')
+
+    for lname in fix_layers:
+        model.nodes[lname].trainable = False
+
+    if do_compile:
+        model.compile(loss={'score': c['loss']}, optimizer=optimizer)
     return model
 
 
-def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
+def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, s0pad=s0pad, s1pad=s1pad, do_eval=True):
     print('Model')
-    model = build_model(glove, vocab, module_prep_model, c)
+    model = build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad)
 
     print('Training')
+    if c.get('balance_class', False):
+        one_ratio = np.sum(gr['score'] == 1) / len(gr['score'])
+        class_weight = {'score': {0: one_ratio, 1: 0.5}}
+    else:
+        class_weight = {}
     # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
     model.fit(gr, validation_data=grt,
               callbacks=[AnsSelCB(s0t, grt),
                          ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='mrr', mode='max'),
                          EarlyStopping(monitor='mrr', mode='max', patience=4)],
-              batch_size=160, nb_epoch=c['nb_epoch'], samples_per_epoch=20000)
+              class_weight=class_weight,
+              batch_size=c['batch_size'], nb_epoch=c['nb_epoch'], samples_per_epoch=int(len(s0)*c['epoch_fract']))
     model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
-
-    print('Predict&Eval (best epoch)')
+    if c['ptscorer'] is None:
+        model.save_weights('weights-'+runid+'-bestval.h5', overwrite=True)
     model.load_weights('weights-'+runid+'-bestval.h5')
-    ev.eval_anssel(model.predict(gr)['score'][:,0], s0, gr['score'], 'Train')
-    ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, grt['score'], 'Val')
+
+    if do_eval:
+        print('Predict&Eval (best epoch)')
+        ev.eval_anssel(model.predict(gr)['score'][:,0], s0, gr['score'], 'Train')
+        ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, grt['score'], 'Val')
+    return model
 
 
 if __name__ == "__main__":
@@ -158,11 +203,14 @@ if __name__ == "__main__":
     runid = '%s-%x' % (modelname, h)
     print('RunID: %s  (%s)' % (runid, ps))
 
-    print('GloVe')
-    glove = emb.GloVe(N=conf['embdim'])
+    if conf['embdim'] is not None:
+        print('GloVe')
+        glove = emb.GloVe(N=conf['embdim'])
+    else:
+        glove = None
 
     print('Dataset')
-    s0, s1, y, vocab, gr = load_set(trainf)
-    s0t, s1t, yt, _, grt = load_set(valf, vocab)
+    s0, s1, y, vocab, gr = load_set(trainf, cache_dir=conf.get("cache_dir"))
+    s0t, s1t, yt, _, grt = load_set(valf, cache_dir=conf.get("cache_dir"))
 
     train_and_eval(runid, module.prep_model, conf, glove, vocab, gr, s0, grt, s0t)

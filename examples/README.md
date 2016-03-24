@@ -32,3 +32,7 @@ Full-fledged Keras architecture using the KeraSTS toolkit (but as
 a standalone script instead of the models+tools abstraction architecture):
 
   * **anssel_cnn.py** generates summary sentence embeddings using a CNN
+
+A prototype using skipthoughts:
+
+  * **anssel_st.py**

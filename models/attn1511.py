@@ -52,8 +52,9 @@ Performance:
 from __future__ import print_function
 from __future__ import division
 
+import keras.activations as activations
 from keras.layers.convolutional import Convolution1D, MaxPooling1D, AveragePooling1D
-from keras.layers.core import Activation, Dense, Dropout, Flatten, Permute, RepeatVector, TimeDistributedDense
+from keras.layers.core import Activation, Dense, Dropout, Flatten, MaskedLayer, Permute, RepeatVector, TimeDistributedDense
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 from keras.regularizers import l2
 
@@ -61,7 +62,7 @@ import pysts.kerasts.blocks as B
 
 
 def config(c):
-    c['dropout'] = 3/4
+    c['dropout'] = 1/2
     c['dropoutfix_inp'] = 0
     c['dropoutfix_rec'] = 0
     c['l2reg'] = 1e-4
@@ -71,7 +72,7 @@ def config(c):
     c['rnnbidi_mode'] = 'sum'
     c['rnnact'] = 'tanh'
     c['rnninit'] = 'glorot_uniform'
-    c['sdim'] = 2
+    c['sdim'] = 1
     c['rnnlevels'] = 1
 
     c['pool_layer'] = MaxPooling1D
@@ -86,7 +87,7 @@ def config(c):
     c['focus_act'] = 'softmax'
 
     # model-external:
-    c['inp_e_dropout'] = 3/4
+    c['inp_e_dropout'] = 1/2
     c['inp_w_dropout'] = 0
     # anssel-specific:
     c['ptscorer'] = B.mlp_ptscorer
@@ -125,6 +126,58 @@ def aggregate(model, e_in, pfx, N, spad, pool_layer,
     return (pfx+'g', width)
 
 
+class NormalizedActivation(MaskedLayer):
+    '''Apply an activation function to an output, normalizing the output.
+
+    This is like softmax for other activations than exp.
+
+    # Input shape
+        Arbitrary. Use the keyword argument `input_shape`
+        (tuple of integers, does not include the samples axis)
+        when using this layer as the first layer in a model.
+
+    # Output shape
+        Same shape as input.
+
+    # Arguments:
+        activation: name of activation function to use
+            (see: [activations](../activations.md)),
+            or alternatively, a Theano or TensorFlow operation.
+    '''
+    def __init__(self, activation, norm_mode, **kwargs):
+        super(NormalizedActivation, self).__init__(**kwargs)
+        self.activation = activations.get(activation)
+        self.norm_mode = norm_mode
+
+    def get_output(self, train=False):
+        import keras.backend as K
+        X = self.get_input(train)
+        a = self.activation(X)
+        if self.norm_mode == 'norm':
+            s = K.sum(a, axis=-1, keepdims=True)
+        elif self.norm_mode == 'maxnorm':
+            s = K.max(a, axis=-1, keepdims=True)
+        else:
+            raise ValueError
+        return a / s
+
+    def get_config(self):
+        config = {'name': self.__class__.__name__,
+                  'activation': self.activation.__name__}
+        base_config = super(NormalizedActivation, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+def focus_activation(focus_act):
+    """ .../norm: normalize activation to sum to 1;
+    .../maxnorm: normalize activation to peak at 1 """
+    if '/' in focus_act:
+        focus_act, norm_mode = focus_act.split('/')
+        return NormalizedActivation(focus_act, norm_mode)
+    else:
+        return Activation(focus_act)
+
+
 def focus(model, N, input_aggreg, input_seq, orig_seq, attn_name, output_name,
           s1pad, sdim, awidth, attn_mode, focus_act, l2reg):
     model.add_node(name=input_aggreg+'[rep]', input=input_aggreg,
@@ -148,7 +201,7 @@ def focus(model, N, input_aggreg, input_seq, orig_seq, attn_name, output_name,
     # *Focus* e1 by softmaxing (by default) attention and multiplying tokens
     # by their attention.
     model.add_node(name=attn_name+'[3]', input=attn_name+'[2]',
-                   layer=Activation(focus_act))
+                   layer=focus_activation(focus_act))
     model.add_node(name=attn_name+'[4]', input=attn_name+'[3]',
                    layer=RepeatVector(int(N*sdim)))
     model.add_node(name=attn_name, input=attn_name+'[4]',

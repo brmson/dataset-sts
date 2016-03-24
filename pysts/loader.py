@@ -82,6 +82,31 @@ def load_anssel(dsfile, subsample0=1, skip_oneclass=True):
     return (s0, s1, np.array(labels), toklabels if toklabels else None)
 
 
+def load_hypev(dsfile):
+    """ load a dataset in the hypev csv format;
+
+    TODO: the (optional) semantic token labels (linked entities etc.)
+    are not loaded. """
+    s0 = []
+    s1 = []
+    labels = []
+
+    with open(dsfile) as f:
+        c = csv.DictReader(f)
+        for l in c:
+            label = int(l['label'])
+            try:
+                htext = l['htext'].decode('utf8')
+                mtext = l['mtext'].decode('utf8')
+            except AttributeError:  # python3 has no .decode()
+                htext = l['htext']
+                mtext = l['mtext']
+            labels.append(label)
+            s0.append(htext.split(' '))
+            s1.append(mtext.split(' '))
+    return (s0, s1, np.array(labels))
+
+
 def load_sick2014(dsfile, mode='relatedness'):
     """ load a dataset in the sick2014 tsv .txt format;
 
@@ -134,6 +159,25 @@ def load_sts(dsfile, skip_unlabeled=True):
                     labels.append(-1.)
             else:
                 labels.append(float(label))
+            s0.append(word_tokenize(s0x))
+            s1.append(word_tokenize(s1x))
+    return (s0, s1, np.array(labels))
+
+
+def load_msrpara(dsfile):
+    """ load a dataset in the msrpara tsv format """
+    s0 = []
+    s1 = []
+    labels = []
+    with codecs.open(dsfile, encoding='utf8') as f:
+        firstline = True
+        for line in f:
+            if firstline:
+                firstline = False
+                continue
+            line = line.rstrip()
+            label, s0id, s1id, s0x, s1x = line.split('\t')
+            labels.append(float(label))
             s0.append(word_tokenize(s0x))
             s1.append(word_tokenize(s1x))
     return (s0, s1, np.array(labels))
@@ -231,3 +275,21 @@ def sts_categorical2labels(Y, nclass=6):
     """
     r = np.arange(nclass)
     return np.dot(Y, r)
+
+
+def graph_adapt_ubuntu(gr, vocab):
+    """ modify an anssel graph dataset to look like ubuntu's; XXX move elsewhere? """
+    gr2 = dict(gr)
+    for k in ['si0', 'si1']:
+        gr2[k] = []
+        for s in gr[k]:
+            s2 = list(s)
+            try:
+                s2[s2.index(0)] = vocab.word_idx['__eou__']
+                if k == 'si0':
+                    s2[s2.index(0)] = vocab.word_idx['__eot__']
+            except ValueError:
+                pass
+            gr2[k].append(s2)
+        gr2[k] = np.array(gr2[k])
+    return gr2

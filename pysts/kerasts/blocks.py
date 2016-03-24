@@ -103,7 +103,8 @@ def rnn_input(model, N, spad, dropout=3/4, dropoutfix_inp=0, dropoutfix_rec=0,
 
 def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
                  cnninit='glorot_uniform', cnnact='tanh',
-                 cdim={1: 1/2, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2}):
+                 cdim={1: 1/2, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2},
+                 inputs=['e0_', 'e1_'], pfx=''):
     """ An CNN pooling layer that takes sequence of embeddings e0_, e1_ and
     processes them using a CNN + max-pooling to produce a single "summary
     embedding" (*NOT* a sequence of embeddings).
@@ -119,28 +120,30 @@ def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
     Nc = 0
     for fl, cd in cdim.items():
         nb_filter = int(N*cd)
-        model.add_shared_node(name='aconv%d'%(fl,),
-                              inputs=['e0_', 'e1_'], outputs=['e0c%d'%(fl,), 'e1c%d'%(fl,)],
+        model.add_shared_node(name=pfx+'aconv%d'%(fl,),
+                              inputs=inputs, outputs=[pfx+'e0c%d'%(fl,), pfx+'e1c%d'%(fl,)],
                               layer=Convolution1D(input_shape=(spad, N),
                                                   nb_filter=nb_filter, filter_length=fl,
                                                   activation=cnnact, W_regularizer=l2(l2reg),
                                                   init=cnninit))
-        model.add_shared_node(name='apool%d[0]'%(fl,),
-                              inputs=['e0c%d'%(fl,), 'e1c%d'%(fl,)], outputs=['e0s%d[0]'%(fl,), 'e1s%d[0]'%(fl,)],
+        model.add_shared_node(name=pfx+'apool%d[0]'%(fl,),
+                              inputs=[pfx+'e0c%d'%(fl,), pfx+'e1c%d'%(fl,)],
+                              outputs=[pfx+'e0s%d[0]'%(fl,), pfx+'e1s%d[0]'%(fl,)],
                               layer=MaxPooling1D(pool_length=int(spad - fl + 1)))
-        model.add_shared_node(name='apool%d[1]'%(fl,),
-                              inputs=['e0s%d[0]'%(fl,), 'e1s%s[0]'%(fl,)], outputs=['e0s%d'%(fl,), 'e1s%d'%(fl,)],
+        model.add_shared_node(name=pfx+'apool%d[1]'%(fl,),
+                              inputs=[pfx+'e0s%d[0]'%(fl,), pfx+'e1s%s[0]'%(fl,)],
+                              outputs=[pfx+'e0s%d'%(fl,), pfx+'e1s%d'%(fl,)],
                               layer=Flatten(input_shape=(1, nb_filter)))
         Nc += nb_filter
 
     if len(cdim) > 1:
-        model.add_node(name='e0s', inputs=['e0s%d'%(fl,) for fl in cdim.keys()], merge_mode='concat', layer=Activation('linear'))
-        model.add_node(name='e1s', inputs=['e1s%d'%(fl,) for fl in cdim.keys()], merge_mode='concat', layer=Activation('linear'))
+        model.add_node(name=pfx+'e0s', inputs=[pfx+'e0s%d'%(fl,) for fl in cdim.keys()], merge_mode='concat', layer=Activation('linear'))
+        model.add_node(name=pfx+'e1s', inputs=[pfx+'e1s%d'%(fl,) for fl in cdim.keys()], merge_mode='concat', layer=Activation('linear'))
     else:
-        model.add_node(name='e0s', input='e0s%d'%(cdim.keys()[0],), layer=Activation('linear'))
-        model.add_node(name='e1s', input='e1s%d'%(cdim.keys()[0],), layer=Activation('linear'))
-    model.add_node(name='e0s_', input='e0s', layer=Dropout(dropout))
-    model.add_node(name='e1s_', input='e1s', layer=Dropout(dropout))
+        model.add_node(name=pfx+'e0s', input=pfx+'e0s%d'%(cdim.keys()[0],), layer=Activation('linear'))
+        model.add_node(name=pfx+'e1s', input=pfx+'e1s%d'%(cdim.keys()[0],), layer=Activation('linear'))
+    model.add_node(name=pfx+'e0s_', input=pfx+'e0s', layer=Dropout(dropout))
+    model.add_node(name=pfx+'e1s_', input=pfx+'e1s', layer=Dropout(dropout))
 
     return Nc
 
@@ -169,7 +172,8 @@ def cos_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
 def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
     """ Element-wise features from the pair fed to an MLP. """
     if sum_mode == 'absdiff':
-        model.add_node(name=pfx+'sum', layer=absdiff_merge(model, inputs))
+        # model.add_node(name=pfx+'sum', layer=absdiff_merge(model, inputs))
+        absdiff_merge(model, inputs, pfx, "sum")
     else:
         model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
     model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
@@ -194,22 +198,27 @@ def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
     return pfx+'cat'
 
 
-def absdiff_merge(model, layers):
+
+def absdiff_merge(model, inputs, pfx="out", layer_name="absdiff"):
     """ Merging two layers into one, via element-wise subtraction and then taking absolute value.
 
-    Example of usage: model.add_node(name="diff", layer=absdiff_merge(["e0_", "e1_"]))
+    Example of usage: layer_name = absdiff_merge(model, inputs=["e0_", "e1_"])
 
     TODO: The more modern way appears to be to use "join" merge mode and Lambda layer.
     """
+    if len(inputs) != 2:
+        raise ValueError("absdiff_merge has to got exactly 2 inputs")
+
     def diff(X):
-        if len(X)!=2:
-            raise ValueError("")
-        return K.abs(X[0]-X[1])
+        return K.abs(X[0] - X[1])
 
     def output_shape(input_shapes):
         return input_shapes[0]
 
-    return LambdaMerge([model.nodes[l] for l in layers], diff, output_shape)
+    full_name = "%s%s" % (pfx, layer_name)
+    model.add_node(name=layer_name, inputs=inputs,
+                   layer=LambdaMerge([model.nodes[l] for l in inputs], diff, output_shape))
+    return full_name
 
 
 def dot_time_distributed_merge(model, layers, cos_norm=False):

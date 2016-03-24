@@ -146,7 +146,7 @@ however a judgement about S0 alone (typically true / false).
 
   * [X] **data/hypev/argus/** Argus Dataset (Yes/No Question vs. News Headline)
 
-  * [ ] [AI2 8th Grade Science Questions](http://allenai.org/data.html)
+  * [X] [AI2 8th Grade Science Questions](http://allenai.org/data.html)
 are 641 school Science quiz questions (A/B/C/D test format), stemming from
 [The Allen AI Science Challenge](https://www.kaggle.com/c/the-allen-ai-science-challenge/)
 We are going to produce a dataset that merges questions and answers in a single

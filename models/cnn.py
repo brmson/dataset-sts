@@ -11,13 +11,6 @@ external similarity space.
 
 This will be a part of our upcoming paper; meanwhile, if you need to cite this,
 refer to the dataset-sts GitHub repo, please.
-
-
-Performance:
-    * anssel-wang:  (the model parameters were tuned to maximize devMRR on wang)
-      devMRR=0.876154, testMRR=0.820956, testMAP=0.7321
-    * anssel-yodaqa:  (using the wang-tuned parameters)
-      valMRR=0.377590
 """
 
 from __future__ import print_function
@@ -30,16 +23,16 @@ import pysts.kerasts.blocks as B
 
 
 def config(c):
-    c['dropout'] = 4/5
+    c['dropout'] = 1/2
     c['l2reg'] = 1e-4
 
-    c['cnnact'] = 'tanh'
+    c['cnnact'] = 'relu'
     c['cnninit'] = 'glorot_uniform'
     c['cdim'] = {1: 1, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2}
 
     c['project'] = True
-    c['pdim'] = 2.5
-    c['pact'] = 'linear'
+    c['pdim'] = 2
+    c['pact'] = 'tanh'
 
     # model-external:
     c['inp_e_dropout'] = 1/2

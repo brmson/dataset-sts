@@ -18,9 +18,10 @@ import sys
 import csv
 import pickle
 
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.layers.core import Activation
 from keras.models import Graph
+import numpy as np
 
 import pysts.embedding as emb
 import pysts.eval as ev
@@ -40,7 +41,7 @@ s1pad = 60
 
 
 def load_set(fname, vocab=None):
-    s0, s1, y, t = loader.load_anssel(fname, skip_oneclass=False)
+    s0, s1, y = loader.load_hypev(fname)
     # s0=questions, s1=answers
 
     if vocab is None:
@@ -49,7 +50,7 @@ def load_set(fname, vocab=None):
     si0 = vocab.vectorize(s0, spad=s0pad)
     si1 = vocab.vectorize(s1, spad=s1pad)
     f0, f1 = nlp.sentence_flags(s0, s1, s0pad, s1pad)
-    gr = graph_input_anssel(si0, si1, y, f0, f1)
+    gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
 
     return s0, s1, y, vocab, gr
 
@@ -66,6 +67,8 @@ def config(module_config, params):
     c['Ddim'] = 1
 
     c['loss'] = 'binary_crossentropy'
+    c['balance_class'] = False
+    c['batch_size'] = 160
     c['nb_epoch'] = 2
     module_config(c)
 
@@ -106,6 +109,10 @@ def prep_model(glove, vocab, module_prep_model, c, oact, s0pad, s1pad):
 
 
 def build_model(glove, vocab, module_prep_model, c, s0pad=s0pad, s1pad=s1pad):
+    if c['ptscorer'] is None:
+        # non-neural model
+        return module_prep_model(vocab, c)
+
     if c['loss'] == 'binary_crossentropy':
         oact = 'sigmoid'
     else:
@@ -148,26 +155,37 @@ def dump_questions(sq, sa, labels, results, text):
     # print('precision on separate questions ('+text+'):', correct/q_num)
 
 
-def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t):
+def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, s0, grt, s0t, do_eval=True):
     print('Model')
     model = build_model(glove, vocab, module_prep_model, c)
 
     print('Training')
+    if c.get('balance_class', False):
+        one_ratio = np.sum(gr['score'] == 1) / len(gr['score'])
+        class_weight = {'score': {0: one_ratio, 1: 0.5}}
+    else:
+        class_weight = {}
     # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
     model.fit(gr, validation_data=grt,
               callbacks=[HypEvCB(s0t, grt),
-                         ModelCheckpoint('weights-'+runid+'-bestval.h5', save_best_only=True, monitor='acc', mode='max')],
-              batch_size=160, nb_epoch=c['nb_epoch'])
-    model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
+                         ModelCheckpoint('hyp-weights-'+runid+'-bestval.h5', save_best_only=True, monitor='acc', mode='max'),
+                         EarlyStopping(monitor='acc', mode='max', patience=4)],
+              class_weight=class_weight,
+              batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
+    model.save_weights('hyp-weights-'+runid+'-final.h5', overwrite=True)
+    if c['ptscorer'] is None:
+        model.save_weights('hyp-weights-'+runid+'-bestval.h5', overwrite=True)
+    model.load_weights('hyp-weights-'+runid+'-bestval.h5')
 
-    print('Predict&Eval (best epoch)')
-    model.load_weights('weights-'+runid+'-bestval.h5')
-    prediction = model.predict(gr)['score'][:,0]
-    prediction_t = model.predict(grt)['score'][:,0]
-    ev.eval_hypev(prediction, s0, gr['score'], 'Train')
-    ev.eval_hypev(prediction_t, s0t, grt['score'], 'Val')
-    dump_questions(s0, s1, gr['score'], prediction, 'Train')
-    dump_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
+    if do_eval:
+        print('Predict&Eval (best epoch)')
+        prediction = model.predict(gr)['score'][:,0]
+        prediction_t = model.predict(grt)['score'][:,0]
+        ev.eval_hypev(prediction, s0, gr['score'], 'Train')
+        ev.eval_hypev(prediction_t, s0t, grt['score'], 'Val')
+        dump_questions(s0, s1, gr['score'], prediction, 'Train')
+        dump_questions(s0t, s1t, grt['score'], prediction_t, 'Val')
+    return model
 
 
 if __name__ == "__main__":
@@ -181,8 +199,11 @@ if __name__ == "__main__":
     runid = '%s-%x' % (modelname, h)
     print('RunID: %s  (%s)' % (runid, ps))
 
-    print('GloVe')
-    glove = emb.GloVe(N=conf['embdim'])
+    if conf['embdim'] is not None:
+        print('GloVe')
+        glove = emb.GloVe(N=conf['embdim'])
+    else:
+        glove = None
 
     print('Dataset')
     s0, s1, y, vocab, gr = load_set(trainf)

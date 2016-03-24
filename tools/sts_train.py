@@ -45,14 +45,21 @@ import models  # importlib python3 compatibility requirement
 spad = 60
 
 
-def load_set(files, vocab=None, skip_unlabeled=True):
+def load_set(files, vocab=None, skip_unlabeled=True, spad=spad):
     def load_file(fname, skip_unlabeled=True):
         # XXX: ugly logic
         if 'sick2014' in fname:
             return loader.load_sick2014(fname)
         else:
             return loader.load_sts(fname, skip_unlabeled=skip_unlabeled)
-    s0, s1, y = loader.concat_datasets([load_file(d, skip_unlabeled=skip_unlabeled) for d in files])
+    try:
+        strtype = basestring
+    except NameError:
+        strtype = str
+    if isinstance(files, strtype):
+        s0, s1, y = load_file(files, skip_unlabeled=skip_unlabeled)
+    else:
+        s0, s1, y = loader.concat_datasets([load_file(d, skip_unlabeled=skip_unlabeled) for d in files])
 
     if vocab is None:
         vocab = Vocabulary(s0 + s1)
@@ -60,7 +67,7 @@ def load_set(files, vocab=None, skip_unlabeled=True):
     si0 = vocab.vectorize(s0, spad=spad)
     si1 = vocab.vectorize(s1, spad=spad)
     f0, f1 = nlp.sentence_flags(s0, s1, spad, spad)
-    gr = graph_input_sts(si0, si1, y, f0, f1)
+    gr = graph_input_sts(si0, si1, y, f0, f1, s0, s1)
 
     return (s0, s1, y, vocab, gr)
 
@@ -77,6 +84,8 @@ def config(module_config, params):
     c['Ddim'] = 2
 
     c['loss'] = pearsonobj  # ...or 'categorical_crossentropy'
+    c['batch_size'] = 160
+    c['nb_epoch'] = 32
     module_config(c)
 
     for p in params:
@@ -87,7 +96,7 @@ def config(module_config, params):
     return c, ps, h
 
 
-def prep_model(glove, vocab, module_prep_model, c):
+def prep_model(glove, vocab, module_prep_model, c, spad=spad):
     # Input embedding and encoding
     model = Graph()
     N = B.embedding(model, glove, vocab, spad, spad, c['inp_e_dropout'], c['inp_w_dropout'], add_flags=c['e_add_flags'])
@@ -110,13 +119,21 @@ def prep_model(glove, vocab, module_prep_model, c):
     return model
 
 
-def build_model(glove, vocab, module_prep_model, c):
-    model = prep_model(glove, vocab, module_prep_model, c)
-    model.compile(loss={'classes': c['loss']}, optimizer='adam')
+def build_model(glove, vocab, module_prep_model, c, spad=spad, optimizer='adam', fix_layers=[]):
+    if c['ptscorer'] is None:
+        # non-neural model
+        return module_prep_model(vocab, c, 'classes')
+
+    model = prep_model(glove, vocab, module_prep_model, c, spad=spad)
+
+    for lname in fix_layers:
+        model.nodes[lname].trainable = False
+
+    model.compile(loss={'classes': c['loss']}, optimizer=optimizer)
     return model
 
 
-def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt):
+def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt, do_eval=True):
     print('Model')
     model = build_model(glove, vocab, module_prep_model, c)
 
@@ -126,13 +143,17 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt):
               callbacks=[STSPearsonCB(gr, grt),
                          ModelCheckpoint('sts-weights-'+runid+'-bestval.h5', save_best_only=True, monitor='pearson', mode='max'),
                          EarlyStopping(monitor='pearson', mode='max', patience=3)],
-              batch_size=160, nb_epoch=32)
+              batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
     model.save_weights('sts-weights-'+runid+'-final.h5', overwrite=True)
-
-    print('Predict&Eval')
+    if c['ptscorer'] is None:
+        model.save_weights('sts-weights-'+runid+'-bestval.h5', overwrite=True)
     model.load_weights('sts-weights-'+runid+'-bestval.h5')
-    ev.eval_sts(model.predict(gr)['classes'], gr['classes'], 'Train')
-    ev.eval_sts(model.predict(grt)['classes'], grt['classes'], 'Val')
+
+    if do_eval:
+        print('Predict&Eval (best val epoch)')
+        ev.eval_sts(model.predict(gr)['classes'], gr['classes'], 'Train')
+        ev.eval_sts(model.predict(grt)['classes'], grt['classes'], 'Val')
+    return model
 
 
 if __name__ == "__main__":
@@ -152,8 +173,11 @@ if __name__ == "__main__":
     runid = '%s-%x' % (modelname, h)
     print('RunID: %s  (%s)' % (runid, ps))
 
-    print('GloVe')
-    glove = emb.GloVe(N=conf['embdim'])
+    if conf['embdim'] is not None:
+        print('GloVe')
+        glove = emb.GloVe(N=conf['embdim'])
+    else:
+        glove = None
 
     print('Dataset')
     s0, s1, y, vocab, gr = load_set(trainf)

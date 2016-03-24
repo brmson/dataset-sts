@@ -28,7 +28,16 @@ def binclass_accuracy(y, ypred):
     y0acc = np.sum(np.logical_and(ypred < 0.5, y < 0.5)) / np.sum(y < 0.5)
     y1acc = np.sum(np.logical_and(ypred > 0.5, y > 0.5)) / np.sum(y > 0.5)
     balacc = (y0acc + y1acc) / 2
-    return (rawacc, y0acc, y1acc, balacc)
+
+    # XXX could probably simplify and merge with above
+    n_tp = np.sum(np.logical_and(ypred > 0.5, y > 0.5))
+    n_fp = np.sum(np.logical_and(ypred > 0.5, y < 0.5))
+    n_fn = np.sum(np.logical_and(ypred < 0.5, y > 0.5))
+    prec = n_tp / (n_tp + n_fp)  # how many reported positives are ok
+    recall = n_tp / (n_tp + n_fn)  # how many real positives we catch
+    f_score = 2 * (prec * recall) / (prec + recall)
+
+    return (rawacc, y0acc, y1acc, balacc, f_score)
 
 
 def aggregate_s0(s0, y, ypred, k=None):
@@ -147,15 +156,21 @@ def eval_sts(ycat, y, name, quiet=False):
 
 
 def eval_anssel(ypred, s0, y, name):
-    rawacc, y0acc, y1acc, balacc = binclass_accuracy(y, ypred)
+    rawacc, y0acc, y1acc, balacc, f_score = binclass_accuracy(y, ypred)
     mrr_ = mrr(s0, y, ypred)
     print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
     print('%s MRR: %f  %s' % (name, mrr_, '(on training set, y=0 may be subsampled!)' if name == 'Train' else ''))
     return mrr_
 
 
+def eval_para(ypred, y, name):
+    rawacc, y0acc, y1acc, balacc, f_score = binclass_accuracy(y, ypred)
+    print('%s Accuracy: raw %f (y=0 %f, y=1 %f), bal %f;  F-Score: %f' % (name, rawacc, y0acc, y1acc, balacc, f_score))
+    return (rawacc, f_score)
+
+
 def eval_hypev(ypred, s0, y, name):
-    rawacc, y0acc, y1acc, balacc = binclass_accuracy(y, ypred)
+    rawacc, y0acc, y1acc, balacc, f_score = binclass_accuracy(y, ypred)
     prec = hypev_accuracy(hypev_classify_mean(s0, y, ypred))
     print('%s Pair Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
     print('%s HypEv Accuracy: %f (qclass based on pairs mean)' % (name, prec))

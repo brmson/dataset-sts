@@ -65,8 +65,11 @@ if __name__ == "__main__":
     module = importlib.import_module('.'+modelname, 'models')
     conf, ps, h = anssel_train.config(module.config, params)
 
-    print('GloVe')
-    glove = emb.GloVe(N=conf['embdim'])
+    if conf['embdim'] is not None:
+        print('GloVe')
+        glove = emb.GloVe(N=conf['embdim'])
+    else:
+        glove = None
 
     print('Dataset')
     s0, s1, y, vocab, gr = anssel_train.load_set(trainf)
