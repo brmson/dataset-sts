@@ -67,7 +67,6 @@ if __name__ == "__main__":
     for p in sys.argv[6:]:
         if '=' in p:  # config param
             g_i += 1
-            continue
         g[g_i].append(p)
     weightfs, params = g
     if testf == '-':
