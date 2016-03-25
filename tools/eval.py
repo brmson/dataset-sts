@@ -130,5 +130,6 @@ if __name__ == "__main__":
     # data/ README table format
     print('| % -24s |%s | %s'
           % (modelname, task.res_columns(mres),
-             '(defaults)' if not params else ' '.join(['``%s``' % (p,) for p in params])))
+             '(defaults)' if not params
+             else ' '.join(['``%s``' % (p,) for p in params if not p.startswith('vocabf=')])))
     print('| % -24s |%s |' % ('', task.res_columns(bres, '±')))
