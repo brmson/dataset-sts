@@ -81,7 +81,7 @@ class ParaphrasingTask(AbstractTask):
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing
         important statistics """
-        return('%c%.6f  |%c%.6f |%c%.6f |%c%.6f |%c%.6f |%c%.6f'
+        return('%s%.6f  |%s%.6f |%s%.6f |%s%.6f |%s%.6f |%s%.6f'
                % (pfx, mres[self.trainf]['Accuracy'],
                   pfx, mres[self.trainf]['F1'],
                   pfx, mres[self.valf]['Accuracy'],

@@ -128,7 +128,7 @@ class STSTask(AbstractTask):
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing
         important statistics """
-        return('%c%.6f |%c%.6f |%c%.6f'
+        return('%s%.6f |%s%.6f |%s%.6f'
                % (pfx, mres[self.trainf]['Pearson'],
                   pfx, mres[self.valf]['Pearson'],
                   pfx, mres[self.testf].get('Pearson', np.nan)))

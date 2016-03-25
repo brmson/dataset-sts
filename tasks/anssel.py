@@ -110,7 +110,7 @@ class AnsSelTask(AbstractTask):
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing
         important statistics """
-        return('%c%.6f    |%c%.6f |%c%.6f |%c%.6f'
+        return('%s%.6f    |%s%.6f |%s%.6f |%s%.6f'
                % (pfx, mres[self.trainf]['MRR'],
                   pfx, mres[self.valf]['MRR'],
                   pfx, mres[self.testf].get('MAP', np.nan),
