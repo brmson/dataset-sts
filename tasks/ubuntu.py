@@ -145,7 +145,7 @@ class UbuntuTask(AnsSelTask):
                % (pfx, mres[self.valf]['MRR'],
                   pfx, mres[self.valf]['R2_1'],
                   pfx, mres[self.valf]['R10_2'],
-                  pfx, mres[self.testf].get('MAP', np.nan),
+                  pfx, mres[self.testf].get('MRR', np.nan),
                   pfx, mres[self.testf].get('R2_1', np.nan),
                   pfx, mres[self.testf].get('R10_2', np.nan)))
 
