@@ -100,15 +100,29 @@ class UbuntuTask(AnsSelTask):
         c['batch_size'] = 192
         c['epoch_fract'] = 1/4
 
+    def load_vocab(self, vocabf):
+        # use plain pickle because unicode
+        self.vocab = pickle.load(open(vocabf, "rb"))
+        return self.vocab
+
     def load_set(self, fname, cache_dir=None):
         si0, si1, f0, f1, labels = cPickle.load(open(fname, "rb"))
         gr = graph_input_anssel(si0, si1, labels, f0, f1)
         return (gr, labels, self.vocab)
 
-    def load_vocab(self, vocabf):
-        # use plain pickle because unicode
-        self.vocab = pickle.load(open(vocabf, "rb"))
-        return self.vocab
+    def load_data(self, trainf, valf, testf=None):
+        self.trainf = trainf
+        self.valf = valf
+        self.testf = testf
+
+        self.gr, self.y, self.vocab = self.load_set(trainf)
+        self.grv, self.yv, _ = self.load_set(valf)
+        pad_graph(self.grv, self.s0pad, self.s1pad)
+        if testf is not None:
+            self.grt, self.yt, _ = self.load_set(testf)
+            pad_graph(self.grt, self.s0pad, self.s1pad)
+        else:
+            self.grt, self.yt = (None, None)
 
     def fit_model(self, model, **kwargs):
         batch_size = kwargs.pop('batch_size')
@@ -116,13 +130,13 @@ class UbuntuTask(AnsSelTask):
         return model.fit_generator(sample_pairs(self.gr, batch_size, self.s0pad, self.s1pad), **kwargs)
 
     def eval(self, model):
-        res = []
-        for gr, fname in [(self.gr, self.trainf), (self.grv, self.valf), (self.grt, self.testf)]:
+        res = [None]
+        for gr, fname in [(self.grv, self.valf), (self.grt, self.testf)]:
             if gr is None:
                 res.append(None)
                 continue
             ypred = model.predict(gr)['score'][:,0]
-            res.append(ev.eval_ubuntu(ypred, gr['s0'], gr['score'], fname))
+            res.append(ev.eval_ubuntu(ypred, gr['si0'], gr['score'], fname))
         return tuple(res)
 
     def res_columns(self, mres, pfx=' '):
