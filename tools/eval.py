@@ -101,9 +101,10 @@ if __name__ == "__main__":
 
         print('Predict&Eval (best val epoch)')
         resT, resv, rest = task.eval(model)
-        res[trainf].append(resT)
+        if resT is not None:
+            res[trainf].append(resT)
         res[valf].append(resv)
-        if testf is not None:
+        if rest is not None:
             res[testf].append(rest)
         print()
 
@@ -112,17 +113,18 @@ if __name__ == "__main__":
     mres = {trainf: {}, valf: {}, testf: {}}  # mean
     bres = {trainf: {}, valf: {}, testf: {}}  # 95% bound
     for split in [trainf, valf, testf]:
-        if split is None:
+        if split is None or not res[split]:
             continue
-        for field in res[trainf][0]._fields:
+        for field in res[valf][0]._fields:
             values = [getattr(r, field) for r in res[split]]
             fres[split][field] = values
             mres[split][field] = np.mean(values)
             bres[split][field] = stat(len(weightfs), split, field, values)
 
-    for field in res[trainf][0]._fields:
-        print('train-val %s Pearsonr: %f' % (field, ss.pearsonr(fres[trainf][field], fres[valf][field])[0],))
-        if testf is not None:
+    for field in res[valf][0]._fields:
+        if fres[trainf]:
+            print('train-val %s Pearsonr: %f' % (field, ss.pearsonr(fres[trainf][field], fres[valf][field])[0],))
+        if fres[testf]:
             print('val-test %s Pearsonr: %f' % (field, ss.pearsonr(fres[valf][field], fres[testf][field])[0],))
 
     # data/ README table format
