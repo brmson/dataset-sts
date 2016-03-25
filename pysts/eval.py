@@ -183,6 +183,9 @@ def hypev_accuracy(qpred):
     return np.mean(prec)
 
 
+STSRes = namedtuple('STSRes', ['Pearson', 'Spearman', 'MSE'])
+
+
 def eval_sts(ycat, y, name, quiet=False):
     """ Evaluate given STS regression-classification predictions and print results. """
     if ycat.ndim == 1:
@@ -194,11 +197,13 @@ def eval_sts(ycat, y, name, quiet=False):
     else:
         ygold = loader.sts_categorical2labels(y)
     pr = pearsonr(ypred, ygold)[0]
+    sr = spearmanr(ypred, ygold)[0]
+    e = mse(ypred, ygold)
     if not quiet:
         print('%s Pearson: %f' % (name, pr,))
-        print('%s Spearman: %f' % (name, spearmanr(ypred, ygold)[0],))
-        print('%s MSE: %f' % (name, mse(ypred, ygold),))
-    return pr
+        print('%s Spearman: %f' % (name, sr,))
+        print('%s MSE: %f' % (name, e,))
+    return STSRes(pr, sr, e)
 
 
 AnsSelRes = namedtuple('AnsSelRes', ['MRR', 'MAP'])
