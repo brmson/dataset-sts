@@ -56,7 +56,17 @@ on the validation set.
 
 Usage: ``tools/tuning.py MODEL TASK TRAINDATA VALDATA PARAM=VALUESET...``
 
-For an example, see the header of the script.
+For an example and details, see the header of the script.
+
+Transfer Learning
+-----------------
+
+We have a gadget that loads a model trained on one task and retrains it
+on another.
+
+Usage: ``tools/transfer.py MODEL TASK1 VOCAB1 WEIGHTS TASK2 TRAIN2DATA VAL2DATA [PARAM=VALUE]...``
+
+For an example and details, see the header of the script.
 
 
 Task: Answer Sentence Selection
@@ -70,15 +80,6 @@ Please use the task-generic interface for basic tasks (training, eval).
 The Ubuntu dialogue corpus is the same task, but uses dedicated scripts to be
 able to process large datasets.
 Please use the task-generic interface for basic tasks (training, eval).
-
-  * **ubuntu_anssel_transfer.py** to adapt a model trained on an Ubuntu Dialog
-    dataset towards a particular anssel task instance
-
-  * **ubuntu_para_transfer.py** to adapt a model trained on Ubuntu Dialog
-    dataset onto a Paraphrasing dataset
-
-  * **ubuntu_sts_transfer.py** to adapt a model trained on Ubuntu Dialog
-    dataset onto an STS dataset
 
   * **ubuntu-visual.ipynb** is a simple transposition of anssel-visual for
     attention visualization on the Ubuntu corpus

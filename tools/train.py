@@ -70,10 +70,7 @@ def config(model_config, task_config, params):
     return c, ps, h
 
 
-def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
-    print('Model')
-    model = task.build_model(module_prep_model, c)
-
+def train_model(runid, model, task, c):
     print('Training')
     fit_kwargs = dict()
     if c['balance_class']:
@@ -90,6 +87,13 @@ def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
     if c['ptscorer'] is None:
         model.save_weights('weights-'+runid+'-bestval.h5', overwrite=True)
     model.load_weights('weights-'+runid+'-bestval.h5')
+
+
+def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
+    print('Model')
+    model = task.build_model(module_prep_model, c)
+
+    train_model(runid, model, task, c)
 
     if do_eval:
         print('Predict&Eval (best val epoch)')
