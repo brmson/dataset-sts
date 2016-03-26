@@ -68,45 +68,36 @@ Usage: ``tools/transfer.py MODEL TASK1 VOCAB1 WEIGHTS TASK2 TRAIN2DATA VAL2DATA 
 
 For an example and details, see the header of the script.
 
+Visualization
+-------------
 
-Task: Answer Sentence Selection
--------------------------------
+We provide several IPython notebooks that use HTML for visualization of
+attention and other aspects of the RNN.
 
-Please use the task-generic interface for basic tasks (training, eval).
+**Warning:** These scripts are now slightly obsolete in that they rely
+on the old task-specific tools instead of using the task-generic interface.
+Some (generally pretty light?) changes are required to make them run;
+please contribute them back. :)
 
   * **anssel-visual.ipynb** showcases IPython/Jupyter notebook for model
     development and visualizing attention models using a token heatmap
 
-The Ubuntu dialogue corpus is the same task, but uses dedicated scripts to be
-able to process large datasets.
-Please use the task-generic interface for basic tasks (training, eval).
-
   * **ubuntu-visual.ipynb** is a simple transposition of anssel-visual for
-    attention visualization on the Ubuntu corpus
+    attention visualization on the Ubuntu corpus  (the Ubuntu dialogue
+    corpus is the same task, but uses dedicated scripts to be
+    able to process large datasets).
 
 
-Task: Semantic Text Similarity
-------------------------------
+Task-specific Tools
+-------------------
 
-Please use the task-generic interface for basic tasks (training, eval).
-
-However, there's not yet a full replacement for per-test-split testing:
+We still have some tools that are task-specific.
 
   * **sts_fineval.py** evaluates the model N times on all sets, producing
     statistical measurements suitable for publication
 
 
-Task: Paraphrasing
-------------------
-
-This task is like the STS task, but rather than regressing a numerical score
-on output, it is a binary classification task.
-
-Please use the task-generic interface.
-
-
-Task: Hypothesis Evaluation
----------------------------
+### Hypothesis Evaluation
 
 This task is like "Answer Sentence Selection" in that we have many s1 for
 a single s0, but the goal is to produce an aggregate judgement on s0 based

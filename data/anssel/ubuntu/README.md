@@ -11,8 +11,9 @@ We champion v2, also for technical reasons.
 This corpus is obviously too big to be included as-is in this repository.
 To get it, follow per-version instructions below.
 
-Regarding software, use ``tools/ubuntu_preprocess.py`` and ``tools/ubuntu_train.py``.
-See instructions on top of ``tools/ubuntu_train.py`` re preprocessing
+Regarding software, use ``tools/ubuntu_preprocess.py`` and ``tools/train.py``
+(on ``ubuntu`` task).
+See instructions on top of ``tasks/ubuntu.py`` re preprocessing
 the csv files (the dataset is too large to be fed directly to the
 train tool).
 
