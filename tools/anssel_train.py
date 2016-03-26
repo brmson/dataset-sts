@@ -54,7 +54,7 @@ s0pad = 60
 s1pad = 60
 
 
-def load_set(fname, vocab=None, s0pad=s0pad, s1pad=s1pad, cache_dir=None):
+def load_set(fname, vocab=None, s0pad=s0pad, s1pad=s1pad, cache_dir=None, skip_oneclass=True):
     """ Caching: If cache_dir is set: it tries to load finished dataset from it 
         (filename of cache is hash of fname), and if that fails, it will compute 
         dataset and try to save it."""
@@ -70,7 +70,7 @@ def load_set(fname, vocab=None, s0pad=s0pad, s1pad=s1pad, cache_dir=None):
         except (IOError, TypeError, KeyError):
             save_cache=True
 
-    s0, s1, y, t = loader.load_anssel(fname)
+    s0, s1, y, t = loader.load_anssel(fname, skip_oneclass=skip_oneclass)
     # TODO: Make use of the t-annotations
 
     if vocab is None:
