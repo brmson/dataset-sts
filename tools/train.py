@@ -93,8 +93,10 @@ def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
 
     if do_eval:
         print('Predict&Eval (best val epoch)')
-        task.eval(model)
-    return model
+        res = task.eval(model)
+    else:
+        res = None
+    return model, res
 
 
 if __name__ == "__main__":

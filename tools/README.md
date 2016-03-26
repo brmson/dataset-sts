@@ -30,7 +30,7 @@ Evaluation
 ----------
 
 The training script above creates a file with weights dump for a particular
-trained model instance (or instances, with nb_runs parameter).  You can
+trained model instance (or instances, with ``nb_runs`` parameter).  You can
 use a set of instances to evaluate performance on datasets, statistically.
 
 Usage: ``tools/eval.py MODEL TASK VOCABDATA TRAINDATA VALDATA TESTDATA WEIGHTFILES... [PARAM=VALUE]...``
@@ -47,13 +47,22 @@ argument like:
 (This is useful for evaluating a model on a different dataset than how it
 was trained, or for datasets with external vocabulary, like ubuntu.)
 
+Tuning
+------
+
+It may be useful to run a series of model trainings with different
+hyperparmeter values, deriving the optimal configuration from evaluation
+on the validation set.
+
+Usage: ``tools/tuning.py MODEL TASK TRAINDATA VALDATA PARAM=VALUESET...``
+
+For an example, see the header of the script.
+
 
 Task: Answer Sentence Selection
 -------------------------------
 
 Please use the task-generic interface for basic tasks (training, eval).
-
-  * **anssel_tuning.py** tunes the model parameters using random search
 
   * **anssel-visual.ipynb** showcases IPython/Jupyter notebook for model
     development and visualizing attention models using a token heatmap

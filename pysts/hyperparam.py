@@ -37,6 +37,6 @@ class RandomSearch:
             ps, h = hash_params(pardict)
             yield (ps, h, pardict)
 
-    def report(self, ps, h, mrr):
-        print('%x %f %s' % (h, mrr, ps), file=self.rlog)
+    def report(self, ps, h, res):
+        print('%s .. %x .. %s' % (res, h, ps), file=self.rlog)
         self.rlog.flush()
