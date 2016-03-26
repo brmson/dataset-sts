@@ -231,12 +231,15 @@ def eval_para(ypred, y, name):
     return ParaRes(rawacc, f_score)
 
 
+HypEvRes = namedtuple('HypEvRes', ['QAccuracy'])
+
+
 def eval_hypev(ypred, s0, y, name):
     rawacc, y0acc, y1acc, balacc, f_score = binclass_accuracy(y, ypred)
-    prec = hypev_accuracy(hypev_classify_mean(s0, y, ypred))
+    qacc = hypev_accuracy(hypev_classify_mean(s0, y, ypred))
     print('%s Pair Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
-    print('%s HypEv Accuracy: %f (qclass based on pairs mean)' % (name, prec))
-    return prec
+    print('%s HypEv Accuracy: %f (qclass based on pairs mean)' % (name, qacc))
+    return HypEvRes(qacc)
 
 
 UbuntuRes = namedtuple('UbuntuRes', ['MRR', 'R2_1', 'R10_1', 'R10_2', 'R10_5'])

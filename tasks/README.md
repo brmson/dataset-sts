@@ -40,3 +40,9 @@ in **data/TASKNAME/** subdirectories.
 
         tools/train.py cnn para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv nb_runs=4
 	tools/eval.py cnn para data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv - weights-para-cnn--69489c8dc3b6ce11-*
+
+  * **hypev.py** - Hypothesis Evidencing.  This task is like "Answer Sentence
+    Selection" in that we have many s1 for a single s0, but the goal is
+    to produce an aggregate judgement on s0 based on the pairs.  Example:
+
+	tools/train.py avg hypev data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv dropout=0 nb_runs=4 nb_epoch=16

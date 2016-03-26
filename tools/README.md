@@ -95,14 +95,3 @@ We still have some tools that are task-specific.
 
   * **sts_fineval.py** evaluates the model N times on all sets, producing
     statistical measurements suitable for publication
-
-
-### Hypothesis Evaluation
-
-This task is like "Answer Sentence Selection" in that we have many s1 for
-a single s0, but the goal is to produce an aggregate judgement on s0 based
-on the pairs.
-
-  * **hypev_train.py** to train a model e.g. on the argus dataset:
-
-	tools/hypev_train.py rnn data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv
