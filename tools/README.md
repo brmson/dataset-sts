@@ -86,12 +86,3 @@ please contribute them back. :)
     attention visualization on the Ubuntu corpus  (the Ubuntu dialogue
     corpus is the same task, but uses dedicated scripts to be
     able to process large datasets).
-
-
-Task-specific Tools
--------------------
-
-We still have some tools that are task-specific.
-
-  * **sts_fineval.py** evaluates the model N times on all sets, producing
-    statistical measurements suitable for publication
