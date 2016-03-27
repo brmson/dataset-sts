@@ -141,7 +141,7 @@ class UbuntuTask(AnsSelTask):
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing
         important statistics """
-        return('%s%.6f |%s%.6f |%s%.6f  |%s%.6f |%s%.6f  |%s%.6f   '
+        return('%s%.6f |%s%.6f |%s%.6f  |%s%.6f |%s%.6f  |%s%.6f  '
                % (pfx, mres[self.valf]['MRR'],
                   pfx, mres[self.valf]['R2_1'],
                   pfx, mres[self.valf]['R10_2'],
