@@ -37,8 +37,8 @@ also means inp_w_dropout=0.
 |                          |±0.069417 |±0.035779 |±0.060425  |±0.069916 |±0.035020  |±0.059468   |
 |--------------------------|----------|----------|-----------|----------|-----------|------------|---------
 | rnn                      | 0.786334 | 0.910429 | 0.805010  |          |           |            | dropout 0, sdim=1 pdim=1 ptscorer=B.dot_ptscorer
-| cnn                      | 0.659407 | 0.804703 | 0.639264  |          |           |            | needs rerunning
-| rnncnn                   | 0.763290 |          |           |          |           |            | needs rerunning
+| cnn                      | 0.718287 | 0.862117 | 0.718814  |          |           |            | dropout 0, pdim=1 ptscorer=B.dot_ptscorer
+| rnncnn                   | 0.786321 | 0.907004 | 0.805573  |          |           |            | dropout 0, sdim=1/2 pdim=1 ptscorer=B.dot_ptscorer
 | attn1511                 | 0.772967 | 0.902658 | 0.788088  |          |           |            | dropout 0, sdim=1/2 cdim=1/2 ptscorer=B.dot_ptscorer
 
 These results are obtained like this:
