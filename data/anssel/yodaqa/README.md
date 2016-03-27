@@ -57,6 +57,11 @@ curatedv2:
 | attn1511                 | 0.432403    | 0.475125 | 0.275219 | 0.468555 | (defaults)
 |                          |±0.016183    |±0.012810 |±0.006562 |±0.014433 |
 
+These results are obtained like this:
+
+	tools/train.py avg anssel data/anssel/yodaqa/curatedv2-training.csv data/anssel/yodaqa/curatedv2-val.csv nb_runs=16
+	tools/eval.py avg anssel data/anssel/yodaqa/curatedv2-training.csv data/anssel/yodaqa/curatedv2-val.csv data/anssel/yodaqa/curatedv2-test.csv weights-anssel-avg--69489c8dc3b6ce11-*-bestval.h5
+
 large2470:
 
 | Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings
@@ -73,6 +78,11 @@ large2470:
 |                          |±0.023715    |±0.006451 |±0.002641 |±0.007643 | 
 | attn1511                 | 0.445635    | 0.408495 | 0.288100 | 0.430892 | (defaults)
 |                          |±0.056352    |±0.008744 |±0.005601 |±0.017858 |
+
+These results are obtained like this:
+
+	tools/train.py avg anssel data/anssel/yodaqa/large2470-training.csv data/anssel/yodaqa/large2470-val.csv nb_runs=16
+	tools/eval.py avg anssel data/anssel/yodaqa/large2470-training.csv data/anssel/yodaqa/large2470-val.csv data/anssel/yodaqa/large2470-test.csv weights-anssel-avg--69489c8dc3b6ce11-*-bestval.h5
 
 Older Datasets
 --------------

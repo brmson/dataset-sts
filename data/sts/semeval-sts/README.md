@@ -51,6 +51,14 @@ set.
 | attn1511                 | 0.712086 | 0.656483 | 0.429167 | 0.632170 | 0.628803 | 0.657264 | 0.668384 | 0.603158 | (defaults)
 |                          |±0.033190 |±0.009479 |±0.019904 |±0.016477 |±0.015415 |±0.012070 |±0.023045 |±0.109596 |
 
+These results are obtained like this:
+
+	tools/train.py avg sts data/sts/semeval-sts/all/2015.train.tsv data/sts/semeval-sts/all/2015.val.tsv nb_runs=16
+	tools/eval.py avg sts data/sts/semeval-sts/all/2015.train.tsv data/sts/semeval-sts/all/2015.val.tsv data/sts/semeval-sts/all/2015.test.tsv weights-sts-avg--69489c8dc3b6ce11-*-bestval.h5
+
+(Note that the current toolchain does not include explicit support for
+evaluation of the individual test splits.  FIXME)
+
 
 Changes
 -------

@@ -39,6 +39,10 @@ also means inp_w_dropout=0.
 | rnncnn                   | 0.763290 |          |           |          |           |            | needs rerunning
 | attn1511                 | 0.772967 | 0.902658 | 0.788088  |          |           |            | dropout 0, sdim=1/2 cdim=1/2 ptscorer=B.dot_ptscorer
 
+These results are obtained like this:
+
+	tools/train.py avg ubuntu data/anssel/ubuntu/v2-trainset.pickle data/anssel/ubuntu/v2-valset.pickle "vocabf='data/anssel/ubuntu/v2-vocab.pickle'" nb_runs=16 inp_e_dropout=0 dropout=0
+	tools/eval.py avg ubuntu data/anssel/ubuntu/v2-trainset.pickle data/anssel/ubuntu/v2-valset.pickle data/anssel/ubuntu/v2-testset.pickle weights-ubuntu-avg--69489c8dc3b6ce11-*-bestval.h5 "vocabf='data/anssel/ubuntu/v2-vocab.pickle'" inp_e_dropout=0 dropout=0
 
 
 Corpus v2.0

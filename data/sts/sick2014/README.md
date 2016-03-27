@@ -37,3 +37,8 @@ t. mean is the same as test (artifact of sts-semeval oriented evaluation).
 |                          |±0.012955 |±0.002831 |±0.004763 |
 | attn1511                 | 0.835484 | 0.732324 | 0.722736 | 0.722736 | (defaults)
 |                          |±0.023749 |±0.011295 |±0.009434 |
+
+These results are obtained like this:
+
+	tools/train.py avg sts data/sts/sick2014/SICK_train.txt data/sts/sick2014/SICK_trial.txt nb_runs=16
+	tools/eval.py avg sts data/sts/sick2014/SICK_train.txt data/sts/sick2014/SICK_trial.txt data/sts/sick2014/SICK_test_annotated.txt weights-sts-avg--69489c8dc3b6ce11-*-bestval.h5

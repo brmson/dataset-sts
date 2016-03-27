@@ -41,6 +41,11 @@ intervals (t-distribution) are reported.
 | attn1511                 | 0.852364    | 0.851368 | 0.708163 | 0.789822 | (defaults)
 |                          |±0.017280    |±0.005533 |±0.008958 |±0.013308 |
 
+These results are obtained like this:
+
+	tools/train.py avg anssel data/anssel/wang/train-all.csv data/anssel/wang/dev.csv nb_runs=16
+	tools/eval.py avg anssel data/anssel/wang/train-all.csv data/anssel/wang/dev.csv data/anssel/wang/test.csv weights-anssel-avg--69489c8dc3b6ce11-*-bestval.h5
+
 
 Dataset
 -------
