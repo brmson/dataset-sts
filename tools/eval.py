@@ -88,7 +88,7 @@ if __name__ == "__main__":
     print('Dataset')
     if 'vocabf' in conf:
         task.load_vocab(conf['vocabf'])
-    task.load_data(trainf, valf, testf)
+    task.load_data(trainf, valf, testf, conf=conf)
 
     # Collect eval results
     res = {trainf: [], valf: [], testf: []}
