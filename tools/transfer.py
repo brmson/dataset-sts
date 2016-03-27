@@ -13,6 +13,12 @@ Example: tools/transfer.py rnn ubuntu data/anssel/ubuntu/v2-vocab.pickle \
 VOCAB can be either a specialized vocabulary file if task1
 uses one, or just the training set used to train the original
 model.
+
+When transfer learning from Ubuntu dataset, please note that all Ubuntu
+sentences are terminated by special tokens __eou__ __eot__ - it makes
+sense to decorate your target dataset with the same tokens, which can
+be done by passing adapt_ubuntu=True config parameter.  (Do that for
+both transfer and eval!)
 """
 
 from __future__ import print_function
@@ -52,7 +58,7 @@ def transfer_eval(runid, module_prep_model, task1, task2, weightsf, c):
     print('Model (weights)')
     model1.load_weights(weightsf)
     for n in model1.nodes.keys():
-        model1.nodes[n].set_weights(model1.nodes[n].get_weights())
+        model.nodes[n].set_weights(model1.nodes[n].get_weights())
     print('Pre-training Transfer Evaluation')
     task2.eval(model)
 
@@ -87,10 +93,9 @@ if __name__ == "__main__":
 
     print('Dataset 1')
     task1.load_vocab(vocab1f)
+    task2.vocab = task1.vocab
     print('Dataset 2')
-    if 'vocabf' in conf:
-        task2.load_vocab(conf['vocabf'])
-    task2.load_data(train2f, val2f)
+    task2.load_data(train2f, val2f, conf=conf)
 
     for i_run in range(conf['nb_runs']):
         if conf['nb_runs'] == 1:

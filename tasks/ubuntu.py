@@ -110,7 +110,7 @@ class UbuntuTask(AnsSelTask):
         gr = graph_input_anssel(si0, si1, labels, f0, f1)
         return (gr, labels, self.vocab)
 
-    def load_data(self, trainf, valf, testf=None):
+    def load_data(self, trainf, valf, testf=None, conf=None):
         self.trainf = trainf
         self.valf = valf
         self.testf = testf

@@ -66,7 +66,7 @@ if __name__ == "__main__":
     g_i = 0
     for p in sys.argv[6:]:
         if '=' in p:  # config param
-            g_i += 1
+            g_i = 1
         g[g_i].append(p)
     weightfs, params = g
     if testf == '-':
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     print('Dataset')
     if 'vocabf' in conf:
         task.load_vocab(conf['vocabf'])
-    task.load_data(trainf, valf, testf)
+    task.load_data(trainf, valf, testf, conf=conf)
 
     # Collect eval results
     res = {trainf: [], valf: [], testf: []}

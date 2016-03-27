@@ -120,7 +120,7 @@ if __name__ == "__main__":
     print('Dataset')
     if 'vocabf' in conf:
         task.load_vocab(conf['vocabf'])
-    task.load_data(trainf, valf)
+    task.load_data(trainf, valf, conf=conf)
 
     for i_run in range(conf['nb_runs']):
         if conf['nb_runs'] == 1:

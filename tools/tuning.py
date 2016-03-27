@@ -61,7 +61,7 @@ if __name__ == "__main__":
     print('Dataset')
     if 'vocabf' in conf:
         task.load_vocab(conf['vocabf'])
-    task.load_data(trainf, valf)
+    task.load_data(trainf, valf, conf=conf)
 
     tuneargs = dict()
     for p in params:
