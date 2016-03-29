@@ -76,6 +76,7 @@ if __name__ == "__main__":
     task_module = importlib.import_module('.'+taskname, 'tasks')
     task = task_module.task()
     conf, ps, h = config(model_module.config, task.config, params)
+    task.set_conf(conf)
 
     # TODO we should be able to get away with actually *not* loading
     # this at all!
@@ -88,13 +89,13 @@ if __name__ == "__main__":
     print('Dataset')
     if 'vocabf' in conf:
         task.load_vocab(conf['vocabf'])
-    task.load_data(trainf, valf, testf, conf=conf)
+    task.load_data(trainf, valf, testf)
 
     # Collect eval results
     res = {trainf: [], valf: [], testf: []}
     for weightf in weightfs:
         print('Model')
-        model = task.build_model(model_module.prep_model, conf)
+        model = task.build_model(model_module.prep_model)
 
         print(weightf)
         model.load_weights(weightf)

@@ -50,18 +50,18 @@ class ParaphrasingTask(AbstractTask):
 
         return (gr, y, vocab)
 
-    def build_model(self, module_prep_model, c, optimizer='adam', fix_layers=[], do_compile=True):
-        if c['ptscorer'] is None:
+    def build_model(self, module_prep_model, optimizer='adam', fix_layers=[], do_compile=True):
+        if self.c['ptscorer'] is None:
             # non-neural model
-            return module_prep_model(self.vocab, c, output='binary')
+            return module_prep_model(self.vocab, output='binary')
 
-        model = self.prep_model(module_prep_model, c)
+        model = self.prep_model(module_prep_model)
 
         for lname in fix_layers:
             model.nodes[lname].trainable = False
 
         if do_compile:
-            model.compile(loss={'score': c['loss']}, optimizer=optimizer)
+            model.compile(loss={'score': self.c['loss']}, optimizer=optimizer)
         return model
 
     def fit_callbacks(self, weightsf):

@@ -53,8 +53,8 @@ def transfer_eval(runid, module_prep_model, task1, task2, weightsf, c):
     # We construct both original and new model, then copy over
     # the weights from the original model
     print('Model')
-    model1 = task1.build_model(module_prep_model, c, do_compile=False)
-    model = task2.build_model(module_prep_model, c, optimizer=c['opt'], fix_layers=c['fix_layers'])
+    model1 = task1.build_model(module_prep_model, do_compile=False)
+    model = task2.build_model(module_prep_model, optimizer=c['opt'], fix_layers=c['fix_layers'])
     print('Model (weights)')
     model1.load_weights(weightsf)
     for n in model1.nodes.keys():
@@ -84,6 +84,8 @@ if __name__ == "__main__":
     # our training
     conf, ps, h = config(model_module.config, task2.config,
                          ["opt='adam'", "fix_layers=[]"] + params)
+    task1.set_conf(conf)
+    task2.set_conf(conf)
 
     # TODO configurable embedding class
     if conf['embdim'] is not None:
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     task1.load_vocab(vocab1f)
     task2.vocab = task1.vocab
     print('Dataset 2')
-    task2.load_data(train2f, val2f, conf=conf)
+    task2.load_data(train2f, val2f)
 
     for i_run in range(conf['nb_runs']):
         if conf['nb_runs'] == 1:

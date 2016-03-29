@@ -63,51 +63,52 @@ class STSTask(AbstractTask):
 
         return (gr, y, vocab)
 
-    def prep_model(self, module_prep_model, c):
+    def prep_model(self, module_prep_model):
         # Input embedding and encoding
         model = Graph()
-        N = B.embedding(model, self.emb, self.vocab, self.s0pad, self.s1pad, c['inp_e_dropout'], c['inp_w_dropout'], add_flags=c['e_add_flags'])
+        N = B.embedding(model, self.emb, self.vocab, self.s0pad, self.s1pad,
+                        self.c['inp_e_dropout'], self.c['inp_w_dropout'], add_flags=self.c['e_add_flags'])
 
         # Sentence-aggregate embeddings
-        final_outputs = module_prep_model(model, N, self.s0pad, self.s1pad, c)
+        final_outputs = module_prep_model(model, N, self.s0pad, self.s1pad, self.c)
 
         # Measurement
 
-        if c['ptscorer'] == '1':
+        if self.c['ptscorer'] == '1':
             # special scoring mode just based on the answer
             # (assuming that the question match is carried over to the answer
             # via attention or another mechanism)
             ptscorer = B.cat_ptscorer
             final_outputs = final_outputs[1]
         else:
-            ptscorer = c['ptscorer']
+            ptscorer = self.c['ptscorer']
 
         kwargs = dict()
         if ptscorer == B.mlp_ptscorer:
-            kwargs['sum_mode'] = c['mlpsum']
-        model.add_node(name='scoreS', input=ptscorer(model, final_outputs, c['Ddim'], N, c['l2reg'], **kwargs),
+            kwargs['sum_mode'] = self.c['mlpsum']
+        model.add_node(name='scoreS', input=ptscorer(model, final_outputs, self.c['Ddim'], N, self.c['l2reg'], **kwargs),
                        layer=Activation('linear'))
 
         model.add_node(name='out', input='scoreS',
-                       layer=Dense(6, W_regularizer=l2(c['l2reg'])))
+                       layer=Dense(6, W_regularizer=l2(self.c['l2reg'])))
         model.add_node(name='outS', input='out',
                        layer=Activation('softmax'))
 
         model.add_output(name='classes', input='outS')
         return model
 
-    def build_model(self, module_prep_model, c, optimizer='adam', fix_layers=[], do_compile=True):
-        if c['ptscorer'] is None:
+    def build_model(self, module_prep_model, optimizer='adam', fix_layers=[], do_compile=True):
+        if self.c['ptscorer'] is None:
             # non-neural model
-            return module_prep_model(self.vocab, c, output='classes')
+            return module_prep_model(self.vocab, output='classes')
 
-        model = self.prep_model(module_prep_model, c)
+        model = self.prep_model(module_prep_model)
 
         for lname in fix_layers:
             model.nodes[lname].trainable = False
 
         if do_compile:
-            model.compile(loss={'classes': c['loss']}, optimizer=optimizer)
+            model.compile(loss={'classes': self.c['loss']}, optimizer=optimizer)
         return model
 
     def fit_callbacks(self, weightsf):

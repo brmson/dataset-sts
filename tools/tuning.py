@@ -52,6 +52,7 @@ if __name__ == "__main__":
     # we can use directly, but we just assume whatever we use below
     # directly wasn't specified as a tunable.)
     conf, ps, h = config(model_module.config, task.config, params)
+    task.set_conf(conf)
 
     # TODO configurable embedding class
     if conf['embdim'] is not None:
@@ -61,7 +62,7 @@ if __name__ == "__main__":
     print('Dataset')
     if 'vocabf' in conf:
         task.load_vocab(conf['vocabf'])
-    task.load_data(trainf, valf, conf=conf)
+    task.load_data(trainf, valf)
 
     tuneargs = dict()
     for p in params:
@@ -78,6 +79,7 @@ if __name__ == "__main__":
         for k, v in pardict.items():
             conf[k] = v
         ps, h = hash_params(conf)
+        task.set_conf(conf)
 
         runid = '%s-%s-%x' % (taskname, modelname, h)
         print()

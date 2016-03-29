@@ -91,7 +91,7 @@ def train_model(runid, model, task, c):
 
 def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
     print('Model')
-    model = task.build_model(module_prep_model, c)
+    model = task.build_model(module_prep_model)
 
     train_model(runid, model, task, c)
 
@@ -111,6 +111,7 @@ if __name__ == "__main__":
     task_module = importlib.import_module('.'+taskname, 'tasks')
     task = task_module.task()
     conf, ps, h = config(model_module.config, task.config, params)
+    task.set_conf(conf)
 
     # TODO configurable embedding class
     if conf['embdim'] is not None:
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     print('Dataset')
     if 'vocabf' in conf:
         task.load_vocab(conf['vocabf'])
-    task.load_data(trainf, valf, conf=conf)
+    task.load_data(trainf, valf)
 
     for i_run in range(conf['nb_runs']):
         if conf['nb_runs'] == 1:

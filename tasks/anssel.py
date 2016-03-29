@@ -75,21 +75,21 @@ class AnsSelTask(AbstractTask):
 
         return (gr, y, vocab)
 
-    def build_model(self, module_prep_model, c, optimizer='adam', fix_layers=[], do_compile=True):
-        if c['ptscorer'] is None:
+    def build_model(self, module_prep_model, optimizer='adam', fix_layers=[], do_compile=True):
+        if self.c['ptscorer'] is None:
             # non-neural model
-            return module_prep_model(self.vocab, c)
+            return module_prep_model(self.vocab)
 
         # ranking losses require wide output domain
-        oact = 'sigmoid' if c['loss'] == 'binary_crossentropy' else 'linear'
+        oact = 'sigmoid' if self.c['loss'] == 'binary_crossentropy' else 'linear'
 
-        model = self.prep_model(module_prep_model, c, oact)
+        model = self.prep_model(module_prep_model, oact=oact)
 
         for lname in fix_layers:
             model.nodes[lname].trainable = False
 
         if do_compile:
-            model.compile(loss={'score': c['loss']}, optimizer=optimizer)
+            model.compile(loss={'score': self.c['loss']}, optimizer=optimizer)
         return model
 
     def fit_callbacks(self, weightsf):
