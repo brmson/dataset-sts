@@ -22,3 +22,13 @@ Dataset contains triplets of:
     streams from ABCnews, Reuters, etc)
 
 Data split to train-test sets, same as the split used for Argus evaluation.
+
+| Model                    | trnQAcc  | testQAcc | settings
+|--------------------------|----------|----------|--------------
+| avg                      | 0.870466 | 0.784722 | ``dropout=0`` ``nb_runs=4``
+|                          |±0.060866 |±0.004942 |
+
+These results are obtained like this:
+
+	tools/train.py avg hypev data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv dropout=0 nb_runs=16 nb_epoch=16
+	tools/eval.py avg hypev data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv - weights-hypev-avg-69b40732de2a1d70-0* dropout=0
