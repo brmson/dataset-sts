@@ -100,7 +100,7 @@ class STSTask(AbstractTask):
     def build_model(self, module_prep_model, optimizer='adam', fix_layers=[], do_compile=True):
         if self.c['ptscorer'] is None:
             # non-neural model
-            return module_prep_model(self.vocab, output='classes')
+            return module_prep_model(self.vocab, self.c, output='classes')
 
         model = self.prep_model(module_prep_model)
 

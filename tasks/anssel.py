@@ -80,7 +80,7 @@ class AnsSelTask(AbstractTask):
     def build_model(self, module_prep_model, optimizer='adam', fix_layers=[], do_compile=True):
         if self.c['ptscorer'] is None:
             # non-neural model
-            return module_prep_model(self.vocab)
+            return module_prep_model(self.vocab, self.c)
 
         # ranking losses require wide output domain
         oact = 'sigmoid' if self.c['loss'] == 'binary_crossentropy' else 'linear'
