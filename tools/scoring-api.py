@@ -38,6 +38,10 @@ from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
 import pysts.kerasts.blocks as B
 
+# Support compiling rnn on CPU (XXX move to a better, more generic place)
+import sys
+sys.setrecursionlimit(10000)
+
 modelname, taskname, vocabf, weightsf = sys.argv[1:5]
 if (len(sys.argv) > 5):
 	port = int(sys.argv[5])
