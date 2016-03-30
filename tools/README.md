@@ -86,3 +86,13 @@ please contribute them back. :)
     attention visualization on the Ubuntu corpus  (the Ubuntu dialogue
     corpus is the same task, but uses dedicated scripts to be
     able to process large datasets).
+
+REST API
+--------
+
+RESTful API for scoring sentence pairs based on a given model is provided.
+
+Usage: ``tools/scoring-api.py MODEL TASK VOCAB WEIGHTS [PORT] [PARAM=VALUE]...``
+
+For an example and details, see the header of the script.  This is a work
+in progress, the API may not be stable.  anssel-specific at the moment.

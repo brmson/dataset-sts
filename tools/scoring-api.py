@@ -7,12 +7,19 @@
 # Example: ./tools/scoring-api.py rnn data/anssel/yodaqa/curatedv2-training.csv weights/weights-rnn-38a84de439de6337-bestval.h5 5001 'loss="binary_crossentropy"'
 #
 # The script listens on given or default (5000) port and accepts JSON (on http://address:port/score) in the following format:
+#
 #    {"qtext":"QUESTION_TEXT","atext":["SENTENCE1", "SENTENCE2", ...]}
+#
 # Example:
-#    {"qtext:"what country is the grand bahama island in","atext":["contained by", "contained in", "contained"]}
+#
+#    curl -H "Content-Type: application/json" -X POST \
+#       -d '{"qtext":"what country is the grand bahama island in","atext":["contained by", "contained in", "contained"]}' \
+#       http://localhost:5001/score
 #
 # The response is JSON object with key "score" and value containing list of scores, one for each label given
 #    {"score":[SCORE1, SCORE2, ...]}
+#
+# This is a work in progress, the API may not be stable.  anssel-specific at the moment.
 
 from __future__ import print_function
 from __future__ import division
