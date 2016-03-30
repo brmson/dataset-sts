@@ -55,7 +55,8 @@ class AnsSelTask(AbstractTask):
             except (IOError, TypeError, KeyError):
                 save_cache = True
 
-        s0, s1, y, t = loader.load_anssel(fname)
+        skip_oneclass = self.c.get('skip_oneclass', True)
+        s0, s1, y, t = loader.load_anssel(fname, skip_oneclass=skip_oneclass)
         # TODO: Make use of the t-annotations
 
         if self.vocab is None:

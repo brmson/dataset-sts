@@ -31,6 +31,9 @@ the licence of a particular dataset.  Some datasets may be original though,
 because we are working on many applied problems that pertain training such
 a function...
 
+The contents of dataset-sts and baseline results are described in the
+paper [Sentence Pair Scoring: Towards Unified Framework for Text Comprehension](http://arxiv.org/abs/1603.06127).
+
 **Pull requests welcome that extend the datasets, or add important comments,
 references or attributions.  Please let us know if we misread some licence
 terms and shouldn't be including something, we'll take that down right away!**
