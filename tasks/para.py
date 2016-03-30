@@ -53,7 +53,7 @@ class ParaphrasingTask(AbstractTask):
     def build_model(self, module_prep_model, optimizer='adam', fix_layers=[], do_compile=True):
         if self.c['ptscorer'] is None:
             # non-neural model
-            return module_prep_model(self.vocab, output='binary')
+            return module_prep_model(self.vocab, self.c, output='binary')
 
         model = self.prep_model(module_prep_model)
 
