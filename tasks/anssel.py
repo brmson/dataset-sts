@@ -30,6 +30,7 @@ from . import AbstractTask
 class AnsSelTask(AbstractTask):
     def __init__(self):
         self.name = 'anssel'
+        # TODO: Make configurable
         self.s0pad = 60
         self.s1pad = 60
         self.emb = None
