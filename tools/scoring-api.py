@@ -54,7 +54,7 @@ def load_anssel_samples(qtext, atexts):
     samples = []
     qtext = word_tokenize(qtext)
     for atext in atexts:
-        atext = word_tokenize(atext.lower())
+        atext = word_tokenize(atext)
         samples.append({'qtext': ' '.join(qtext), 'label': 0, 'atext': ' '.join(atext)})
     return samples
 
