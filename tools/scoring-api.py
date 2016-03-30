@@ -50,12 +50,12 @@ from flask import *
 app = Flask(__name__)
 
 
-def load_samples(question, prop_labels):
+def load_anssel_samples(qtext, atexts):
     samples = []
-    q = word_tokenize(question)
-    for label in prop_labels:
-        text = word_tokenize(label.lower())
-        samples.append({'qtext': ' '.join(q), 'label': 0, 'atext': ' '.join(text)})
+    qtext = word_tokenize(qtext)
+    for atext in atexts:
+        atext = word_tokenize(atext.lower())
+        samples.append({'qtext': ' '.join(qtext), 'label': 0, 'atext': ' '.join(atext)})
     return samples
 
 
@@ -70,11 +70,14 @@ def write_csv(file, samples):
 def get_score():
     if (request.json['atext'] == []):
         return jsonify({'score': []}), 200
+
     f = tempfile.NamedTemporaryFile(mode='w')
     # FIXME: Avoid temporary files!!!
-    write_csv(f.file, load_samples(request.json['qtext'], request.json['atext']))
+    write_csv(f.file, load_anssel_samples(request.json['qtext'], request.json['atext']))
     f.file.close()
+
     gr, y, _ = task.load_set(f.name)
+
     # XXX: 'score' assumed
     res = model.predict(gr)['score'][:,0]
     return jsonify({'score': res.tolist()}), 200
