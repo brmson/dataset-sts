@@ -24,6 +24,7 @@
 from __future__ import print_function
 from __future__ import division
 
+from flask import *
 import csv
 import importlib
 from nltk.tokenize import word_tokenize
@@ -46,7 +47,6 @@ import sys
 sys.setrecursionlimit(10000)
 
 
-from flask import *
 app = Flask(__name__)
 
 
