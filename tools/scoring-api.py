@@ -3,10 +3,11 @@
 # This script loads keras model and pre-trained weights for sentence/property selection
 # and starts REST API for scoring question - sentence pairs.
 #
-# Usage:   ./tools/scoring-api.py MODEL TASK VOCAB WEIGHTS [PORT] [PARAM=VALUE]...
-# Example: ./tools/scoring-api.py rnn data/anssel/yodaqa/curatedv2-training.csv weights/weights-rnn-38a84de439de6337-bestval.h5 5001 'loss="binary_crossentropy"'
+# Usage:   ./tools/scoring-api.py MODEL TASK VOCAB WEIGHTS [PARAM=VALUE]...
+# Example: ./tools/scoring-api.py rnn data/anssel/yodaqa/curatedv2-training.csv weights/weights-rnn-38a84de439de6337-bestval.h5 'loss="binary_crossentropy"'
 #
-# The script listens on given or default (5000) port and accepts JSON (on http://address:port/score) in the following format:
+# The script listens on given (as "port" config parameter) or default (5050)
+# port and accepts JSON (on http://address:port/score) in the following format:
 #
 #    {"qtext":"QUESTION_TEXT","atext":["SENTENCE1", "SENTENCE2", ...]}
 #
@@ -43,7 +44,6 @@ from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
 import pysts.kerasts.blocks as B
 
 # Support compiling rnn on CPU (XXX move to a better, more generic place)
-import sys
 sys.setrecursionlimit(10000)
 
 
@@ -85,11 +85,7 @@ def get_score():
 
 if __name__ == "__main__":
     modelname, taskname, vocabf, weightsf = sys.argv[1:5]
-    if (len(sys.argv) > 5):
-            port = int(sys.argv[5])
-    else:
-            port = 5000
-    params = sys.argv[6:]
+    params = sys.argv[5:]
 
     model_module = importlib.import_module('.'+modelname, 'models')
     task_module = importlib.import_module('.'+taskname, 'tasks')
@@ -117,4 +113,4 @@ if __name__ == "__main__":
     model.load_weights(weightsf)
 
     print("Running...")
-    app.run(port=port, host='::', debug=True, use_reloader=False)
+    app.run(port=conf.get('port', 5050), host='::', debug=True, use_reloader=False)
