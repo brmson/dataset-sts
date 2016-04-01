@@ -71,6 +71,8 @@ def get_score():
     if (request.json['atext'] == []):
         return jsonify({'score': []}), 200
 
+    print("%d atexts for <<%s>>" % (len(request.json['atext']), request.json['qtext']))
+
     f = tempfile.NamedTemporaryFile(mode='w')
     # FIXME: Avoid temporary files!!!
     write_csv(f.file, load_anssel_samples(request.json['qtext'], request.json['atext']))
