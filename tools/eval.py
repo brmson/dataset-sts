@@ -25,6 +25,8 @@ VOCABDATA is typically the training set.  It is a separate argument
 to allow for training on one dataset and running on another one, as
 the vocabulary must always be the same for a given model instance
 (so it'd be of the original dataset even if you evaluate on a new one).
+Sometimes, you may want to use a different task to initialize the vocabulary
+(e.g. for ubuntu-based transfer learning) - use "vocabt='ubuntu'" for that.
 
 Pass as many weight files as you have available.  Means, 95% confidence
 intervals and correlations will be calculated and reported.  Parameters
@@ -88,7 +90,13 @@ if __name__ == "__main__":
 
     print('Dataset')
     if 'vocabf' in conf:
-        task.load_vocab(conf['vocabf'])
+        if 'vocabt' in conf:
+            taskv_module = importlib.import_module('.'+conf['vocabt'], 'tasks')
+            taskv = taskv_module.task()
+            taskv.load_vocab(conf['vocabf'])
+            task.vocab = taskv.vocab
+        else:
+            task.load_vocab(conf['vocabf'])
     task.load_data(trainf, valf, testf)
 
     # Collect eval results
