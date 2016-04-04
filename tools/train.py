@@ -42,7 +42,8 @@ from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
 import pysts.kerasts.blocks as B
 
 
-def config(model_config, task_config, params):
+def default_config(model_config, task_config):
+    # TODO: Move this to AbstractTask()?
     c = dict()
     c['embdim'] = 300
     c['inp_e_dropout'] = 1/2
@@ -55,18 +56,26 @@ def config(model_config, task_config, params):
 
     c['loss'] = 'mse'  # you really want to override this in each task's config()
     c['balance_class'] = False
+
     c['batch_size'] = 160
     c['nb_epoch'] = 16
     c['nb_runs'] = 1
     c['epoch_fract'] = 1
+
     task_config(c)
     model_config(c)
+    return c
+
+
+def config(model_config, task_config, params):
+    c = default_config(model_config, task_config)
 
     for p in params:
         k, v = p.split('=')
         c[k] = eval(v)
 
     ps, h = hash_params(c)
+
     return c, ps, h
 
 
