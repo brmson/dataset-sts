@@ -79,8 +79,7 @@ def train_model(runid, model, task, c):
     if c['epoch_fract'] != 1:
         # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
         fit_kwargs['samples_per_epoch'] = int(len(task.gr['si0']) * c['epoch_fract'])
-    callbacks = task.fit_callbacks('weights-'+runid+'-bestval.h5')
-    task.fit_model(model, callbacks=callbacks,
+    task.fit_model(model, weightsf='weights-'+runid+'-bestval.h5',
                    batch_size=c['batch_size'], nb_epoch=c['nb_epoch'],
                    **fit_kwargs)
     # model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
