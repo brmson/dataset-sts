@@ -5,6 +5,11 @@ See data/anssel/... for details and actual datasets.
 
 Training example:
     tools/train.py cnn anssel data/anssel/wang/train-all.csv data/anssel/wang/dev.csv inp_e_dropout=1/2
+
+Specific config parameters:
+
+    * prescoring_prune=N to prune all but top N pre-scored s1s before
+      main scoring
 """
 
 from __future__ import print_function
@@ -17,7 +22,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 import numpy as np
 
 import pysts.eval as ev
-from pysts.kerasts import graph_input_anssel
+from pysts.kerasts import graph_input_anssel, graph_nparray_anssel
 from pysts.kerasts.callbacks import AnsSelCB
 from pysts.kerasts.objectives import ranknet
 import pysts.loader as loader
@@ -25,6 +30,74 @@ import pysts.nlp as nlp
 from pysts.vocab import Vocabulary
 
 from . import AbstractTask
+
+
+def prescoring_model(model_module, c, weightsf):
+    """ Setup and return a pre-scoring model """
+    # We just make another instance of our task with the prescoring model
+    # specific config, build the model and apply it
+    prescore_task = task()
+    prescore_task.set_conf(c)
+
+    print('[Prescoring] Model')
+    model = prescore_task.build_model(model_module.prep_model)
+
+    print('[Prescoring] ' + weightsf)
+    model.load_weights(weightsf)
+    return model
+
+
+def graph_input_prune(gr, ypred, N):
+    """ Given a gr and a given scoring, keep only top N s1 for each s0,
+    and stash the others away to _x-suffixed keys (for potential recovery). """
+    slices = []
+
+    def prune_filter(ypred, N):
+        """ yield (index, passed) tuples """
+        ys = sorted(enumerate(ypred), key=lambda yy: yy[1], reverse=True)
+        i = 0
+        for n, y in ys:
+            yield n, (i < N)
+            i += 1
+
+    # Go through (s0, s1), keeping track of the beginning of the current
+    # s0 block, and appending pruned versions
+    i = 0
+    grp = dict([(k, []) for k in gr.keys()] + [(k+'_x', []) for k in gr.keys()])
+    for j in range(len(gr['si0']) + 1):
+        if j < len(gr['si0']) and (j == 0 or np.all(gr['si0'][j] == gr['si0'][j-1])):
+            # within same-s0 block, carry on
+            continue
+        # block boundary - append pruned subset
+        for n, passed in prune_filter(ypred[i:j], N):
+            for k in gr.keys():
+                if passed:
+                    grp[k].append(gr[k][i + n])
+                else:
+                    grp[k+'_x'].append(gr[k][i + n])
+        i = j
+
+    return graph_nparray_anssel(grp)
+
+
+def graph_input_unprune(gro, grp, ypred, xval):
+    """ Reconstruct original graph gro from a pruned graph grp,
+    with predictions set to always False for the filtered out samples.
+    (xval denotes how the False is represented) """
+    if 'score_x' not in grp:
+        return grp, ypred  # not actually pruned
+
+    gru = dict([(k, list(grp[k])) for k in gro.keys()])
+
+    # XXX: this will generate non-continuous s0 blocks,
+    # hopefully okay for all ev tools
+    for k in gro.keys():
+        gru[k] += grp[k+'_x']
+    ypred = list(ypred)
+    ypred += [xval for i in grp['score_x']]
+    ypred = np.array(ypred)
+
+    return graph_nparray_anssel(gru), ypred
 
 
 class AnsSelTask(AbstractTask):
@@ -77,6 +150,21 @@ class AnsSelTask(AbstractTask):
 
         return (gr, y, vocab)
 
+    def prescoring_prune(self, gr):
+        """ Given a gr, prescore the pairs and for each s0, keep only top N
+        s1 based on the prescoring. """
+        if 'prescoring_prune' not in self.c:
+            return gr
+        else:
+            N = self.c['prescoring_prune']
+        if 'prescoring_model_inst' not in self.c:
+            # cache the prescoring model instance
+            self.c['prescoring_model_inst'] = prescoring_model(self.c['prescoring_model'], self.c['prescoring_c'], self.c['prescoring_weightsf'])
+        print('[Prescoring] Predict')
+        ypred = self.c['prescoring_model_inst'].predict(gr)['score'][:,0]
+        print('[Prescoring] Prune')
+        return graph_input_prune(gr, ypred, N)
+
     def build_model(self, module_prep_model, optimizer='adam', fix_layers=[], do_compile=True):
         if self.c['ptscorer'] is None:
             # non-neural model
@@ -95,9 +183,14 @@ class AnsSelTask(AbstractTask):
         return model
 
     def fit_callbacks(self, weightsf):
-        return [AnsSelCB(self.grv['si0'], self.grv),
+        return [AnsSelCB(self.grv_p['si0'], self.grv_p),
                 ModelCheckpoint(weightsf, save_best_only=True, monitor='mrr', mode='max'),
                 EarlyStopping(monitor='mrr', mode='max', patience=4)]
+
+    def fit_model(self, model, **kwargs):
+        self.grv_p = self.prescoring_prune(self.grv)  # for the callback
+        kwargs['callbacks'] = self.fit_callbacks(kwargs.pop('weightsf'))
+        return model.fit(self.prescoring_prune(self.gr), validation_data=self.grv_p, **kwargs)
 
     def eval(self, model):
         res = []
@@ -105,7 +198,15 @@ class AnsSelTask(AbstractTask):
             if gr is None:
                 res.append(None)
                 continue
-            ypred = model.predict(gr)['score'][:,0]
+
+            # In case of prescoring pruning, we want to predict only
+            # on the prescoring subset, but evaluate on the complete
+            # dataset, actually!  Therefore, we then unprune again.
+            # TODO: Cache the pruning
+            gr_p = self.prescoring_prune(gr)
+            ypred = model.predict(gr_p)['score'][:,0]
+            gr, ypred = graph_input_unprune(gr, gr_p, ypred, 0. if self.c['loss'] == 'binary_crossentropy' else float(-1e15))
+
             res.append(ev.eval_anssel(ypred, gr['si0'], gr['si1'], gr['score'], fname, MAP=True))
         return tuple(res)
 

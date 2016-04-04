@@ -21,6 +21,22 @@ influenced by:
       control for randomness-induced evaluation instability (see also
       tools/eval.py); it's very much like just running this script
       N times, except faster (no embedding and dataset reloading)
+
+Some other noteworthy task,model-generic parameters (even if
+not train-specific) are:
+
+    * adapt_ubuntu=True to add __eot__ __eos__ tokens to the dataset sentences
+      like they are in the Ubuntu Dialogue dataset (useful for transfer
+      learning but also potentially for the models as markers)
+
+    * prescoring=MODEL, prescoring_conf={CONFDICT}, prescoring_weightsf=FILE
+      to apply a pre-scoring step on the dataset using the given model
+      with the given config, loaded from given file; the precise usage
+      (whether as a feature, rank-based pruning, etc.) of prescoring is
+      task-specific; Ex.:
+
+        "prescoring='termfreq'" "prescoring_conf={freq_mode: 'tf'}" \
+                "prescoring_weightsf='weights-anssel-termfreq--120a2d2e6dcd0c16-bestval.h5'"
 """
 
 from __future__ import print_function
@@ -67,6 +83,18 @@ def default_config(model_config, task_config):
     return c
 
 
+def prescoring_setup(c, task_config):
+    """ Based on c prescoring entry, produce a model instance """
+
+    c['prescoring_model'] = importlib.import_module('.'+c['prescoring'], 'models')
+
+    # XXX: prescoring_conf is the original parameter dict,
+    # prescoring_c is the final conf dict
+    c['prescoring_c'] = default_config(c['prescoring_model'].config, task_config)
+    for k, v in c.get('prescoring_conf', {}).items():
+        c['prescoring_c'][k] = v
+
+
 def config(model_config, task_config, params):
     c = default_config(model_config, task_config)
 
@@ -75,6 +103,11 @@ def config(model_config, task_config, params):
         c[k] = eval(v)
 
     ps, h = hash_params(c)
+
+    # post-ps,h c-munging - only things that are redundant to whatever
+    # is user-visible
+    if 'prescoring' in c:
+        prescoring_setup(c, task_config)
 
     return c, ps, h
 

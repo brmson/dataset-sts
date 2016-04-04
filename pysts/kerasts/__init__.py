@@ -3,6 +3,8 @@ The "STS for Keras" toolkit.  Contains various Keras blocks that make
 putting together and comfortably running neural STS models a breeze.
 """
 
+import numpy as np
+
 
 def graph_input_anssel(si0, si1, y, f0=None, f1=None, s0=None, s1=None):
     """ Produce Keras task specification from vocab-vectorized sentences. """
@@ -14,6 +16,14 @@ def graph_input_anssel(si0, si1, y, f0=None, f1=None, s0=None, s1=None):
         # This is useful for non-neural baselines
         gr['s0'] = s0
         gr['s1'] = s1
+    return gr
+
+
+def graph_nparray_anssel(gr):
+    """ Make sure that what should be nparray is nparray. """
+    for k in ['si0', 'si1', 'f0', 'f1', 'score']:
+        if k in gr:
+            gr[k] = np.array(gr[k])
     return gr
 
 
