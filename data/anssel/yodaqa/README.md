@@ -14,6 +14,14 @@ from top N results that contain at least a single such keyword.  Sentences
 that match the gold standard answer regex are labelled as 1, the rest is 0.
 This *automatic labelling* means the dataset is **quite noisy**.
 
+Several additional features are included:
+
+  * **kwweights** - sum of weights of *non-about* qtext keywords matched in atext
+  * **aboutkwweights** - sum of weights of *about* qtext keywords matched in atext,
+    that is keywords that also matched the title of the source document
+    (the hypothesis being that matching these yields less information)
+  * **toklabels** - per-token labels of whether this label is part of the answer
+
 The key metric here is MRR when ranking sentences answering the same question
 by their score, but raw accuracy may be also interesting.  The dataset is
 heavily unbalanced!  In our models, we subsample 0-entries as well as
