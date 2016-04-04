@@ -30,6 +30,8 @@ def load_anssel(dsfile, subsample0=1, skip_oneclass=True):
     s0 = []
     s1 = []
     labels = []
+    kwweights = []
+    aboutkwweights = []
     toklabels = []
     i = 0
 
@@ -76,10 +78,17 @@ def load_anssel(dsfile, subsample0=1, skip_oneclass=True):
             labels.append(label)
             s0.append(qtext.split(' '))
             s1.append(atext.split(' '))
+            if 'kwweight' in l:
+                kwweights.append(float(l['kwweight']))
+            if 'aboutkwweight' in l:
+                aboutkwweights.append(float(l['aboutkwweight']))
             if 'toklabels' in l:
                 toklabels.append([int(tl) for tl in l['toklabels'].split(' ')])
             i += 1
-    return (s0, s1, np.array(labels), toklabels if toklabels else None)
+    return (s0, s1, np.array(labels),
+            kwweights if kwweights else None,
+            aboutkwweights if aboutkwweights else None,
+            toklabels if toklabels else None)
 
 
 def load_hypev(dsfile):
