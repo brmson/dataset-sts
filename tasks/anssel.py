@@ -47,7 +47,7 @@ def prescoring_model(model_module, c, weightsf):
     return model
 
 
-def graph_input_prune(gr, ypred, N):
+def graph_input_prune(gr, ypred, N, skip_oneclass=False):
     """ Given a gr and a given scoring, keep only top N s1 for each s0,
     and stash the others away to _x-suffixed keys (for potential recovery). """
     slices = []
@@ -68,13 +68,30 @@ def graph_input_prune(gr, ypred, N):
         if j < len(gr['si0']) and (j == 0 or np.all(gr['si0'][j] == gr['si0'][j-1])):
             # within same-s0 block, carry on
             continue
-        # block boundary - append pruned subset
+        # block boundary
+
+        # possibly check if we have both classes picked (for training)
+        if skip_oneclass:
+            n_picked = 0
+            for n, passed in prune_filter(ypred[i:j], N):
+                if not passed:
+                    break
+                n_picked += gr['score'][i + n] > 0
+            if n_picked == 0:
+                # only false; tough luck, prune everything for this s0
+                for k in gr.keys():
+                    grp[k+'_x'] += list(gr[k][i:j])
+                i = j
+                continue
+
+        # append pruned subset
         for n, passed in prune_filter(ypred[i:j], N):
             for k in gr.keys():
                 if passed:
                     grp[k].append(gr[k][i + n])
                 else:
                     grp[k+'_x'].append(gr[k][i + n])
+
         i = j
 
     return graph_nparray_anssel(grp)
@@ -150,7 +167,7 @@ class AnsSelTask(AbstractTask):
 
         return (gr, y, vocab)
 
-    def prescoring_prune(self, gr):
+    def prescoring_prune(self, gr, skip_oneclass=False):
         """ Given a gr, prescore the pairs and for each s0, keep only top N
         s1 based on the prescoring. """
         if 'prescoring_prune' not in self.c:
@@ -163,7 +180,7 @@ class AnsSelTask(AbstractTask):
         print('[Prescoring] Predict')
         ypred = self.c['prescoring_model_inst'].predict(gr)['score'][:,0]
         print('[Prescoring] Prune')
-        return graph_input_prune(gr, ypred, N)
+        return graph_input_prune(gr, ypred, N, skip_oneclass=skip_oneclass)
 
     def build_model(self, module_prep_model, optimizer='adam', fix_layers=[], do_compile=True):
         if self.c['ptscorer'] is None:
@@ -188,9 +205,11 @@ class AnsSelTask(AbstractTask):
                 EarlyStopping(monitor='mrr', mode='max', patience=4)]
 
     def fit_model(self, model, **kwargs):
+        # Prepare the pruned datasets
+        gr_p = self.prescoring_prune(self.gr, skip_oneclass=True)
         self.grv_p = self.prescoring_prune(self.grv)  # for the callback
         kwargs['callbacks'] = self.fit_callbacks(kwargs.pop('weightsf'))
-        return model.fit(self.prescoring_prune(self.gr), validation_data=self.grv_p, **kwargs)
+        return model.fit(gr_p, validation_data=self.grv_p, **kwargs)
 
     def eval(self, model):
         res = []
