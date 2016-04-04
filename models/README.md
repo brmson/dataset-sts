@@ -49,6 +49,9 @@ directory.
 
   * **termfreq.py** is a trivial non-neural baseline that just determines
     word-level overlap between sentences - TFIDF or BM25
+  * **yodaqakw.py** is a trivial non-neural baseline specific to the yodaqa
+    anssel datasets, combining weights of s0 keywords matched in s1
+    (and replicating the internal YodaQA passage scoring baseline)
   * **avg.py** is a trivial baseline that produces bag-of-words average
     embedding across all input words, then projects it to a similarity
     vector space; this is analogous to [(Yu, 1412.1632)](http://arxiv.org/abs/1412.1632)
