@@ -30,7 +30,6 @@ from . import AbstractTask
 class AnsSelTask(AbstractTask):
     def __init__(self):
         self.name = 'anssel'
-        # TODO: Make configurable
         self.s0pad = 60
         self.s1pad = 60
         self.emb = None
@@ -40,6 +39,15 @@ class AnsSelTask(AbstractTask):
         c['loss'] = ranknet
         c['nb_epoch'] = 16
         c['epoch_fract'] = 1/4
+
+    def set_conf(self, c):
+        super(AnsSelTask, self).set_conf(c)
+        if 's0pad' in self.c:
+            self.s0pad = self.c['s0pad']
+            self.s1pad = self.c['s1pad']
+        elif 'spad' in self.c:
+            self.s0pad = self.c['spad']
+            self.s1pad = self.c['spad']
 
     def load_set(self, fname, cache_dir=None):
         # TODO: Make the cache-handling generic,
