@@ -54,7 +54,7 @@ def transfer_eval(runid, module_prep_model, task1, task2, weightsf, c):
     # the weights from the original model
     print('Model')
     model1 = task1.build_model(module_prep_model, do_compile=False)
-    model = task2.build_model(module_prep_model, optimizer=c['opt'], fix_layers=c['fix_layers'])
+    model = task2.build_model(module_prep_model)
     print('Model (weights)')
     model1.load_weights(weightsf)
     for n in model1.nodes.keys():
@@ -85,8 +85,7 @@ if __name__ == "__main__":
 
     # setup conf with task2, because that's where we'll be doing
     # our training
-    conf, ps, h = config(model_module.config, task2.config,
-                         ["opt='adam'", "fix_layers=[]"] + params)
+    conf, ps, h = config(model_module.config, task2.config, params)
     task1c = dict(conf)
     if 'task1_conf' in conf:
         for k, v in conf.pop('task1_conf').items():

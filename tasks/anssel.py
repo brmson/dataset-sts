@@ -85,7 +85,7 @@ class AnsSelTask(AbstractTask):
 
         return (gr, y, vocab)
 
-    def build_model(self, module_prep_model, optimizer='adam', fix_layers=[], do_compile=True):
+    def build_model(self, module_prep_model, do_compile=True):
         if self.c['ptscorer'] is None:
             # non-neural model
             return module_prep_model(self.vocab, self.c)
@@ -95,11 +95,11 @@ class AnsSelTask(AbstractTask):
 
         model = self.prep_model(module_prep_model, oact=oact)
 
-        for lname in fix_layers:
+        for lname in self.c['fix_layers']:
             model.nodes[lname].trainable = False
 
         if do_compile:
-            model.compile(loss={'score': self.c['loss']}, optimizer=optimizer)
+            model.compile(loss={'score': self.c['loss']}, optimizer=self.c['opt'])
         return model
 
     def fit_callbacks(self, weightsf):

@@ -55,6 +55,8 @@ def config(model_config, task_config, params):
 
     c['loss'] = 'mse'  # you really want to override this in each task's config()
     c['balance_class'] = False
+    c['opt'] = 'adam'
+    c['fix_layers'] = []  # mainly useful for transfer learning, or 'emb' to fix embeddings
     c['batch_size'] = 160
     c['nb_epoch'] = 16
     c['nb_runs'] = 1
