@@ -43,7 +43,7 @@ class YodaQAKWModel:
         assert self.output == 'score'
         scores = []
         for kw, akw in zip(gr['kw'], gr['akw']):
-            score = kw + self.c['akw_c'] * akw
+            score = kw[0] + self.c['akw_c'] * akw[0]
             scores.append([score])
         scores = np.array(scores)
         return {'score': scores}
