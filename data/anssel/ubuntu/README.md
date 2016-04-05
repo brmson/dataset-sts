@@ -59,7 +59,7 @@ directory):
 
 	wget http://rover.ms.mff.cuni.cz/~pasky/ubuntu-dialog/v2-trainset.csv.gz
 	wget http://rover.ms.mff.cuni.cz/~pasky/ubuntu-dialog/v2-valset.csv.gz
-	wget http://rover.ms.mff.cuni.cz/~pasky/ubuntu-dialog/v2-testnset.csv.gz
+	wget http://rover.ms.mff.cuni.cz/~pasky/ubuntu-dialog/v2-testset.csv.gz
 	gunzip v2*.gz
 
 To generate v2, we first need to generate the sentence pairs, allow about 12
