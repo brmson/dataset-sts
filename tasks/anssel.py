@@ -208,6 +208,11 @@ class AnsSelTask(AbstractTask):
         # Prepare the pruned datasets
         gr_p = self.prescoring_prune(self.gr, skip_oneclass=True)
         self.grv_p = self.prescoring_prune(self.grv)  # for the callback
+
+        # Recompute epoch_fract based on the new train set size
+        if self.c['epoch_fract'] != 1:
+            kwargs['samples_per_epoch'] = int(len(gr_p['si0']) * self.c['epoch_fract'])
+
         kwargs['callbacks'] = self.fit_callbacks(kwargs.pop('weightsf'))
         return model.fit(gr_p, validation_data=self.grv_p, **kwargs)
 
