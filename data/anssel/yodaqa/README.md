@@ -14,6 +14,14 @@ from top N results that contain at least a single such keyword.  Sentences
 that match the gold standard answer regex are labelled as 1, the rest is 0.
 This *automatic labelling* means the dataset is **quite noisy**.
 
+Several additional features are included:
+
+  * **kwweights** - sum of weights of *non-about* qtext keywords matched in atext
+  * **aboutkwweights** - sum of weights of *about* qtext keywords matched in atext,
+    that is keywords that also matched the title of the source document
+    (the hypothesis being that matching these yields less information)
+  * **toklabels** - per-token labels of whether this label is part of the answer
+
 The key metric here is MRR when ranking sentences answering the same question
 by their score, but raw accuracy may be also interesting.  The dataset is
 heavily unbalanced!  In our models, we subsample 0-entries as well as
@@ -40,6 +48,7 @@ curatedv2:
 
 | Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings
 |--------------------------|-------------|----------|----------|----------|---------
+| yodaqakw                 | 0.368773    | 0.337348 | 0.284100 | 0.383238 | (defaults)
 | termfreq TF-IDF #w       | 0.339544    | 0.324693 | 0.242700 | 0.337893 | ``freq_mode='tf'``
 | termfreq BM25 #w         | 0.483538    | 0.452647 | 0.294300 | 0.484530 | (defaults)
 |--------------------------|-------------|----------|----------|----------|---------
@@ -66,6 +75,7 @@ large2470:
 
 | Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings
 |--------------------------|-------------|----------|----------|----------|---------
+| yodaqakw                 | 0.332693    | 0.318246 | 0.303900 | 0.376465 | (defaults)
 | termfreq TF-IDF #w       | 0.325390    | 0.328255 | 0.266800 | 0.362613 | ``freq_mode='tf'``
 | termfreq BM25 #w         | 0.441573    | 0.432115 | 0.313900 | 0.490822 | (defaults)
 |--------------------------|-------------|----------|----------|----------|---------

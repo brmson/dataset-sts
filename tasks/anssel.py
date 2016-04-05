@@ -65,7 +65,7 @@ class AnsSelTask(AbstractTask):
                 save_cache = True
 
         skip_oneclass = self.c.get('skip_oneclass', True)
-        s0, s1, y, t = loader.load_anssel(fname, skip_oneclass=skip_oneclass)
+        s0, s1, y, kw, akw, t = loader.load_anssel(fname, skip_oneclass=skip_oneclass)
         # TODO: Make use of the t-annotations
 
         if self.vocab is None:
@@ -76,7 +76,7 @@ class AnsSelTask(AbstractTask):
         si0 = vocab.vectorize(s0, spad=self.s0pad)
         si1 = vocab.vectorize(s1, spad=self.s1pad)
         f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
-        gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
+        gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1, kw=kw, akw=akw)
 
         if save_cache:
             with open(cache_filename, "wb") as f:
