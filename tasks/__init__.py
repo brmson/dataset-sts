@@ -4,7 +4,7 @@ import pysts.loader as loader
 import pysts.kerasts.blocks as B
 
 
-class AbstractTask:
+class AbstractTask(object):
     def set_conf(self, c):
         self.c = c
 
