@@ -10,7 +10,6 @@ from collections import defaultdict
 import numpy as np
 from operator import itemgetter
 
-from keras.layers.embeddings import Embedding
 from keras.preprocessing.sequence import pad_sequences
 
 
@@ -25,7 +24,7 @@ class Vocabulary:
         vocabset = defaultdict(int)
         for s in sentences:
             for t in s:
-                vocabset[t] += 1
+                vocabset[t.lower()] += 1
 
         vocab = sorted(list(map(itemgetter(0),
                                 filter(lambda k: itemgetter(1)(k) >= count_thres,
@@ -39,7 +38,7 @@ class Vocabulary:
     def vectorize(self, slist, spad=60):
         """ build an spad-ed matrix of word indices from a list of
         token sequences """
-        silist = [[self.word_idx.get(t, 1) for t in s] for s in slist]
+        silist = [[self.word_idx.get(t.lower(), 1) for t in s] for s in slist]
         if spad is not None:
             return pad_sequences(silist, maxlen=spad, truncating='post', padding='post') 
         else:
