@@ -59,4 +59,5 @@ class AbstractTask(object):
         return model
 
     def fit_model(self, model, **kwargs):
+        kwargs['callbacks'] = self.fit_callbacks(kwargs.pop('weightsf'))
         return model.fit(self.gr, validation_data=self.grv, **kwargs)

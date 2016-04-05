@@ -42,7 +42,8 @@ from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
 import pysts.kerasts.blocks as B
 
 
-def config(model_config, task_config, params):
+def default_config(model_config, task_config):
+    # TODO: Move this to AbstractTask()?
     c = dict()
     c['embdim'] = 300
     c['inp_e_dropout'] = 1/2
@@ -55,20 +56,28 @@ def config(model_config, task_config, params):
 
     c['loss'] = 'mse'  # you really want to override this in each task's config()
     c['balance_class'] = False
+
     c['opt'] = 'adam'
     c['fix_layers'] = []  # mainly useful for transfer learning, or 'emb' to fix embeddings
     c['batch_size'] = 160
     c['nb_epoch'] = 16
     c['nb_runs'] = 1
     c['epoch_fract'] = 1
+
     task_config(c)
     model_config(c)
+    return c
+
+
+def config(model_config, task_config, params):
+    c = default_config(model_config, task_config)
 
     for p in params:
         k, v = p.split('=')
         c[k] = eval(v)
 
     ps, h = hash_params(c)
+
     return c, ps, h
 
 
@@ -81,8 +90,7 @@ def train_model(runid, model, task, c):
     if c['epoch_fract'] != 1:
         # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
         fit_kwargs['samples_per_epoch'] = int(len(task.gr['si0']) * c['epoch_fract'])
-    callbacks = task.fit_callbacks('weights-'+runid+'-bestval.h5')
-    task.fit_model(model, callbacks=callbacks,
+    task.fit_model(model, weightsf='weights-'+runid+'-bestval.h5',
                    batch_size=c['batch_size'], nb_epoch=c['nb_epoch'],
                    **fit_kwargs)
     # model.save_weights('weights-'+runid+'-final.h5', overwrite=True)
