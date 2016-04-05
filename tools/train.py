@@ -52,6 +52,7 @@ def config(model_config, task_config, params):
     c['ptscorer'] = B.mlp_ptscorer
     c['mlpsum'] = 'sum'
     c['Ddim'] = 2
+    c['f_add_kw'] = False
 
     c['loss'] = 'mse'  # you really want to override this in each task's config()
     c['balance_class'] = False
