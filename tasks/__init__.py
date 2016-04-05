@@ -8,6 +8,14 @@ class AbstractTask(object):
     def set_conf(self, c):
         self.c = c
 
+        if 's0pad' in self.c:
+            self.s0pad = self.c['s0pad']
+            self.s1pad = self.c['s1pad']
+        elif 'spad' in self.c:
+            self.spad = self.c['spad']
+            self.s0pad = self.c['spad']
+            self.s1pad = self.c['spad']
+
     def load_vocab(self, vocabf):
         _, _, self.vocab = self.load_set(vocabf)
         return self.vocab

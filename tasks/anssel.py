@@ -40,15 +40,6 @@ class AnsSelTask(AbstractTask):
         c['nb_epoch'] = 16
         c['epoch_fract'] = 1/4
 
-    def set_conf(self, c):
-        super(AnsSelTask, self).set_conf(c)
-        if 's0pad' in self.c:
-            self.s0pad = self.c['s0pad']
-            self.s1pad = self.c['s1pad']
-        elif 'spad' in self.c:
-            self.s0pad = self.c['spad']
-            self.s1pad = self.c['spad']
-
     def load_set(self, fname, cache_dir=None):
         # TODO: Make the cache-handling generic,
         # and offer a way to actually pass cache_dir
