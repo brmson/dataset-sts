@@ -33,6 +33,7 @@ class Vocabulary:
         self.word_idx = dict((w, i + 2) for i, w in enumerate(vocab))
         self.word_idx['_PAD_'] = 0
         self.word_idx['_OOV_'] = 1
+        print('Vocabulary of %d words' % (len(self.word_idx)))
 
         self.embcache = dict()
 
