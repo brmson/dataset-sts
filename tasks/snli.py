@@ -1,3 +1,8 @@
+"""
+usage: python tools/train.py  avg snli   ../snli/train ../snli/test inp_e_dropout=1/2 vocabf="'../snli/vocab'"
+You need train/test/vocab files from snli_preprocess
+"""
+
 from __future__ import print_function
 from __future__ import division
 
@@ -40,14 +45,14 @@ class SnliTask(AbstractTask):
         self.vocab = pickle.load(open(vocabf, "rb"))
         return self.vocab
 
-    def load_set(self,fname, vocab):
-        s0, s1, y = loader.load_snli(fname, vocab)
-        si0 = vocab.vectorize(s0, spad=self.s0pad)
-        si1 = vocab.vectorize(s1, spad=self.s1pad)
+
+    def load_set(self,fname):
+        s0, s1, y = loader.load_snli(fname, self.vocab)
+        si0 = self.vocab.vectorize(s0, spad=self.s0pad)
+        si1 = self.vocab.vectorize(s1, spad=self.s1pad)
         f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
         gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
-        return (si0, si1, y, gr)
-
+        return ( gr,y,self.vocab)
 
     def config(self, c):
         c['loss'] = 'categorical_crossentropy'
@@ -151,3 +156,6 @@ def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt, do_eval=T
         ev.eval_snli(model.predict(gr)['score'], gr['score'], 'Train')
         ev.eval_snli(model.predict(grt)['score'], grt['score'], 'Val')
     return model
+
+def task():
+    return SnliTask()
