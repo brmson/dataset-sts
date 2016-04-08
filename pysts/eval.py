@@ -71,8 +71,8 @@ def multiclass_accuracy(y, ypred):
 def eval_snli(ypred, y, name):
     cls_names= ['contradiction', 'neutral', 'entailment']
     rawacc,cls_acc = multiclass_accuracy(y, ypred)
-    print('%s Accuracy: %f \n%s count %d, accuracy %f\n%s count %d, accuracy %f\n%s count %d, accuracy %f' %(name, rawacc,
-                                                                                                              cls_names[0], cls_acc[0],
+    print('%s Accuracy: %f \n%s accuracy %f\n%s accuracy %f\n%s accuracy %f' %(name, rawacc,
+                                                                                                             cls_names[0], cls_acc[0],
                                                                                                              cls_names[1],cls_acc[1],
                                                                                                              cls_names[2],cls_acc[2]))
     return (rawacc)
