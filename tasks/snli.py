@@ -11,7 +11,6 @@ import sys
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.core import Activation, Dropout
-from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 from keras.models import Graph
 import numpy as np
 
@@ -20,14 +19,10 @@ import pysts.embedding as emb
 import pysts.eval as ev
 import pysts.loader as loader
 import pysts.nlp as nlp
-from pysts.hyperparam import hash_params
-from pysts.vocab import Vocabulary
+
 
 from pysts.kerasts import graph_input_anssel
 import pysts.kerasts.blocks as B
-from pysts.kerasts.callbacks import AnsSelCB
-from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
-import models  # importlib python3 compatibility requirement
 
 from .anssel import AbstractTask
 
@@ -47,11 +42,8 @@ class SnliTask(AbstractTask):
 
 
     def load_set(self,fname):
-        s0, s1, y = loader.load_snli(fname, self.vocab)
-        si0 = self.vocab.vectorize(s0, spad=self.s0pad)
-        si1 = self.vocab.vectorize(s1, spad=self.s1pad)
-        f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
-        gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
+        si0, si1, f0, f1, y = pickle.load(fname)
+        gr = graph_input_anssel(si0, si1, y, f0, f1)
         return ( gr,y,self.vocab)
 
     def config(self, c):
@@ -126,36 +118,6 @@ class SnliTask(AbstractTask):
     def fit_callbacks(self, weightsf):
         return [ModelCheckpoint(weightsf, save_best_only=True),
                 EarlyStopping(patience=3)]
-
-
-
-
-
-def train_and_eval(runid, module_prep_model, c, glove, vocab, gr, grt, do_eval=True):
-    print('Model')
-    model = build_model(glove, vocab, module_prep_model, c)
-
-    print('Training')
-    if c.get('balance_class', False):
-        one_ratio = np.sum(gr['score'] == 1) / len(gr['score'])
-        class_weight = {'score': {0: one_ratio, 1: 0.5}}
-    else:
-        class_weight = {}
-    # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
-    model.fit(gr, validation_data=grt,
-              callbacks=[ModelCheckpoint('snli-weights-'+runid+'-bestval.h5', save_best_only=True),
-                         EarlyStopping(patience=3)],
-              batch_size=c['batch_size'], nb_epoch=c['nb_epoch'])
-    model.save_weights('snli-weights-'+runid+'-final.h5', overwrite=True)
-    if c['ptscorer'] is None:
-        model.save_weights('snli-weights-'+runid+'-bestval.h5', overwrite=True)
-    model.load_weights('snli-weights-'+runid+'-bestval.h5')
-
-    if do_eval:
-        print('Predict&Eval (best val epoch)')
-        ev.eval_snli(model.predict(gr)['score'], gr['score'], 'Train')
-        ev.eval_snli(model.predict(grt)['score'], grt['score'], 'Val')
-    return model
 
 def task():
     return SnliTask()
