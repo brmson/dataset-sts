@@ -1,6 +1,13 @@
+#!/usr/bin/python3
 """
-usage: python tools/train.py  avg snli   ../snli/train ../snli/test inp_e_dropout=1/2 vocabf="'../snli/vocab'"
-You need train/test/vocab files from snli_preprocess
+KeraSTS interface for the SNLI dataset of the Textual Entailment task.
+
+Training example:
+	tools/train.py avg snli  data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle vocabf="data/snli/v1-vocab.pickle" inp_w_dropout=0.5
+
+
+Before training, you must however run:
+   tools/snli_preprocess.py data/snli/snli_1.0_train.jsonl data/snli/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle
 """
 
 from __future__ import print_function
@@ -42,14 +49,14 @@ class SnliTask(AbstractTask):
 
 
     def load_set(self,fname):
-        si0, si1, f0, f1, y = pickle.load(fname)
+        si0, si1, f0, f1, y = pickle.load(open(fname,"rb"))
         gr = graph_input_anssel(si0, si1, y, f0, f1)
         return ( gr,y,self.vocab)
 
     def config(self, c):
         c['loss'] = 'categorical_crossentropy'
         c['nb_epoch'] = 32
-        c['batch_size'] = 160
+        c['batch_size'] = 500
 
     def build_model(self, module_prep_model, do_compile=True):
         if self.c['ptscorer'] is None:
