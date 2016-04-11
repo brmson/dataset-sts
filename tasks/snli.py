@@ -56,7 +56,7 @@ class SnliTask(AbstractTask):
     def config(self, c):
         c['loss'] = 'categorical_crossentropy'
         c['nb_epoch'] = 32
-        c['batch_size'] = 500
+        c['batch_size'] = 200
 
     def build_model(self, module_prep_model, do_compile=True):
         if self.c['ptscorer'] is None:
