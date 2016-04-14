@@ -78,7 +78,7 @@ if __name__ == "__main__":
     trainf, valf, dumptrainf, dumpvalf, vocabf = args
 
     if revocab:
-        vocab = Vocabulary(sentence_gen([trainf,valf]), count_thres=2)
+        vocab = Vocabulary(sentence_gen([trainf]), count_thres=2)
         print('%d words' % (len(vocab.word_idx)))
         pickle.dump(vocab, open(vocabf, "wb"))
     else:
