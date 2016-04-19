@@ -26,6 +26,8 @@ Note that NO DROPOUT is applied for any of the models.
 These results are obtained like this:
 
    ``tools/snli_preprocess.py data/snli/snli_1.0/snli_1.0_train.jsonl data/snli/snli_1.0/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle``
+
+
    ``tools/train.py avg snli  data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle vocabf="data/snli/v1-vocab.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0``
 
 HOWTO
