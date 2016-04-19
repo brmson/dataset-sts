@@ -20,29 +20,28 @@ Note that NO DROPOUT is applied for any of the models.
 | Cheng et al. '16         | 0.921    |  0.890   | NA       | 300D LSTMN with deep attention fusion (1.4m params), state-of-art
 |--------------------------|----------|----------|----------|----------
 | avg                      | 0.774939 | 0.726283 | NA       | (defaults)
-|--------------------------|----------|----------|----------|----------
 | rnn                      | 0.818001 | 0.773208 | NA       | (defaults)
-|                          |          |          | NA       |
+
 
 These results are obtained like this:
 
-   tools/snli_preprocess.py data/snli/snli_1.0/snli_1.0_train.jsonl data/snli/snli_1.0/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle
-   tools/train.py avg snli  data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle vocabf="data/snli/v1-vocab.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0
+   ``tools/snli_preprocess.py data/snli/snli_1.0/snli_1.0_train.jsonl data/snli/snli_1.0/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle``
+   ``tools/train.py avg snli  data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle vocabf="data/snli/v1-vocab.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0``
 
 HOWTO
 -----
 
 Go to data/snli
-    cd data/snli
+    ``cd data/snli``
 
 Download dataset
-    wget http://nlp.stanford.edu/projects/snli/snli_1.0.zip
-    unzip snli_1.0.zip
+    ``wget http://nlp.stanford.edu/projects/snli/snli_1.0.zip``
+    ``unzip snli_1.0.zip``
 
 Go to datasets-sts/
 
 Preprocess - create input files and vocabulary
-    tools/snli_preprocess.py data/snli/snli_1.0/snli_1.0_train.jsonl data/snli/snli_1.0/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle
+    ``tools/snli_preprocess.py data/snli/snli_1.0/snli_1.0_train.jsonl data/snli/snli_1.0/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle``
 
-Run selected model on the SNLI task:
-    tools/train.py [model] snli  data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle vocabf="data/snli/v1-vocab.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0
+Run selected model on the SNLI task - NO DROPOUT applied:
+    ``tools/train.py [model] snli  data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle vocabf="data/snli/v1-vocab.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0``
