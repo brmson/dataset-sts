@@ -66,7 +66,11 @@ def default_config(model_config, task_config):
     c['epoch_fract'] = 1
 
     task_config(c)
-    model_config(c)
+    if c.get('task>model', False):  # task config has higher priority than model
+        model_config(c)
+        task_config(c)
+    else:
+        model_config(c)
     return c
 
 

@@ -48,21 +48,23 @@ class YesNoTask(AbstractTask):
         self.vocab = None
 
     def config(self, c):
+        c['task>model'] = True
         c['loss'] = 'binary_crossentropy'
         c['max_sentences'] = 50
         c['spad'] = 60
         c['embdim'] = 50
         c['nb_epoch'] = 30
 
-        # c['opt'] = 'adam'
-        # c['inp_e_dropout'] = 0.
-        # c['dropout'] = 0.
-        # c['e_add_flags'] = True
-        # c['ptscorer'] = B.mlp_ptscorer
-        # c['mlpsum'] = 'sum'
-        # c['Ddim'] = .1
-
-
+        c['opt'] = 'adam'
+        c['inp_e_dropout'] = 0.
+        c['dropout'] = 0.
+        c['l2reg'] = 0.01
+        c['e_add_flags'] = True
+        c['ptscorer'] = B.mlp_ptscorer
+        c['mlpsum'] = 'sum'
+        c['Ddim'] = .1
+        c['loss'] = 'binary_crossentropy'
+        c['nb_epoch'] = 100
         c['class_mode'] = 'binary'
 
     def load_set(self, fname, cache_dir=None):
@@ -80,12 +82,10 @@ class YesNoTask(AbstractTask):
             except (IOError, TypeError, KeyError):
                 save_cache = True
 
-        # skip_oneclass = self.c.get('skip_oneclass', True)
-        skip_oneclass = False
-        s0, s1, y, kw, akw, t = loader.load_anssel(fname, skip_oneclass=skip_oneclass)
+        s0, s1, y, kw, akw, t = loader.load_anssel(fname, skip_oneclass=False)
 
         if self.vocab is None:
-            vocab = Vocabulary(s0 + s1)
+            vocab = Vocabulary(s0 + s1)  # FIXME: lower?
         else:
             vocab = self.vocab
 
