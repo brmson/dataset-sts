@@ -12,14 +12,12 @@ from pysts.kerasts import graph_input_anssel
 import pysts.loader as loader
 import pysts.nlp as nlp
 from pysts.vocab import Vocabulary
-from keras.layers.core import Activation, Dropout, TimeDistributedDense
+from keras.layers.core import Activation, Dropout, TimeDistributedDense, Dense
 from keras.regularizers import l2
 from keras.layers.embeddings import Embedding
 from keras.models import Graph
 from pysts.clasrel_layers import Reshape_, WeightedMean
 import pysts.nlp as nlp
-
-import models.pysts.kerasts.blocks as B
 
 from . import AbstractTask
 
@@ -60,12 +58,17 @@ class YesNoTask(AbstractTask):
         c['dropout'] = 0.
         c['l2reg'] = 0.01
         c['e_add_flags'] = True
-        c['ptscorer'] = B.mlp_ptscorer
+        c['ptscorer'] = mlp_ptscorer
         c['mlpsum'] = 'sum'
         c['Ddim'] = .1
         c['loss'] = 'binary_crossentropy'
         c['nb_epoch'] = 100
+        c['batch_size'] = 10
         c['class_mode'] = 'binary'
+
+        # old rnn
+        c['pdim'] = 2.5
+        c['pact'] = 'linear'
 
     def load_set(self, fname, cache_dir=None):
         # TODO: Make the cache-handling generic,
@@ -171,9 +174,9 @@ def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad):
     # Sentence-aggregate embeddings
     final_outputs = module_prep_model(model, N, s0pad, s1pad, c)
 
-    model.add_node(name='scoreS1', input=B.mlp_ptscorer(model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_'),
+    model.add_node(name='scoreS1', input=mlp_ptscorer(model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_'),
                    layer=Activation(oact))
-    model.add_node(name='scoreS2', input=B.mlp_ptscorer(model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S2_'),
+    model.add_node(name='scoreS2', input=mlp_ptscorer(model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S2_'),
                    layer=Activation(oact))
 
 
@@ -248,6 +251,39 @@ def build_model(glove, vocab, module_prep_model, c):
     model.add_output(name='score', input='weighted_mean')
     return model
 
+def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
+    """ Element-wise features from the pair fed to an MLP. """
+    if sum_mode == 'absdiff':
+        model.add_node(name=pfx+'sum', layer=absdiff_merge(model, inputs))
+    else:
+        model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
+    model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
+
+    # model.add_node(name=pfx+'hdn', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
+    #                layer=Dense(output_dim=int(N*Ddim), W_regularizer=l2(l2reg), activation='sigmoid'))
+    # model.add_node(name=pfx+'mlp', input=pfx+'hdn',
+    #                layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+    model.add_node(name=pfx+'mlp', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
+                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg), activation='linear'))
+    return pfx+'mlp'
+
+from models.pysts.kerasts.blocks import LambdaMerge
+def absdiff_merge(model, layers):
+    """ Merging two layers into one, via element-wise subtraction and then taking absolute value.
+
+    Example of usage: model.add_node(name="diff", layer=absdiff_merge(["e0_", "e1_"]))
+
+    TODO: The more modern way appears to be to use "join" merge mode and Lambda layer.
+    """
+    def diff(X):
+        if len(X)!=2:
+            raise ValueError("")
+        return K.abs(X[0]-X[1])
+
+    def output_shape(input_shapes):
+        return input_shapes[0]
+
+    return LambdaMerge([model.nodes[l] for l in layers], diff, output_shape)
 
 
 def task():
