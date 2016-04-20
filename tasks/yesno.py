@@ -125,7 +125,7 @@ class YesNoTask(AbstractTask):
             if gr is None:
                 res.append(None)
                 continue
-            res.append(model.predict(gr, show_accuracy=True)['score'][:,0])
+            res.append(model.predict(gr)['score'][:,0])
         return tuple(res)
 
     def merge_questions(self, gr):
