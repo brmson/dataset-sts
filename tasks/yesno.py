@@ -68,7 +68,7 @@ class YesNoTask(AbstractTask):
 
         # old rnn
         c['pdim'] = 2.5
-        c['pact'] = 'linear'
+        c['pact'] = 'tanh'
 
     def load_set(self, fname, cache_dir=None):
         # TODO: Make the cache-handling generic,
