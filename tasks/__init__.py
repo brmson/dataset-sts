@@ -17,7 +17,6 @@ class AbstractTask(object):
             self.s1pad = self.c['spad']
 
     def load_vocab(self, vocabf):
-        print 'from load vocab'
         _, _, self.vocab = self.load_set(vocabf)
         return self.vocab
 

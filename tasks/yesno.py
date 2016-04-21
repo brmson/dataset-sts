@@ -39,9 +39,6 @@ class Container:
 class YesNoTask(AbstractTask):
     def __init__(self):
         self.name = 'yesno'
-        self.s0pad = 60
-        self.s1pad = 60
-        self.max_sentences = 50
         self.emb = None
         self.vocab = None
 
@@ -92,9 +89,9 @@ class YesNoTask(AbstractTask):
         else:
             vocab = self.vocab
 
-        si0 = vocab.vectorize(s0, spad=self.s0pad)
-        si1 = vocab.vectorize(s1, spad=self.s1pad)
-        f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
+        si0 = vocab.vectorize(s0, spad=self.c['spad'])
+        si1 = vocab.vectorize(s1, spad=self.c['spad'])
+        f0, f1 = nlp.sentence_flags(s0, s1, self.c['spad'], self.c['spad'])
         gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1, kw=kw, akw=akw)
         gr, y = self.merge_questions(gr)
         if save_cache:
@@ -156,17 +153,17 @@ class YesNoTask(AbstractTask):
 
         si03d, si13d, f04d, f14d = [], [], [], []
         for c in containers:
-            si0 = prep.pad_sequences(c.si0.T, maxlen=self.max_sentences,
+            si0 = prep.pad_sequences(c.si0.T, maxlen=self.c['max_sentences'],
                                      padding='post', truncating='post').T
-            si1 = prep.pad_sequences(c.si1.T, maxlen=self.max_sentences,
+            si1 = prep.pad_sequences(c.si1.T, maxlen=self.c['max_sentences'],
                                      padding='post', truncating='post').T
             si03d.append(si0)
             si13d.append(si1)
 
-            f0 = prep.pad_sequences(c.f0.transpose((1, 0, 2)), maxlen=self.max_sentences,
+            f0 = prep.pad_sequences(c.f0.transpose((1, 0, 2)), maxlen=self.c['max_sentences'],
                                     padding='post',
                                     truncating='post', dtype='bool').transpose((1, 0, 2))
-            f1 = prep.pad_sequences(c.f1.transpose((1, 0, 2)), maxlen=self.max_sentences,
+            f1 = prep.pad_sequences(c.f1.transpose((1, 0, 2)), maxlen=self.c['max_sentences'],
                                     padding='post',
                                     truncating='post', dtype='bool').transpose((1, 0, 2))
             f04d.append(f0)
