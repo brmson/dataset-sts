@@ -125,8 +125,18 @@ class YesNoTask(AbstractTask):
             if gr is None:
                 res.append(None)
                 continue
-            res.append(model.predict(gr)['score'][:,0])
+            loss, acc = model.evaluate(gr, show_accuracy=True)
+            res.append(YesNoRes(loss, acc))
         return tuple(res)
+
+    def res_columns(self, mres, pfx=' '):
+        """ Produce README-format markdown table row piece summarizing
+        important statistics """
+        return('%s%.6f    |%s%.6f |%s%.6f |%s%.6f'
+               % (pfx, mres[self.trainf]['Loss'],
+                  pfx, mres[self.valf]['Precision'],
+                  pfx, mres[self.testf].get('Loss', np.nan),
+                  pfx, mres[self.testf].get('Precision', np.nan)))
 
     def merge_questions(self, gr):
         # s0=questions, s1=sentences
@@ -167,6 +177,10 @@ class YesNoTask(AbstractTask):
               'f04d': np.array(f04d), 'f14d': np.array(f14d), 'score': y}
 
         return gr, y
+
+from collections import namedtuple
+YesNoRes = namedtuple('YesNoRes', ['Loss', 'Precision'])
+
 
 def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad):
     # Input embedding and encoding
