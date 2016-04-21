@@ -109,16 +109,20 @@ if __name__ == "__main__":
         model.load_weights(weightf)
 
         print('Predict&Eval (best val epoch)')
-        resT, resv, rest = task.predict(model)
-        if resT is not None:
-            res[trainf].append(resT)
+        resv = task.predict(model)
         res[valf].append(resv)
-        if rest is not None:
-            res[testf].append(rest)
         print()
 
-    with open(valf) as f:
-        for i, line in enumerate(f):
-            if (i > 0):
-                print(line.replace("\n", "") + "," + str(resv[i - 1]))
+    
+    for i, ypred in enumerate(resv[0]):
+        s0 = ' '.join(task.grv['s0'][i])
+        s1 = ' '.join(task.grv['s1'][i])
+        y = task.grv['score'][i]
+        print('%s,%d,%s,%f' % (s0, y, s1, ypred))
 
+
+#    with open(valf) as f:
+#        for i, line in enumerate(f):
+#            if (i > 0):
+#                print(line.replace("\n", "").replace("\r","") + "," + str(resv[i - 1]))
+#

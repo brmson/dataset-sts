@@ -110,7 +110,7 @@ class AnsSelTask(AbstractTask):
 
     def predict(self, model):
         res = []
-        for gr, fname in [(self.gr, self.trainf), (self.grv, self.valf), (self.grt, self.testf)]:
+        for gr, fname in [(self.grv, self.valf)]:
             if gr is None:
                 res.append(None)
                 continue
