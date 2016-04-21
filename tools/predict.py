@@ -4,10 +4,10 @@
 Evaluate a set of pre-trained KeraSTS model instances (training runs)
 to get publication-grade results.
 
-Usage: tools/eval.py MODEL TASK TRAINDATA VALDATA TESTDATA WEIGHTFILES... [vocabf='VOCABF'] [PARAM=VALUE]...
+Usage: tools/predict.py MODEL TASK TRAINDATA VALDATA TESTDATA WEIGHTFILES... [vocabf='VOCABF'] [PARAM=VALUE]...
 
 Example:
-    tools/eval.py cnn para \
+    tools/predict.py cnn para \
             data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv data/para/msr/msr-para-test.tsv \
             weights-para-avg--2e2c031f78c95c8c-00-bestval.h5 weights-para-avg--2e2c031f78c95c8c-01-bestval.h5 \
             inp_e_dropout=1/2
