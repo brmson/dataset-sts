@@ -74,6 +74,7 @@ def rnn_input(model, N, spad, dropout=3/4, dropoutfix_inp=0, dropoutfix_rec=0,
                   rnnlevels=1, inputs=inputs, pfx='L%d'%(i,))
         inputs = ['L%de0s_'%(i,), 'L%de1s_'%(i,)]
 
+    rnnbidi = False  # FIXME: rnnbidi doesn't go through eval?
     if rnnbidi:
         if rnnbidi_mode == 'concat':
             sdim /= 2
@@ -89,13 +90,17 @@ def rnn_input(model, N, spad, dropout=3/4, dropoutfix_inp=0, dropoutfix_rec=0,
                                         dropout_W=dropoutfix_inp, dropout_U=dropoutfix_rec))
         model.add_node(name=pfx+'e0s', inputs=[pfx+'e0sf', pfx+'e0sb'], merge_mode=rnnbidi_mode, layer=Activation('linear'))
         model.add_node(name=pfx+'e1s', inputs=[pfx+'e1sf', pfx+'e1sb'], merge_mode=rnnbidi_mode, layer=Activation('linear'))
-
     else:
-        model.add_shared_node(name=pfx+'rnn', inputs=inputs, outputs=[pfx+'e0s', pfx+'e1s'],
-                              layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
+        print('RNNBIDI=FALSE')
+        import numpy as np
+        layer = rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
                                         return_sequences=return_sequences,
-                                        dropout_W=dropoutfix_inp, dropout_U=dropoutfix_rec))
+                                        dropout_W=dropoutfix_inp, dropout_U=dropoutfix_rec)
+        layer.set_weights([np.ones_like(w) for w in layer.get_weights()])
+        model.add_shared_node(name=pfx+'rnn', inputs=inputs, outputs=[pfx+'e0s', pfx+'e1s'],
+                              layer=layer)
+    print(pfx, 'inputs',inputs)
 
     model.add_shared_node(name=pfx+'rnndrop', inputs=[pfx+'e0s', pfx+'e1s'], outputs=[pfx+'e0s_', pfx+'e1s_'],
                           layer=Dropout(dropout, input_shape=(spad, int(N*sdim)) if return_sequences else (int(N*sdim),)))

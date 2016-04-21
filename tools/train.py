@@ -117,6 +117,7 @@ def train_and_eval(runid, module_prep_model, task, c, do_eval=True):
         res = None
     return model, res
 
+np.random.seed(1337)
 
 if __name__ == "__main__":
     modelname, taskname, trainf, valf = sys.argv[1:5]

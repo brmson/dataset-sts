@@ -73,4 +73,13 @@ class AbstractTask(object):
 
     def fit_model(self, model, **kwargs):
         kwargs['callbacks'] = self.fit_callbacks(kwargs.pop('weightsf'))
+
+        import numpy as np
+        np.set_printoptions(threshold=np.nan)
+        from tasks.yesno import layer_fun
+        for layer_name in ['si0', 'e0_', 'e0s_']:
+            testing_function = layer_fun(model, layer_name)
+            out = testing_function(*[self.grv[name] for name in model.input_order])
+            print(layer_name, out.shape, out)
+
         return model.fit(self.gr, validation_data=self.grv, **kwargs)

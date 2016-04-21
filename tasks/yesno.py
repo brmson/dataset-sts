@@ -12,7 +12,7 @@ from pysts.kerasts import graph_input_anssel
 import pysts.loader as loader
 import pysts.nlp as nlp
 from pysts.vocab import Vocabulary
-from keras.layers.core import Activation, Dropout, TimeDistributedDense, Dense
+from keras.layers.core import Activation, Dropout, TimeDistributedDense, Dense, Masking
 from keras.regularizers import l2
 from keras.layers.embeddings import Embedding
 from keras.models import Graph
@@ -71,8 +71,6 @@ class YesNoTask(AbstractTask):
         c['pact'] = 'tanh'
 
     def load_set(self, fname, cache_dir=None):
-        # TODO: Make the cache-handling generic,
-        # and offer a way to actually pass cache_dir
         save_cache = False
         if cache_dir:
             import os.path
@@ -102,7 +100,7 @@ class YesNoTask(AbstractTask):
                 pickle.dump((s0, s1, y, vocab, gr), f)
                 print("save")
 
-        return (gr, y, vocab)
+        return gr, y, vocab
 
     def build_model(self, module_prep_model, do_compile=True):
 
@@ -221,6 +219,17 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, trainable=False,
 
     return N
 
+
+import theano
+def layer_fun(model, layer_name):
+    thf = theano.function([model.inputs[name].input for name in model.input_order],
+                          model.nodes[layer_name].get_output(train=False),
+                          on_unused_input='ignore', allow_input_downcast=True)
+    return thf
+    # return thf(*[gr[name] for name in model.input_order])
+
+testing_function = None
+
 def build_model(glove, vocab, module_prep_model, c):
     s0pad = s1pad = c['spad']
     max_sentences = c['max_sentences']
@@ -236,14 +245,16 @@ def build_model(glove, vocab, module_prep_model, c):
         model.add_node(Reshape_((s0pad, nlp.flagsdim)), 'f0', input='f04d')
         model.add_node(Reshape_((s1pad, nlp.flagsdim)), 'f1', input='f14d')
 
+    # model.add_node(Masking(mask_value=0., input_shape=(max_sentences, s0pad)),'masked', 'si03d')
+
     # ===================== reshape to (batch_size * max_sentences, s_pad)
     model.add_node(Reshape_((s0pad,)), 'si0', input='si03d')
     model.add_node(Reshape_((s1pad,)), 'si1', input='si13d')
 
     # ===================== outputs from sts
     oact = 'linear'
-    _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad) # out = ['scoreS1', 'scoreS2']
-    # ===================== reshape (batch_size * max_sentences,) -> (batch_size, max_sentences, 1)
+    _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad)  # out = ['scoreS1', 'scoreS2']
+    # ===================== reshape (batch_size * max_sentences,) -> (batch_size, max_sentences, rnn_dim)
     model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in1', input='scoreS1')
     model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in2', input='scoreS2')
 
@@ -264,6 +275,7 @@ def build_model(glove, vocab, module_prep_model, c):
                                 max_sentences=max_sentences), name='weighted_mean', input='c_r')
     model.add_output(name='score', input='weighted_mean')
     return model
+
 
 def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
     """ Element-wise features from the pair fed to an MLP. """

@@ -94,9 +94,10 @@ class WeightedMean(MaskedLayer):
 
 
 
-class Reshape_(Layer):
+class Reshape_(MaskedLayer):
     """Copy of keras core Reshape layer, does NOT check
     if array changes size.
+    Also supports masking.
     """
     def __init__(self, dims, **kwargs):
         super(Reshape_, self).__init__(**kwargs)
@@ -131,3 +132,8 @@ class Reshape_(Layer):
                   'dims': self.dims}
         base_config = super(Reshape_, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    def get_output_mask(self, train=False):
+        mask = self.get_input_mask(train)
+        if mask:
+            return K.reshape(mask, (-1,) + self.output_shape[1:])
