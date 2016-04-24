@@ -81,7 +81,7 @@ class YesNoTask(AbstractTask):
             except (IOError, TypeError, KeyError):
                 save_cache = True
 
-        s0, s1, y = loader.load_hypev(fname, skip_oneclass=False)
+        s0, s1, y = loader.load_hypev(fname)
 
         if self.vocab is None:
             vocab = Vocabulary(s0 + s1)  # FIXME: lower?
@@ -91,7 +91,7 @@ class YesNoTask(AbstractTask):
         si0 = vocab.vectorize(s0, spad=self.s0pad)
         si1 = vocab.vectorize(s1, spad=self.s1pad)
         f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
-        gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1, kw=kw, akw=akw)
+        gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
         gr, y = self.merge_questions(gr)
         if save_cache:
             with open(cache_filename, "wb") as f:
