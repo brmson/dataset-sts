@@ -16,16 +16,11 @@ class WeightedMean(MaskedLayer):
 
     input_ndim = 3
 
-    def __init__(self, w_dim, q_dim, max_sentences=100, output_dim=1,
-                 activation='linear', **kwargs):
-        self.max_sentences = max_sentences
-        self.w_dim = w_dim
-        self.q_dim = q_dim
-        self.input_dim = self.w_dim + self.q_dim
+    def __init__(self, max_sentences, activation='linear', **kwargs):
         self.activation = activations.get(activation)
-        self.output_dim = output_dim
+        self.max_sentences = max_sentences
 
-        kwargs['input_shape'] = (self.max_sentences, self.w_dim + self.q_dim,)
+        kwargs['input_shape'] = (self.max_sentences, 3)
         super(WeightedMean, self).__init__(**kwargs)
 
     def build(self):
@@ -33,24 +28,14 @@ class WeightedMean(MaskedLayer):
 
     @property
     def output_shape(self):
-        input_shape = self.input_shape
-        return (input_shape[0], input_shape[1], 1)
+        return (1,)
 
     def get_output(self, train=False):
         e = 1e-6  # constant used for numerical stability
         X = self.get_input(train)
-        x = K.reshape(X, (-1, self.input_shape[-1]))
-        mask = 1#x[:, 2]
-        f = x[:, 0] * mask
-        r = x[:, 1] * mask
-
-        # s_ = K.dot(f, self.W)
-        # t_ = K.dot(r, self.Q)
-        # mask = K.switch(s_, 1, 0)
-        # s = self.activation_w(s_ + self.w[0]) * mask
-        # t = self.activation_q(t_ + self.q[0]) * mask
-        s = K.reshape(f, (-1, self.input_shape[1]))
-        t = K.reshape(r, (-1, self.input_shape[1]))
+        mask = X[:, :, 2]
+        s = X[:, :, 0] * mask
+        t = X[:, :, 1] * mask
 
         output = self.activation(K.sum(s * t, axis=1) / (T.sum(t, axis=-1)) + e)
         output = K.reshape(output, (-1, 1))
@@ -58,31 +43,9 @@ class WeightedMean(MaskedLayer):
 
     def get_config(self):
         config = {'name': self.__class__.__name__,
-                  'output_dim': self.output_dim,
-                  'activation': self.activation.__name__,
-                  'input_dim': self.input_dim}
+                  'activation': self.activation.__name__}
         base_config = super(WeightedMean, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
-
-    def fill_regulizers(self):
-        regularizers = []
-        if self.W_regularizer:
-            self.W_regularizer.set_param(self.W)
-            regularizers.append(self.W_regularizer)
-
-        if self.w_regularizer:
-            self.w_regularizer.set_param(self.w)
-            regularizers.append(self.w_regularizer)
-
-        if self.Q_regularizer:
-            self.Q_regularizer.set_param(self.Q)
-            regularizers.append(self.Q_regularizer)
-
-        if self.q_regularizer:
-            self.q_regularizer.set_param(self.q)
-            regularizers.append(self.q_regularizer)
-
-        return regularizers
 
 
 class Reshape_(MaskedLayer):

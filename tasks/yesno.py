@@ -39,16 +39,16 @@ class Container:
 class YesNoTask(AbstractTask):
     def __init__(self):
         self.name = 'yesno'
-        self.s0pad = 5
-        self.s1pad = 5
-        self.max_sentences = 3
+        # self.s0pad = 60
+        # self.s1pad = 60
+        # self.max_sentences = 50
         self.emb = None
         self.vocab = None
 
     def config(self, c):
         c['task>model'] = True
         c['loss'] = 'binary_crossentropy'
-        c['max_sentences'] = 3
+        c['max_sentences'] = 50
         c['spad'] = 60
         c['embdim'] = 50
         c['nb_epoch'] = 30
@@ -137,7 +137,6 @@ class YesNoTask(AbstractTask):
                   pfx, mres[self.testf].get('Precision', np.nan)))
 
     def merge_questions(self, gr):
-        print('merging dataset, max_sentences=', self.max_sentences)
         # s0=questions, s1=sentences
         q_t = ''
         ixs = []
@@ -155,17 +154,17 @@ class YesNoTask(AbstractTask):
 
         si03d, si13d, f04d, f14d = [], [], [], []
         for c in containers:
-            si0 = prep.pad_sequences(c.si0.T, maxlen=self.max_sentences,
+            si0 = prep.pad_sequences(c.si0.T, maxlen=self.c['max_sentences'],
                                      padding='post', truncating='post').T
-            si1 = prep.pad_sequences(c.si1.T, maxlen=self.max_sentences,
+            si1 = prep.pad_sequences(c.si1.T, maxlen=self.c['max_sentences'],
                                      padding='post', truncating='post').T
             si03d.append(si0)
             si13d.append(si1)
 
-            f0 = prep.pad_sequences(c.f0.transpose((1, 0, 2)), maxlen=self.max_sentences,
+            f0 = prep.pad_sequences(c.f0.transpose((1, 0, 2)), maxlen=self.c['max_sentences'],
                                     padding='post',
                                     truncating='post', dtype='bool').transpose((1, 0, 2))
-            f1 = prep.pad_sequences(c.f1.transpose((1, 0, 2)), maxlen=self.max_sentences,
+            f1 = prep.pad_sequences(c.f1.transpose((1, 0, 2)), maxlen=self.c['max_sentences'],
                                     padding='post',
                                     truncating='post', dtype='bool').transpose((1, 0, 2))
             f04d.append(f0)
@@ -285,11 +284,10 @@ def build_model(glove, vocab, module_prep_model, c):
                                         W_regularizer=l2(c['l2reg']),
                                         b_regularizer=l2(c['l2reg'])),
                    'r', input='sts_in2')
-    # model.add_node(Activation('linear'), 'c_r', inputs=['c', 'r'],
-    #                merge_mode='concat', concat_axis=-1)
+
     model.add_node(SumMask(), 'mask', input='si03d')
     # ===================== mean of class over rel
-    model.add_node(WeightedMean(w_dim=rnn_dim, q_dim=rnn_dim, max_sentences=max_sentences),
+    model.add_node(WeightedMean(max_sentences=max_sentences),
                    name='weighted_mean', inputs=['c', 'r', 'mask'])
     model.add_output(name='score', input='weighted_mean')
     return model
