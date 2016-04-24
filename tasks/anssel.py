@@ -108,6 +108,17 @@ class AnsSelTask(AbstractTask):
             res.append(ev.eval_anssel(ypred, gr['si0'], gr['si1'], gr['score'], fname, MAP=True))
         return tuple(res)
 
+    def predict(self, model):
+        res = []
+        for gr, fname in [(self.grv, self.valf)]:
+            if gr is None:
+                res.append(None)
+                continue
+            ypred = model.predict(gr)['score'][:,0]
+            res.append(ypred)
+        return tuple(res)
+
+
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing
         important statistics """
