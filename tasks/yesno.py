@@ -23,7 +23,7 @@ from . import AbstractTask
 
 
 class Container:
-    """Container for merging questions together."""
+    """Container for merging question's sentences together."""
     def __init__(self, q_text, s0, s1, si0, si1, f0, f1, y):
         self.q_text = q_text  # str of question
         self.s0 = s0
@@ -106,8 +106,8 @@ class YesNoTask(AbstractTask):
 
         model = build_model(self.emb, self.vocab, module_prep_model, self.c)
 
-        # for lname in self.c['fix_layers']:  # whats this??
-        #     model.nodes[lname].trainable = False
+        for lname in self.c['fix_layers']:
+            model.nodes[lname].trainable = False
 
         if do_compile:
             model.compile(loss={'score': self.c['loss']}, optimizer=self.c['opt'])
@@ -130,10 +130,9 @@ class YesNoTask(AbstractTask):
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing
         important statistics """
-        return('%s%.6f    |%s%.6f |%s%.6f |%s%.6f'
-               % (pfx, mres[self.trainf]['Loss'],
+        return('%s%.6f |%s%.6f |%s%.6f '
+               % (pfx, mres[self.trainf]['Precision'],
                   pfx, mres[self.valf]['Precision'],
-                  pfx, mres[self.testf].get('Loss', np.nan),
                   pfx, mres[self.testf].get('Precision', np.nan)))
 
     def merge_questions(self, gr):
@@ -308,24 +307,6 @@ def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
     model.add_node(name=pfx+'mlp', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
                    layer=Dense(output_dim=1, W_regularizer=l2(l2reg), activation='linear'))
     return pfx+'mlp'
-
-from models.pysts.kerasts.blocks import LambdaMerge
-def absdiff_merge(model, layers):
-    """ Merging two layers into one, via element-wise subtraction and then taking absolute value.
-
-    Example of usage: model.add_node(name="diff", layer=absdiff_merge(["e0_", "e1_"]))
-
-    TODO: The more modern way appears to be to use "join" merge mode and Lambda layer.
-    """
-    def diff(X):
-        if len(X)!=2:
-            raise ValueError("")
-        return K.abs(X[0]-X[1])
-
-    def output_shape(input_shapes):
-        return input_shapes[0]
-
-    return LambdaMerge([model.nodes[l] for l in layers], diff, output_shape)
 
 
 def task():
