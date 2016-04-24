@@ -16,7 +16,7 @@ from keras.layers.core import Activation, Dropout, TimeDistributedDense, Dense, 
 from keras.regularizers import l2
 from keras.layers.embeddings import Embedding
 from keras.models import Graph
-from pysts.clasrel_layers import Reshape_, WeightedMean
+from pysts.clasrel_layers import Reshape_, WeightedMean, SumMask
 import pysts.nlp as nlp
 
 from . import AbstractTask
@@ -285,12 +285,12 @@ def build_model(glove, vocab, module_prep_model, c):
                                         W_regularizer=l2(c['l2reg']),
                                         b_regularizer=l2(c['l2reg'])),
                    'r', input='sts_in2')
-    model.add_node(Activation('linear'), 'c_r', inputs=['c', 'r'],
-                   merge_mode='concat', concat_axis=-1)
+    # model.add_node(Activation('linear'), 'c_r', inputs=['c', 'r'],
+    #                merge_mode='concat', concat_axis=-1)
+    model.add_node(SumMask(), 'mask', input='si03d')
     # ===================== mean of class over rel
-    model.add_node(WeightedMean(w_dim=rnn_dim,
-                                q_dim=rnn_dim,
-                                max_sentences=max_sentences), name='weighted_mean', input='c_r')
+    model.add_node(WeightedMean(w_dim=rnn_dim, q_dim=rnn_dim, max_sentences=max_sentences),
+                   name='weighted_mean', inputs=['c', 'r', 'mask'])
     model.add_output(name='score', input='weighted_mean')
     return model
 

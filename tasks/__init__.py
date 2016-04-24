@@ -77,7 +77,7 @@ class AbstractTask(object):
         import numpy as np
         np.set_printoptions(threshold=np.nan)
         from tasks.yesno import layer_fun, layer_fun_mask
-        for layer_name in ['si0', 'e0_', 'e0[0]']:
+        for layer_name in ['si0', 'e0_', 'e0[0]', 'mask']:
             testing_function = layer_fun(model, layer_name)
             out = testing_function(*[self.grv[name] for name in model.input_order])
             print(layer_name, out)
