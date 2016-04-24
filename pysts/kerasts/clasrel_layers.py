@@ -8,10 +8,6 @@ import keras.backend as K
 import theano.tensor as T
 import numpy as np
 
-def relu(x):
-    return K.switch(x > 0, x + 0.01, 0.01)
-
-
 class WeightedMean(MaskedLayer):
 
     input_ndim = 3
