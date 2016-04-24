@@ -16,18 +16,11 @@ class WeightedMean(MaskedLayer):
 
     input_ndim = 3
 
-    def __init__(self, w_dim, q_dim, max_sentences=100, output_dim=1, init='glorot_uniform', activation='linear',
-                 activity_regularizer=None, input_dim=None, **kwargs):
-        self.max_sentences = max_sentences
-        self.w_dim = w_dim
-        self.q_dim = q_dim
-        self.input_dim = self.w_dim + self.q_dim
+    def __init__(self, max_sentences, activation='linear', **kwargs):
         self.activation = activations.get(activation)
+        self.max_sentences = max_sentences
 
-        self.init = initializations.get(init)
-        self.output_dim = output_dim
-
-        kwargs['input_shape'] = (self.max_sentences, self.w_dim + self.q_dim,)
+        kwargs['input_shape'] = (self.max_sentences, 3)
         super(WeightedMean, self).__init__(**kwargs)
 
     def build(self):
@@ -35,22 +28,14 @@ class WeightedMean(MaskedLayer):
 
     @property
     def output_shape(self):
-        input_shape = self.input_shape
-        return (input_shape[0], input_shape[1], 1)
+        return (1,)
 
     def get_output(self, train=False):
         e = 1e-6  # constant used for numerical stability
         X = self.get_input(train)
-        x = K.reshape(X, (-1, self.input_shape[-1]))
-        f = x[:, 0]
-        r = x[:, 1]
-        # s_ = K.dot(f, self.W)
-        # t_ = K.dot(r, self.Q)
-        # mask = K.switch(s_, 1, 0)
-        # s = self.activation_w(s_ + self.w[0]) * mask
-        # t = self.activation_q(t_ + self.q[0]) * mask
-        s = K.reshape(f, (-1, self.input_shape[1]))
-        t = K.reshape(r, (-1, self.input_shape[1]))
+        mask = X[:, :, 2]
+        s = X[:, :, 0] * mask
+        t = X[:, :, 1] * mask
 
         output = self.activation(K.sum(s * t, axis=1) / (T.sum(t, axis=-1)) + e)
         output = K.reshape(output, (-1, 1))
@@ -58,43 +43,12 @@ class WeightedMean(MaskedLayer):
 
     def get_config(self):
         config = {'name': self.__class__.__name__,
-                  'output_dim': self.output_dim,
-                  'init': self.init.__name__,
-                  'activation': self.activation.__name__,
-                  'W_regularizer': self.W_regularizer.get_config() if self.W_regularizer else None,
-                  'b_regularizer': self.b_regularizer.get_config() if self.b_regularizer else None,
-                  'activity_regularizer': self.activity_regularizer.get_config() if self.activity_regularizer else None,
-                  'W_constraint': self.W_constraint.get_config() if self.W_constraint else None,
-                  'b_constraint': self.b_constraint.get_config() if self.b_constraint else None,
-                  'input_dim': self.input_dim}
+                  'activation': self.activation.__name__}
         base_config = super(WeightedMean, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
-    def fill_regulizers(self):
-        regularizers = []
-        if self.W_regularizer:
-            self.W_regularizer.set_param(self.W)
-            regularizers.append(self.W_regularizer)
 
-        if self.w_regularizer:
-            self.w_regularizer.set_param(self.w)
-            regularizers.append(self.w_regularizer)
-
-        if self.Q_regularizer:
-            self.Q_regularizer.set_param(self.Q)
-            regularizers.append(self.Q_regularizer)
-
-        if self.q_regularizer:
-            self.q_regularizer.set_param(self.q)
-            regularizers.append(self.q_regularizer)
-
-        return regularizers
-
-
-
-
-
-class Reshape_(Layer):
+class Reshape_(MaskedLayer):
     """Copy of keras core Reshape layer, does NOT check
     if array changes size.
     """
@@ -130,4 +84,27 @@ class Reshape_(Layer):
         config = {'name': self.__class__.__name__,
                   'dims': self.dims}
         base_config = super(Reshape_, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+class SumMask(Layer):
+    """Copy of keras core Reshape layer, does NOT check
+    if array changes size.
+    """
+    def __init__(self, **kwargs):
+        super(SumMask, self).__init__(**kwargs)
+
+    @property
+    def output_shape(self):
+        return (self.input_shape[0], self.input_shape[1], 1)
+
+    def get_output(self, train=False):
+        X = self.get_input(train)
+        return K.expand_dims(K.switch(K.sum(X, -1), 1, 0))
+
+    def get_config(self):
+        config = {'name': self.__class__.__name__,
+                  'input_dim': self.input_dim,
+                  'output_dim': self.output_dim}
+        base_config = super(SumMask, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))

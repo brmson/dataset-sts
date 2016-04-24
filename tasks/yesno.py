@@ -12,11 +12,11 @@ from pysts.kerasts import graph_input_anssel
 import pysts.loader as loader
 import pysts.nlp as nlp
 from pysts.vocab import Vocabulary
-from keras.layers.core import Activation, Dropout, TimeDistributedDense, Dense
+from keras.layers.core import Activation, Dropout, TimeDistributedDense, Dense, Masking
 from keras.regularizers import l2
 from keras.layers.embeddings import Embedding
 from keras.models import Graph
-from pysts.clasrel_layers import Reshape_, WeightedMean
+from pysts.clasrel_layers import Reshape_, WeightedMean, SumMask
 import pysts.nlp as nlp
 
 from . import AbstractTask
@@ -89,9 +89,9 @@ class YesNoTask(AbstractTask):
         else:
             vocab = self.vocab
 
-        si0 = vocab.vectorize(s0, spad=self.c['spad'])
-        si1 = vocab.vectorize(s1, spad=self.c['spad'])
-        f0, f1 = nlp.sentence_flags(s0, s1, self.c['spad'], self.c['spad'])
+        si0 = vocab.vectorize(s0, spad=self.s0pad)
+        si1 = vocab.vectorize(s1, spad=self.s1pad)
+        f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
         gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1, kw=kw, akw=akw)
         gr, y = self.merge_questions(gr)
         if save_cache:
@@ -239,8 +239,8 @@ def build_model(glove, vocab, module_prep_model, c):
 
     # ===================== outputs from sts
     oact = 'linear'
-    _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad) # out = ['scoreS1', 'scoreS2']
-    # ===================== reshape (batch_size * max_sentences,) -> (batch_size, max_sentences, 1)
+    _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad)  # out = ['scoreS1', 'scoreS2']
+    # ===================== reshape (batch_size * max_sentences,) -> (batch_size, max_sentences, rnn_dim)
     model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in1', input='scoreS1')
     model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in2', input='scoreS2')
 
@@ -253,12 +253,11 @@ def build_model(glove, vocab, module_prep_model, c):
                                         W_regularizer=l2(c['l2reg']),
                                         b_regularizer=l2(c['l2reg'])),
                    'r', input='sts_in2')
-    model.add_node(Activation('linear'), 'c_r', inputs=['c', 'r'],
-                   merge_mode='concat', concat_axis=-1)
+
+    model.add_node(SumMask(), 'mask', input='si03d')
     # ===================== mean of class over rel
-    model.add_node(WeightedMean(w_dim=rnn_dim,
-                                q_dim=rnn_dim,
-                                max_sentences=max_sentences), name='weighted_mean', input='c_r')
+    model.add_node(WeightedMean(max_sentences=max_sentences),
+                   name='weighted_mean', inputs=['c', 'r', 'mask'])
     model.add_output(name='score', input='weighted_mean')
     return model
 
