@@ -76,10 +76,14 @@ class AbstractTask(object):
 
         import numpy as np
         np.set_printoptions(threshold=np.nan)
-        from tasks.yesno import layer_fun
-        for layer_name in ['si0', 'e0_', 'e0s_']:
+        from tasks.yesno import layer_fun, layer_fun_mask
+        for layer_name in ['si0', 'e0_', 'e0[0]']:
             testing_function = layer_fun(model, layer_name)
             out = testing_function(*[self.grv[name] for name in model.input_order])
-            print(layer_name, out.shape, out)
+            print(layer_name, out)
+        for layer_name in ['si0', 'e0[0]x', 'e0[0]', 'e0', 'e0_']:
+            testing_function = layer_fun_mask(model, layer_name)
+            out = testing_function(*[self.grv[name] for name in model.input_order])
+            print(layer_name, out)
 
         return model.fit(self.gr, validation_data=self.grv, **kwargs)

@@ -56,7 +56,12 @@ class Vocabulary:
             try:
                 embedding_weights[index, :] = emb.g[word]
             except KeyError:
-                embedding_weights[index, :] = np.random.uniform(-0.25, 0.25, emb.N)  # 0.25 is embedding SD
+                if index == 0:
+                    embedding_weights[index, :] = np.zeros(emb.N)
+                else:
+                    embedding_weights[index, :] = np.random.uniform(-0.25, 0.25, emb.N)  # 0.25 is embedding SD
+
+
         self.embcache[str(emb)] = embedding_weights
         return embedding_weights
 

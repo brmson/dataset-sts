@@ -39,16 +39,16 @@ class Container:
 class YesNoTask(AbstractTask):
     def __init__(self):
         self.name = 'yesno'
-        self.s0pad = 60
-        self.s1pad = 60
-        self.max_sentences = 50
+        self.s0pad = 5
+        self.s1pad = 5
+        self.max_sentences = 3
         self.emb = None
         self.vocab = None
 
     def config(self, c):
         c['task>model'] = True
         c['loss'] = 'binary_crossentropy'
-        c['max_sentences'] = 50
+        c['max_sentences'] = 3
         c['spad'] = 60
         c['embdim'] = 50
         c['nb_epoch'] = 30
@@ -137,6 +137,7 @@ class YesNoTask(AbstractTask):
                   pfx, mres[self.testf].get('Precision', np.nan)))
 
     def merge_questions(self, gr):
+        print('merging dataset, max_sentences=', self.max_sentences)
         # s0=questions, s1=sentences
         q_t = ''
         ixs = []
@@ -202,10 +203,21 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, trainable=False,
     else:
         outputs = ['e0', 'e1']
 
-    model.add_shared_node(name='emb', inputs=['si0', 'si1'], outputs=outputs,
-                          layer=Embedding(input_dim=vocab.size(), input_length=s1pad,
+    # model.add_shared_node(name='emb', inputs=['si0', 'si1'], outputs=outputs,
+    #                       layer=Embedding(input_dim=vocab.size(), input_length=s1pad,
+    #                                       output_dim=glove.N, mask_zero=True,
+    #                                       weights=[vocab.embmatrix(glove)], trainable=trainable))
+    model.add_node(name='e0[0]x', input='si0',
+                  layer=Embedding(input_dim=vocab.size(), input_length=s0pad,
                                           output_dim=glove.N, mask_zero=True,
                                           weights=[vocab.embmatrix(glove)], trainable=trainable))
+    model.add_node(name='e1[0]', input='si1',
+                  layer=Embedding(input_dim=vocab.size(), input_length=s1pad,
+                                          output_dim=glove.N, mask_zero=True,
+                                          weights=[vocab.embmatrix(glove)], trainable=trainable))
+
+    model.add_node(name='e0[0]', input='e0[0]x', layer=Activation('linear'))
+
     if add_flags:
         for m in [0, 1]:
             model.add_node(name='e%d'%(m,), inputs=['e%d[0]'%(m,), 'f%d'%(m,)],
@@ -224,6 +236,12 @@ import theano
 def layer_fun(model, layer_name):
     thf = theano.function([model.inputs[name].input for name in model.input_order],
                           model.nodes[layer_name].get_output(train=False),
+                          on_unused_input='ignore', allow_input_downcast=True)
+    return thf
+
+def layer_fun_mask(model, layer_name):
+    thf = theano.function([model.inputs[name].input for name in model.input_order],
+                          model.nodes[layer_name].get_output_mask(train=False),
                           on_unused_input='ignore', allow_input_downcast=True)
     return thf
     # return thf(*[gr[name] for name in model.input_order])
