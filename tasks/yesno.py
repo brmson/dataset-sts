@@ -10,7 +10,7 @@ import numpy as np
 
 from pysts.kerasts import graph_input_anssel
 import pysts.loader as loader
-import pysts.nlp as nlp
+from pysts.kerasts.blocks import mlp_ptscorer, embedding
 from pysts.vocab import Vocabulary
 from keras.layers.core import Activation, Dropout, TimeDistributedDense, Dense, Masking
 from keras.regularizers import l2
@@ -52,6 +52,7 @@ class YesNoTask(AbstractTask):
 
         c['opt'] = 'adam'
         c['inp_e_dropout'] = 0.
+        c['w_dropout'] = 0.
         c['dropout'] = 0.
         c['l2reg'] = 0.01
         c['e_add_flags'] = True
@@ -62,6 +63,7 @@ class YesNoTask(AbstractTask):
         c['nb_epoch'] = 100
         c['batch_size'] = 10
         c['class_mode'] = 'binary'
+        c['oact'] = 'linear'
 
         # old rnn
         c['pdim'] = 2.5
@@ -178,44 +180,23 @@ from collections import namedtuple
 YesNoRes = namedtuple('YesNoRes', ['Loss', 'Precision'])
 
 
-def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad):
+def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, rnn_dim):
     # Input embedding and encoding
-    N = embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'], add_flags=c['e_add_flags'])
+    N = embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'],
+                  c['w_dropout'], add_flags=c['e_add_flags'], create_inputs=False)
     # Sentence-aggregate embeddings
     final_outputs = module_prep_model(model, N, s0pad, s1pad, c)
 
-    model.add_node(name='scoreS1', input=mlp_ptscorer(model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_'),
-                   layer=Activation(oact))
-    model.add_node(name='scoreS2', input=mlp_ptscorer(model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S2_'),
-                   layer=Activation(oact))
-
-
-def embedding(model, glove, vocab, s0pad, s1pad, dropout, trainable=False,
-              add_flags=False):
-    """ Sts embedding layer, without creating inputs. """
-    # TODO: add switch to original -> no code duplication
-
-    if add_flags:
-        outputs = ['e0[0]', 'e1[0]']
+    if c['ptscorer'] is None:
+        model.add_node(name='scoreS1', input=final_outputs[0],
+                       layer=Dense(rnn_dim, activation=oact))
+        model.add_node(name='scoreS2', input=final_outputs[1],
+                       layer=Dense(rnn_dim, activation=oact))
     else:
-        outputs = ['e0', 'e1']
+        next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_')
+        model.add_node(name='scoreS1', input=next_input, layer=Activation(oact))
+        model.add_node(name='scoreS2', input=next_input, layer=Activation(oact))
 
-    model.add_shared_node(name='emb', inputs=['si0', 'si1'], outputs=outputs,
-                          layer=Embedding(input_dim=vocab.size(), input_length=s1pad,
-                                          output_dim=glove.N, mask_zero=True,
-                                          weights=[vocab.embmatrix(glove)], trainable=trainable))
-    if add_flags:
-        for m in [0, 1]:
-            model.add_node(name='e%d'%(m,), inputs=['e%d[0]'%(m,), 'f%d'%(m,)],
-                           merge_mode='concat', layer=Activation('linear'))
-        N = glove.N + nlp.flagsdim
-    else:
-        N = glove.N
-
-    model.add_shared_node(name='embdrop', inputs=['e0', 'e1'], outputs=['e0_', 'e1_'],
-                          layer=Dropout(dropout, input_shape=(N,)))
-
-    return N
 
 def build_model(glove, vocab, module_prep_model, c):
     s0pad = s1pad = c['spad']
@@ -237,8 +218,7 @@ def build_model(glove, vocab, module_prep_model, c):
     model.add_node(Reshape_((s1pad,)), 'si1', input='si13d')
 
     # ===================== outputs from sts
-    oact = 'linear'
-    _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad)  # out = ['scoreS1', 'scoreS2']
+    _prep_model(model, glove, vocab, module_prep_model, c, c['oact'], s0pad, s1pad, rnn_dim)  # out = ['scoreS1', 'scoreS2']
     # ===================== reshape (batch_size * max_sentences,) -> (batch_size, max_sentences, rnn_dim)
     model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in1', input='scoreS1')
     model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in2', input='scoreS2')
@@ -259,23 +239,6 @@ def build_model(glove, vocab, module_prep_model, c):
                    name='weighted_mean', inputs=['c', 'r', 'mask'])
     model.add_output(name='score', input='weighted_mean')
     return model
-
-def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
-    """ Element-wise features from the pair fed to an MLP. """
-    if sum_mode == 'absdiff':
-        model.add_node(name=pfx+'sum', layer=absdiff_merge(model, inputs))
-    else:
-        model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
-    model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
-
-    # model.add_node(name=pfx+'hdn', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
-    #                layer=Dense(output_dim=int(N*Ddim), W_regularizer=l2(l2reg), activation='sigmoid'))
-    # model.add_node(name=pfx+'mlp', input=pfx+'hdn',
-    #                layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
-    model.add_node(name=pfx+'mlp', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
-                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg), activation='linear'))
-    return pfx+'mlp'
-
 
 def task():
     return YesNoTask()

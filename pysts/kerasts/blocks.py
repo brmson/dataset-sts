@@ -15,7 +15,7 @@ import pysts.nlp as nlp
 
 
 def embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w,
-              trainable=True, add_flags=True):
+              trainable=True, add_flags=True, create_inputs=True):
     """ The universal sequence input layer.
 
     Declare inputs si0, si1, f0, f1 (vectorized sentences and NLP flags)
@@ -25,10 +25,11 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w,
     With trainable=True, allows adaptation of the embedding matrix during
     training.  With add_flags=True, append the NLP flags to the embeddings. """
 
-    for m, p in [(0, s0pad), (1, s1pad)]:
-        model.add_input('si%d'%(m,), input_shape=(p,), dtype='int')
-        if add_flags:
-            model.add_input('f%d'%(m,), input_shape=(p, nlp.flagsdim))
+    if create_inputs:
+        for m, p in [(0, s0pad), (1, s1pad)]:
+            model.add_input('si%d'%(m,), input_shape=(p,), dtype='int')
+            if add_flags:
+                model.add_input('f%d'%(m,), input_shape=(p, nlp.flagsdim))
 
     if add_flags:
         outputs = ['e0[0]', 'e1[0]']
@@ -36,7 +37,7 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w,
         outputs = ['e0', 'e1']
 
     model.add_shared_node(name='emb', inputs=['si0', 'si1'], outputs=outputs,
-                          layer=Embedding(input_dim=vocab.size(), input_length=p,
+                          layer=Embedding(input_dim=vocab.size(), input_length=s1pad,
                                           output_dim=glove.N, mask_zero=True,
                                           weights=[vocab.embmatrix(glove)], trainable=trainable,
                                           dropout=dropout_w))
