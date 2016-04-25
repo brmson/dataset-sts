@@ -170,7 +170,8 @@ def cos_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
     return pfx+'cos'
 
 
-def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra_inp=[]):
+def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum',
+                 extra_inp=[], hidden_layer=True):
     """ Element-wise features from the pair fed to an MLP. """
     if sum_mode == 'absdiff':
         # model.add_node(name=pfx+'sum', layer=absdiff_merge(model, inputs))
@@ -179,11 +180,29 @@ def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra
         model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
     model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
 
-    model.add_node(name=pfx+'hdn', inputs=[pfx+'sum', pfx+'mul'] + extra_inp, merge_mode='concat',
-                   layer=Dense(output_dim=int(N*Ddim), W_regularizer=l2(l2reg), activation='sigmoid'))
-    model.add_node(name=pfx+'mlp', input=pfx+'hdn',
-                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+    if hidden_layer:
+        model.add_node(name=pfx+'hdn', inputs=[pfx+'sum', pfx+'mul'] + extra_inp, merge_mode='concat',
+                       layer=Dense(output_dim=int(N*Ddim), W_regularizer=l2(l2reg), activation='sigmoid'))
+        model.add_node(name=pfx+'mlp', input=pfx+'hdn',
+                       layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+    else:  # hidden layer leads to performance decrease in the hypev task
+        model.add_node(name=pfx+'mlp', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
+                       layer=Dense(output_dim=1, W_regularizer=l2(l2reg), activation='linear'))
     return pfx+'mlp'
+
+
+def mulsum_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra_inp=[]):
+    """ Element-wise features from the pair fed to a concat of sum and multiplication of inputs.
+     """
+    if sum_mode == 'absdiff':
+        absdiff_merge(model, inputs, pfx, "sum")
+    else:
+        model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
+    model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
+
+    model.add_node(name=pfx+'mlp', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
+                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg), activation='linear'))
+    return pfx+'mulsum'
 
 
 def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):

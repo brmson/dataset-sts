@@ -22,7 +22,7 @@ from keras.regularizers import l2
 import pysts.loader as loader
 import pysts.nlp as nlp
 from pysts.kerasts import graph_input_anssel
-from pysts.kerasts.blocks import mlp_ptscorer, embedding
+from pysts.kerasts.blocks import mulsum_ptscorer, embedding
 from pysts.kerasts.clasrel_layers import Reshape_, WeightedMean, SumMask
 from pysts.vocab import Vocabulary
 from . import AbstractTask
@@ -62,7 +62,7 @@ class YesNoTask(AbstractTask):
         c['dropout'] = 0.
         c['l2reg'] = 0.01
         c['e_add_flags'] = True
-        c['ptscorer'] = mlp_ptscorer
+        c['ptscorer'] = mulsum_ptscorer
         c['mlpsum'] = 'sum'
         c['Ddim'] = .1
         c['loss'] = 'binary_crossentropy'
@@ -199,7 +199,8 @@ def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, r
         model.add_node(name='scoreS2', input=final_outputs[1],
                        layer=Dense(rnn_dim, activation=oact))
     else:
-        next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_')
+        next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'],
+                                   pfx='S1_', hidden_layer=False)
         model.add_node(name='scoreS1', input=next_input, layer=Activation(oact))
         model.add_node(name='scoreS2', input=next_input, layer=Activation(oact))
 
