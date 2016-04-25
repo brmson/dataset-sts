@@ -19,9 +19,6 @@ from nltk.tokenize import word_tokenize
 import pysts.nlp as nlp
 
 
-
-TRAIN_LINES=550152
-TEST_LINES=10000
 spad=60
 
 def sentence_gen(dsfiles):
@@ -43,29 +40,7 @@ def load_set(fname,vocab):
     f0, f1 = nlp.sentence_flags(s0, s1, spad, spad)
     return (si0, si1, f0, f1, labels)
 
-def build_subset(input,output,sample_inds):
-    linenum=0
-    outputf=open(output,'w')
-    for line in open(input):
-        if linenum in sample_inds:
-            outputf.write(line)
-        if linenum%5000==0:
-            print("%d lines processed" %(linenum))
-        linenum+=1
-    outputf.close()
 
-def extract_subset(trainf, testf,fraction,train_out,test_out):
-    # prepare train data subset
-    fraction=float(fraction)
-    print('Preparing train subset')
-    samplenum=np.ceil(fraction*TRAIN_LINES)
-    sample_inds=set(np.random.randint(TRAIN_LINES, size=samplenum))
-    build_subset(trainf, train_out, sample_inds)
-    # prepare test dataset
-    print('Preparing test subset')
-    samplenum=np.ceil(fraction*TEST_LINES)
-    sample_inds=set(np.random.randint(TEST_LINES, size=samplenum))
-    build_subset(testf, test_out, sample_inds)
 
 if __name__ == "__main__":
     args = sys.argv[1:]

@@ -43,10 +43,8 @@ def binclass_accuracy(y, ypred):
 def multiclass_accuracy(y, ypred):
     """
     Compute accuracy for multiclass classification tasks
-    Returns (rawacc, class_acc) where balacc is average of y0acc
-    and y1acc, regardless of their true balance in the dataset.
-    (The idea is that even if the unfortunate reality is that we have much
-    less y1 samples, their detection is equally important.)
+    Returns (rawacc, class_acc) where rawacc is the accuracy on the whole set
+    and class_acc contains accuracies on all classes respectively
     """
     result = np.zeros(ypred.shape)
     clss=y.shape[1]
@@ -71,10 +69,10 @@ def multiclass_accuracy(y, ypred):
 def eval_snli(ypred, y, name):
     cls_names= ['contradiction', 'neutral', 'entailment']
     rawacc,cls_acc = multiclass_accuracy(y, ypred)
-    print('%s Accuracy: %f \n%s accuracy %f\n%s accuracy %f\n%s accuracy %f' %(name, rawacc,
-                                                                                                             cls_names[0], cls_acc[0],
-                                                                                                             cls_names[1],cls_acc[1],
-                                                                                                             cls_names[2],cls_acc[2]))
+    print('%s Accuracy: %.3f, %s accuracy %.3f, %s accuracy %.3f, %s accuracy %.3f' %(name, rawacc,
+                                                                                        cls_names[0], cls_acc[0],
+                                                                                        cls_names[1],cls_acc[1],
+                                                                                        cls_names[2],cls_acc[2]))
     return (rawacc)
 
 def aggregate_s0(s0, y, ypred, k=None):
