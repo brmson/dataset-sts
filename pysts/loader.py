@@ -174,21 +174,23 @@ def load_sts(dsfile, skip_unlabeled=True):
     return (s0, s1, np.array(labels))
 
 def load_snli(dsfile, vocab):
+    '''
+    Loads the dataset in json format.
+    Note that a sentence pair is not loaded if its label is not in the known labels, this happens
+    in case when the label is "-", which implies that less then 3 of 5 annotators agreed on one label for the pair
+    during dataset validation.
+    '''
     s0i = []
     s1i = []
     labels = []
     lmappings={'contradiction': np.array([1,0,0]), 'neutral':np.array([0,1,0]) , 'entailment': np.array([0,0,1])}
     i = 0
     skips=0
-    neutral_skips=0
     with open(dsfile) as f:
         for l in f:
             d=json.loads(l)
             if i % 5000 == 0:
-                print('%d samples read, %d no label skips, %d neutral label skips' % (i,skips, neutral_skips))
-            if len(d['gold_label'])<2: # some pairs are not labeled, skip them
-                skips += 1
-                continue
+                print('%d samples read, %d no label skips' % (i,skips))
             label = d['gold_label']
             if label in lmappings:
                 s0 = word_tokenize(d['sentence1'])
@@ -197,9 +199,9 @@ def load_snli(dsfile, vocab):
                 s1i.append(s1)
                 labels.append(lmappings[label])
             else:
-                neutral_skips+=1
+                skips+=1
             i += 1
-    print('%s dataset file loaded. %d samples read, %d no label skips, %d neutral label skips' % (dsfile,i,skips, neutral_skips))
+    print('%s dataset file loaded. %d samples read, %d no label skips' % (dsfile,i,skips))
     return (s0i, s1i, np.array(labels))
 
 
