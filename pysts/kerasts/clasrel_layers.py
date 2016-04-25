@@ -8,7 +8,12 @@ import keras.backend as K
 import theano.tensor as T
 import numpy as np
 
+
 class WeightedMean(MaskedLayer):
+    """Special layer for the ClasRel model, utilizes 3 inputs:
+    classification, relevance and masking. The output is combined classification
+    over relevance where mask was nonzero.
+    """
 
     input_ndim = 3
 
@@ -84,8 +89,9 @@ class Reshape_(MaskedLayer):
 
 
 class SumMask(Layer):
-    """Copy of keras core Reshape layer, does NOT check
-    if array changes size.
+    """Special layer dealing with masking for empty sentences in the ClasRel model.
+    Input: (batch_size, max_sentences, spad)
+    Output: (batch_size, max_sentences, 1), zeros where the sentence used padding only
     """
     def __init__(self, **kwargs):
         super(SumMask, self).__init__(**kwargs)

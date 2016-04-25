@@ -1,3 +1,12 @@
+"""
+KeraSTS interface for datasets of the Hypothesis Evaluation task,
+i.e. producing an aggregate s0 classification based on the set of its
+s1 evidence (typically mix of relevant and irrelevant).
+See data/hypev/... for details and actual datasets.
+Training example:
+    tools/train.py cnn hypev data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv dropout=0
+"""
+
 from __future__ import division
 from __future__ import print_function
 
@@ -236,6 +245,7 @@ def build_model(glove, vocab, module_prep_model, c):
                    name='weighted_mean', inputs=['c', 'r', 'mask'])
     model.add_output(name='score', input='weighted_mean')
     return model
+
 
 def task():
     return YesNoTask()
