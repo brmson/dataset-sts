@@ -186,9 +186,9 @@ def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra
     return pfx+'mlp'
 
 
-def mulsum_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra_inp=[]):
+def mulsum_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
     """ Element-wise features from the pair fed to a concat of sum and multiplication of inputs.
-     """
+    """
     if sum_mode == 'absdiff':
         absdiff_merge(model, inputs, pfx, "sum")
     else:
