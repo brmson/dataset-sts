@@ -3,11 +3,11 @@
 KeraSTS interface for the SNLI dataset of the Textual Entailment task.
 
 Training example:
-	tools/train.py avg snli  data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle vocabf="data/snli/v1-vocab.pickle" inp_w_dropout=0.5
+	tools/train.py avg snli  data/snli/snli_1.0_train.pickle data/snli/snli_1.0_dev.pickle vocabf="data/snli/v1-vocab.pickle" inp_w_dropout=0.5
 
 
 Before training, you must however run:
-   tools/snli_preprocess.py data/snli/snli_1.0_train.jsonl data/snli/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle
+   tools/snli_preprocess.py data/snli/snli_1.0_train.jsonl data/snli/snli_1.0_dev.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_dev.pickle data/snli/v1-vocab.pickle
 """
 
 from __future__ import print_function
