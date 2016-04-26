@@ -6,7 +6,7 @@ a way that can be loaded by training scripts efficiently.
 
 Usage: tools/snli_preprocess.py [--revocab] TRAINFILE VALIDATIONFILE DUMPTRAINFILE DUMPVALIDATIONFILE VOCABFILE
 
-Example: tools/snli_preprocess.py data/snli/snli_1.0_train.jsonl data/snli/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle
+Example: tools/snli_preprocess.py data/snli/snli_1.0_train.jsonl data/snli/snli_1.0_dev.jsonl data/snli/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_dev.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle
 """
 
 import json
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     else:
         revocab = False
 
-    trainf, valf, dumptrainf, dumpvalf, vocabf = args
+    trainf, valf, testf, dumptrainf, dumpvalf, dumptestf, vocabf = args
 
     if revocab:
         vocab = Vocabulary(sentence_gen([trainf]), count_thres=2)
@@ -67,4 +67,8 @@ if __name__ == "__main__":
     print('Preprocessing validation file')
     s0i, s1i, f0, f1, labels = load_set(valf, vocab)
     pickle.dump((s0i, s1i, f0, f1, labels), open(dumpvalf, "wb"))
+
+    print('Preprocessing test file')
+    s0i, s1i, f0, f1, labels = load_set(testf, vocab)
+    pickle.dump((s0i, s1i, f0, f1, labels), open(dumptestf, "wb"))
 
