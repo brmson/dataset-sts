@@ -82,10 +82,6 @@ class SnliTask(AbstractTask):
             res.append(ev.eval_snli(ypred, gr['score'], fname))
         return tuple(res)
 
-    def eval(self, model):
-        ev.eval_snli(model.predict(self.gr)['score'], self.gr['score'], 'Train')
-        ev.eval_snli(model.predict(self.grv)['score'], self.grv['score'], 'Val')
-
     def prep_model(self,module_prep_model):
         # Input embedding and encoding
         model = Graph()
