@@ -6,7 +6,7 @@ putting together and comfortably running neural STS models a breeze.
 import numpy as np
 
 
-def graph_input_anssel(si0, si1, y, f0=None, f1=None, s0=None, s1=None):
+def graph_input_anssel(si0, si1, y, f0=None, f1=None, s0=None, s1=None, kw=None, akw=None):
     """ Produce Keras task specification from vocab-vectorized sentences. """
     gr = {'si0': si0, 'si1': si1, 'score': y}
     if f0 is not None:
@@ -16,6 +16,10 @@ def graph_input_anssel(si0, si1, y, f0=None, f1=None, s0=None, s1=None):
         # This is useful for non-neural baselines
         gr['s0'] = s0
         gr['s1'] = s1
+    if kw is not None:
+        # yodaqa-specific keyword weight counters
+        gr['kw'] = kw
+        gr['akw'] = akw
     return gr
 
 

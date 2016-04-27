@@ -46,7 +46,7 @@ def load_set(fname, emb, cache_dir=None):
         except (IOError, TypeError, KeyError):
             save_cache=True
 
-    s0, s1, y, t = loader.load_anssel(fname)
+    s0, s1, y, _, _, _ = loader.load_anssel(fname)
     e0, e1, s0, s1, y = loader.load_embedded(emb, s0, s1, y, balance=True, ndim=1)
 
     if save_cache:

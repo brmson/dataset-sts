@@ -4,9 +4,17 @@ import pysts.loader as loader
 import pysts.kerasts.blocks as B
 
 
-class AbstractTask:
+class AbstractTask(object):
     def set_conf(self, c):
         self.c = c
+
+        if 's0pad' in self.c:
+            self.s0pad = self.c['s0pad']
+            self.s1pad = self.c['s1pad']
+        elif 'spad' in self.c:
+            self.spad = self.c['spad']
+            self.s0pad = self.c['spad']
+            self.s1pad = self.c['spad']
 
     def load_vocab(self, vocabf):
         _, _, self.vocab = self.load_set(vocabf)
@@ -53,6 +61,10 @@ class AbstractTask:
         kwargs = dict()
         if ptscorer == B.mlp_ptscorer:
             kwargs['sum_mode'] = self.c['mlpsum']
+        if self.c['f_add_kw']:
+            model.add_input('kw', input_shape=(1,))
+            model.add_input('akw', input_shape=(1,))
+            kwargs['extra_inp'] = ['kw', 'akw']
         model.add_node(name='scoreS', input=ptscorer(model, final_outputs, self.c['Ddim'], N, self.c['l2reg'], **kwargs),
                        layer=Activation(oact))
         model.add_output(name='score', input='scoreS')

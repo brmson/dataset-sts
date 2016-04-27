@@ -69,10 +69,13 @@ def default_config(model_config, task_config):
     c['ptscorer'] = B.mlp_ptscorer
     c['mlpsum'] = 'sum'
     c['Ddim'] = 2
+    c['f_add_kw'] = False
 
     c['loss'] = 'mse'  # you really want to override this in each task's config()
     c['balance_class'] = False
 
+    c['opt'] = 'adam'
+    c['fix_layers'] = []  # mainly useful for transfer learning, or 'emb' to fix embeddings
     c['batch_size'] = 160
     c['nb_epoch'] = 16
     c['nb_runs'] = 1

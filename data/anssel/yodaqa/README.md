@@ -14,6 +14,14 @@ from top N results that contain at least a single such keyword.  Sentences
 that match the gold standard answer regex are labelled as 1, the rest is 0.
 This *automatic labelling* means the dataset is **quite noisy**.
 
+Several additional features are included:
+
+  * **kwweights** - sum of weights of *non-about* qtext keywords matched in atext
+  * **aboutkwweights** - sum of weights of *about* qtext keywords matched in atext,
+    that is keywords that also matched the title of the source document
+    (the hypothesis being that matching these yields less information)
+  * **toklabels** - per-token labels of whether this label is part of the answer
+
 The key metric here is MRR when ranking sentences answering the same question
 by their score, but raw accuracy may be also interesting.  The dataset is
 heavily unbalanced!  In our models, we subsample 0-entries as well as
@@ -36,10 +44,14 @@ Model Comparison
 
 For randomized models, 95% confidence intervals (t-distribution) are reported.
 
+The f_add_kw versions are ensembles of raw neural networks with yodaqakw scores.
+We'll also shortly report BM25 ensemble results.
+
 curatedv2:
 
 | Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings
 |--------------------------|-------------|----------|----------|----------|---------
+| yodaqakw                 | 0.368773    | 0.337348 | 0.284100 | 0.383238 | (defaults)
 | termfreq TF-IDF #w       | 0.339544    | 0.324693 | 0.242700 | 0.337893 | ``freq_mode='tf'``
 | termfreq BM25 #w         | 0.483538    | 0.452647 | 0.294300 | 0.484530 | (defaults)
 |--------------------------|-------------|----------|----------|----------|---------
@@ -56,6 +68,19 @@ curatedv2:
 |                          |±0.044228    |±0.023533 |±0.007741 |±0.014747 |
 | attn1511                 | 0.432403    | 0.475125 | 0.275219 | 0.468555 | (defaults)
 |                          |±0.016183    |±0.012810 |±0.006562 |±0.014433 |
+|--------------------------|-------------|----------|----------|----------|---------
+| avg                      | 0.487246    | 0.451062 | 0.250563 | 0.370919 | ``f_add_kw=True``
+|                          |±0.046523    |±0.007836 |±0.005624 |±0.008380 |
+| DAN                      | 0.492934    | 0.483218 | 0.279650 | 0.441829 | ``inp_e_dropout=0`` ``inp_w_dropout=1/3`` ``deep=2`` ``pact='relu'`` ``f_add_kw=True``
+|                          |±0.037740    |±0.007931 |±0.004544 |±0.009156 |
+| rnn                      | 0.488602    | 0.469423 | 0.255750 | 0.403185 | ``f_add_kw=True``
+|                          |±0.030025    |±0.013534 |±0.005382 |±0.010489 |
+| cnn                      | 0.572758    | 0.410014 | 0.248494 | 0.350063 | ``f_add_kw=True``
+|                          |±0.025883    |±0.012990 |±0.005084 |±0.010683 |
+| rnncnn                   | 0.555559    | 0.419693 | 0.259669 | 0.386323 | ``f_add_kw=True``
+|                          |±0.035131    |±0.019007 |±0.005742 |±0.015534 |
+| attn1511                 | 0.475656    | 0.485543 | 0.299025 | 0.473519 | ``f_add_kw=True``
+|                          |±0.014700    |±0.008612 |±0.004635 |±0.004926 |
 
 These results are obtained like this:
 
@@ -66,6 +91,7 @@ large2470:
 
 | Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings
 |--------------------------|-------------|----------|----------|----------|---------
+| yodaqakw                 | 0.332693    | 0.318246 | 0.303900 | 0.376465 | (defaults)
 | termfreq TF-IDF #w       | 0.325390    | 0.328255 | 0.266800 | 0.362613 | ``freq_mode='tf'``
 | termfreq BM25 #w         | 0.441573    | 0.432115 | 0.313900 | 0.490822 | (defaults)
 |--------------------------|-------------|----------|----------|----------|---------
@@ -75,13 +101,26 @@ large2470:
 |                          |±0.070994    |±0.005378 |±0.003028 |±0.007627 |
 |--------------------------|-------------|----------|----------|----------|---------
 | rnn                      | 0.460984    | 0.382949 | 0.262463 | 0.381298 | (defaults)
-|                          |±0.023715    |±0.006451 |±0.002641 |±0.007643 | 
+|                          |±0.023715    |±0.006451 |±0.002641 |±0.007643 |
 | cnn                      | 0.550441    | 0.348247 | 0.264476 | 0.353243 | (defaults)
 |                          |±0.069701    |±0.006217 |±0.002918 |±0.009620 |
 | rnncnn                   | 0.681908    | 0.408662 | 0.286118 | 0.394865 | (defaults)
 |                          |±0.114967    |±0.008659 |±0.003501 |±0.011895 |
 | attn1511                 | 0.445635    | 0.408495 | 0.288100 | 0.430892 | (defaults)
 |                          |±0.056352    |±0.008744 |±0.005601 |±0.017858 |
+|--------------------------|-------------|----------|----------|----------|---------
+| avg                      | 0.647144    | 0.420943 | 0.289044 | 0.419559 | ``f_add_kw=True``
+|                          |±0.068187    |±0.004745 |±0.002541 |±0.011235 |
+| DAN                      | 0.578884    | 0.454751 | 0.316606 | 0.472173 | ``inp_e_dropout=0`` ``inp_w_dropout=1/3`` ``deep=2`` ``pact='relu'`` ``f_add_kw=True``
+|                          |±0.051564    |±0.005778 |±0.004260 |±0.006205 |
+| rnn                      | 0.471287    | 0.423417 | 0.296419 | 0.446478 | ``f_add_kw=True``
+|                          |±0.021866    |±0.007853 |±0.005486 |±0.011307 |
+| cnn                      | 0.532295    | 0.375244 | 0.285288 | 0.398820 | ``f_add_kw=True``
+|                          |±0.052085    |±0.006402 |±0.002901 |±0.009145 |
+| rnncnn                   | 0.595107    | 0.430172 | 0.308475 | 0.444440 | ``f_add_kw=True``
+|                          |±0.091860    |±0.010868 |±0.005538 |±0.013976 |
+| attn1511                 | 0.488763    | 0.455023 | 0.330781 | 0.492604 | ``f_add_kw=True``
+|                          |±0.015243    |±0.006933 |±0.002899 |±0.005126 |
 
 These results are obtained like this:
 

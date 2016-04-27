@@ -120,7 +120,6 @@ def graph_input_unprune(gro, grp, ypred, xval):
 class AnsSelTask(AbstractTask):
     def __init__(self):
         self.name = 'anssel'
-        # TODO: Make configurable
         self.s0pad = 60
         self.s1pad = 60
         self.emb = None
@@ -147,7 +146,7 @@ class AnsSelTask(AbstractTask):
                 save_cache = True
 
         skip_oneclass = self.c.get('skip_oneclass', True)
-        s0, s1, y, t = loader.load_anssel(fname, skip_oneclass=skip_oneclass)
+        s0, s1, y, kw, akw, t = loader.load_anssel(fname, skip_oneclass=skip_oneclass)
         # TODO: Make use of the t-annotations
 
         if self.vocab is None:
@@ -158,7 +157,7 @@ class AnsSelTask(AbstractTask):
         si0 = vocab.vectorize(s0, spad=self.s0pad)
         si1 = vocab.vectorize(s1, spad=self.s1pad)
         f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
-        gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
+        gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1, kw=kw, akw=akw)
 
         if save_cache:
             with open(cache_filename, "wb") as f:
@@ -182,7 +181,7 @@ class AnsSelTask(AbstractTask):
         print('[Prescoring] Prune')
         return graph_input_prune(gr, ypred, N, skip_oneclass=skip_oneclass)
 
-    def build_model(self, module_prep_model, optimizer='adam', fix_layers=[], do_compile=True):
+    def build_model(self, module_prep_model, do_compile=True):
         if self.c['ptscorer'] is None:
             # non-neural model
             return module_prep_model(self.vocab, self.c)
@@ -192,11 +191,11 @@ class AnsSelTask(AbstractTask):
 
         model = self.prep_model(module_prep_model, oact=oact)
 
-        for lname in fix_layers:
+        for lname in self.c['fix_layers']:
             model.nodes[lname].trainable = False
 
         if do_compile:
-            model.compile(loss={'score': self.c['loss']}, optimizer=optimizer)
+            model.compile(loss={'score': self.c['loss']}, optimizer=self.c['opt'])
         return model
 
     def fit_callbacks(self, weightsf):

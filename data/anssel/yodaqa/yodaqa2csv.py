@@ -46,17 +46,20 @@ def load_jacana(fname, regexen):
             else:
                 l = line.split(' ')
                 label = int(l[0])
+                kwweight = float(l[1])
+                aboutkwweight = float(l[2])
                 text = word_tokenize(' '.join(l[3:]))
                 toklabels = regex_overlap(text, regexen[qorig])
                 samples.append({'qtext': ' '.join(q), 'label': label,
                                 'atext': ' '.join(text),
+                                'kwweight': kwweight, 'aboutkwweight': aboutkwweight,
                                 'toklabels': ' '.join([str(0+tl) for tl in toklabels])})
     return samples
 
 
 def write_csv(fname, samples):
     with open(fname, 'w') as outp:
-        outcsv = csv.DictWriter(outp, fieldnames=['qtext', 'label', 'atext', 'toklabels'])
+        outcsv = csv.DictWriter(outp, fieldnames=['qtext', 'label', 'atext', 'kwweight', 'aboutkwweight', 'toklabels'])
         outcsv.writeheader()
         for s in samples:
             outcsv.writerow(s)

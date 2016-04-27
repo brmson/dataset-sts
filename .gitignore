@@ -6,6 +6,6 @@ __pycache__/
 /glove.6B.*d.txt
 /*weights*.h5
 /*-res.pickle
-/*rlog.txt
+/*_*_log.txt
 /weights/
 /tools/weights-ntb.h5
