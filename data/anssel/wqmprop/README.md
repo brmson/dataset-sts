@@ -11,7 +11,7 @@ as third property. The properties on the path are separated by # symbol.
 
 There are two types of data sets:
 
-  * trainmodel.csv, test.csv, val.csv, devtest.csv contain original question representation
+  * trainmodel.csv, test.csv, val.csv contain original question representation (val.csv also contains devtest split of the source QA dataset)
   * Files with prefix enttok- have named entities replaced by ENT_TOK. Only entities, which participated on given path creation were replaced.
 
 These files can be generated using scipt propsel-dataset-refresh.sh contained in https://github.com/brmson/dataset-factoid-webquestions.
