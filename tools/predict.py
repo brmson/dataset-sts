@@ -118,7 +118,7 @@ if __name__ == "__main__":
         s0 = ' '.join(task.grv['s0'][i])
         s1 = ' '.join(task.grv['s1'][i])
         y = task.grv['score'][i]
-        print('%s,%d,%s,%f' % (s0, y, s1, ypred))
+        print('%s,%d,%s,%f' % (s0.encode("utf-8"), y, s1.encode("utf-8"), ypred))
 
 
 #    with open(valf) as f:
