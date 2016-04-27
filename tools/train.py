@@ -29,6 +29,10 @@ not train-specific) are:
       like they are in the Ubuntu Dialogue dataset (useful for transfer
       learning but also potentially for the models as markers)
 
+    * f_add=[INPUT...] to add extra graph inputs to the final ptscorer classifier
+      as additional features.  For example, some of the anssel datasets accept
+      ``f_add=['kw', 'akw']`` to include prescoring keyword matching.
+
     * prescoring=MODEL, prescoring_conf={CONFDICT}, prescoring_weightsf=FILE
       to apply a pre-scoring step on the dataset using the given model
       with the given config, loaded from given file; the precise usage

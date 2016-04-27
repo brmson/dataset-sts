@@ -45,7 +45,8 @@ Model Comparison
 For randomized models, 95% confidence intervals (t-distribution) are reported.
 
 The f_add_kw versions are ensembles of raw neural networks with yodaqakw scores.
-We'll also shortly report BM25 ensemble results.
+We'll also shortly report BM25 ensemble results.  The new way to write this option
+is ``f_add=['kw', 'akw']``.
 
 curatedv2:
 

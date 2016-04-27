@@ -61,10 +61,10 @@ class AbstractTask(object):
         kwargs = dict()
         if ptscorer == B.mlp_ptscorer:
             kwargs['sum_mode'] = self.c['mlpsum']
-        if self.c['f_add_kw']:
-            model.add_input('kw', input_shape=(1,))
-            model.add_input('akw', input_shape=(1,))
-            kwargs['extra_inp'] = ['kw', 'akw']
+        if self.c['f_add']:
+            for inp in self.c['f_add']:
+                model.add_input(inp, input_shape=(1,))  # assumed scalar
+            kwargs['extra_inp'] = self.c['f_add']
         model.add_node(name='scoreS', input=ptscorer(model, final_outputs, self.c['Ddim'], N, self.c['l2reg'], **kwargs),
                        layer=Activation(oact))
         model.add_output(name='score', input='scoreS')
