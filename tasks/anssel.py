@@ -10,6 +10,10 @@ Specific config parameters:
 
     * prescoring_prune=N to prune all but top N pre-scored s1s before
       main scoring
+
+    * prescoring_input='bm25' to add an extra input called 'bm25' to the
+      graph, which can be then included as an additional scoring feature
+      by the ``f_add`` option.
 """
 
 from __future__ import print_function
@@ -166,20 +170,30 @@ class AnsSelTask(AbstractTask):
 
         return (gr, y, vocab)
 
-    def prescoring_prune(self, gr, skip_oneclass=False):
-        """ Given a gr, prescore the pairs and for each s0, keep only top N
-        s1 based on the prescoring. """
-        if 'prescoring_prune' not in self.c:
-            return gr
-        else:
-            N = self.c['prescoring_prune']
+    def prescoring_apply(self, gr, skip_oneclass=False):
+        """ Given a gr, prescore the pairs and do either pruning (for each s0,
+        keep only top N s1 based on the prescoring) or add the prescore as
+        an input. """
+        if 'prescoring_prune' not in self.c and 'prescoring_input' not in self.c:
+            return gr  # nothing to do
+
         if 'prescoring_model_inst' not in self.c:
             # cache the prescoring model instance
             self.c['prescoring_model_inst'] = prescoring_model(self.c['prescoring_model'], self.c['prescoring_c'], self.c['prescoring_weightsf'])
         print('[Prescoring] Predict')
         ypred = self.c['prescoring_model_inst'].predict(gr)['score'][:,0]
-        print('[Prescoring] Prune')
-        return graph_input_prune(gr, ypred, N, skip_oneclass=skip_oneclass)
+
+        if 'prescoring_input' in self.c:
+            inp = self.c['prescoring_input']
+            gr[inp] = np.reshape(ypred, (len(ypred), 1))  # 1D to 2D
+
+        if 'prescoring_prune' in self.c:
+            N = self.c['prescoring_prune']
+            print('[Prescoring] Prune')
+            gr = graph_input_prune(gr, ypred, N, skip_oneclass=skip_oneclass)
+
+        print(gr)
+        return gr
 
     def build_model(self, module_prep_model, do_compile=True):
         if self.c['ptscorer'] is None:
@@ -205,8 +219,8 @@ class AnsSelTask(AbstractTask):
 
     def fit_model(self, model, **kwargs):
         # Prepare the pruned datasets
-        gr_p = self.prescoring_prune(self.gr, skip_oneclass=True)
-        self.grv_p = self.prescoring_prune(self.grv)  # for the callback
+        gr_p = self.prescoring_apply(self.gr, skip_oneclass=True)
+        self.grv_p = self.prescoring_apply(self.grv)  # for the callback
 
         # Recompute epoch_fract based on the new train set size
         if self.c['epoch_fract'] != 1:
@@ -226,7 +240,7 @@ class AnsSelTask(AbstractTask):
             # on the prescoring subset, but evaluate on the complete
             # dataset, actually!  Therefore, we then unprune again.
             # TODO: Cache the pruning
-            gr_p = self.prescoring_prune(gr)
+            gr_p = self.prescoring_apply(gr)
             ypred = model.predict(gr_p)['score'][:,0]
             gr, ypred = graph_input_unprune(gr, gr_p, ypred, 0. if self.c['loss'] == 'binary_crossentropy' else float(-1e15))
 

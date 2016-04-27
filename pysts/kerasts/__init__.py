@@ -25,7 +25,7 @@ def graph_input_anssel(si0, si1, y, f0=None, f1=None, s0=None, s1=None, kw=None,
 
 def graph_nparray_anssel(gr):
     """ Make sure that what should be nparray is nparray. """
-    for k in ['si0', 'si1', 'f0', 'f1', 'score']:
+    for k in ['si0', 'si1', 'f0', 'f1', 'score', 'kw', 'akw', 'bm25']:
         if k in gr:
             gr[k] = np.array(gr[k])
     return gr
