@@ -63,7 +63,10 @@ def write_csv(file, samples):
     outcsv = csv.DictWriter(file, fieldnames=['qtext', 'label', 'atext'])
     outcsv.writeheader()
     for s in samples:
-        outcsv.writerow(s)
+        s2 = ({k: v.encode("utf-8") for k, v in s.items() if k != 'label'})
+        s2['label'] = s['label']
+        outcsv.writerow(s2)
+
 
 
 @app.route('/score', methods=['POST'])

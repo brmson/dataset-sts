@@ -137,7 +137,7 @@ the Ubuntu Dialogue Corpus where S1 are dialogue followups to S0.
   * [ ] [InsuranceQA Dataset](https://github.com/shuzi/insuranceQA)
 (used in recent IBM papers, 25k question-answer pairs; unclear licencing)
 
-  * [ ] Property Path Selection (based on WebQuestions + YodaQA; TODO)
+  * [X] **data/anssel/wqmprop/** Property Path Selection (based on WebQuestions + YodaQA)
 
   * [X] **data/anssel/ubuntu/** The Ubuntu Dialogue Corpus
 contains pairs of sequences where the second sentence is a candidate for being
