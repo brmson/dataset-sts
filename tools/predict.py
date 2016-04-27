@@ -1,8 +1,7 @@
 #!/usr/bin/python3
 # vim: set fileencoding=utf8:
 """
-Evaluate a set of pre-trained KeraSTS model instances (training runs)
-to get publication-grade results.
+Predict labels on a data set using pre-trained KeraSTS model instances (training runs)
 
 Usage: tools/predict.py MODEL TASK TRAINDATA VALDATA TESTDATA WEIGHTFILES... [vocabf='VOCABF'] [PARAM=VALUE]...
 
@@ -16,11 +15,6 @@ This works on whatever tools/train.py produced (weight files), loading
 them and evaluating them on a given task + model + dataset.  Model parameters
 must be the same as you used when training the model.
 
-DO NOT RUN THIS on test data in the course of regular development and parameter
-tuning; it is meant only to produce the final evaluation results for publication.
-Before final evaluations, pass '-' instead of TESTDATA file and test split will
-be ignored during evaluation.
-
 VOCABDATA is typically the training set.  It is a separate argument
 to allow for training on one dataset and running on another one, as
 the vocabulary must always be the same for a given model instance
@@ -28,9 +22,6 @@ the vocabulary must always be the same for a given model instance
 Sometimes, you may want to use a different task to initialize the vocabulary
 (e.g. for ubuntu-based transfer learning) - use "vocabt='ubuntu'" for that.
 
-Pass as many weight files as you have available.  Means, 95% confidence
-intervals and correlations will be calculated and reported.  Parameters
-are distinguished from weight files by detecting the '=' sign.
 """
 
 from __future__ import print_function
