@@ -101,12 +101,16 @@ def rnn_input(model, N, spad, dropout=3/4, dropoutfix_inp=0, dropoutfix_rec=0,
                           layer=Dropout(dropout, input_shape=(spad, int(N*sdim)) if return_sequences else (int(N*sdim),)))
 
 
-def add_multi_node(model, name, inputs, outputs, siamese=True, **kwargs):
+def add_multi_node(model, name, inputs, outputs, layer_class,
+        layer_args, siamese=True, **kwargs):
     if siamese:
-        model.add_shared_node(name=name, inputs=inputs, outputs=outputs, **kwargs)
+        layer = layer_class(**layer_args)
+        model.add_shared_node(name=name, inputs=inputs, outputs=outputs,
+                layer=layer, **kwargs)
     else:
         for inp, outp in zip(inputs, outputs):
-            model.add_node(name=outp, input=inp, **kwargs)
+            layer = layer_class(**layer_args)
+            model.add_node(name=outp, input=inp, layer=layer, **kwargs)
 
 
 def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
@@ -130,18 +134,22 @@ def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
         nb_filter = int(N*cd)
         add_multi_node(model, name=pfx+'aconv%d'%(fl,), siamese=siamese,
                               inputs=inputs, outputs=[pfx+'e0c%d'%(fl,), pfx+'e1c%d'%(fl,)],
-                              layer=Convolution1D(input_shape=(spad, N),
-                                                  nb_filter=nb_filter, filter_length=fl,
-                                                  activation=cnnact, W_regularizer=l2(l2reg),
-                                                  init=cnninit))
+                              layer_class=Convolution1D,
+                              layer_args={'input_shape':(spad, N),
+                                  'nb_filter':nb_filter,
+                                  'filter_length':fl,
+                                  'activation':cnnact,
+                                  'W_regularizer':l2(l2reg),
+                                  'init':cnninit})
         add_multi_node(model, name=pfx+'apool%d[0]'%(fl,), siamese=siamese,
                               inputs=[pfx+'e0c%d'%(fl,), pfx+'e1c%d'%(fl,)],
                               outputs=[pfx+'e0s%d[0]'%(fl,), pfx+'e1s%d[0]'%(fl,)],
-                              layer=MaxPooling1D(pool_length=int(spad - fl + 1)))
+                              layer_class=MaxPooling1D,
+                              layer_args={'pool_length':int(spad - fl + 1)})
         add_multi_node(model, name=pfx+'apool%d[1]'%(fl,), siamese=siamese,
                               inputs=[pfx+'e0s%d[0]'%(fl,), pfx+'e1s%s[0]'%(fl,)],
                               outputs=[pfx+'e0s%d'%(fl,), pfx+'e1s%d'%(fl,)],
-                              layer=Flatten(input_shape=(1, nb_filter)))
+                              layer_class=Flatten, layer_args={'input_shape':(1, nb_filter)})
         Nc += nb_filter
 
     if len(cdim) > 1:
