@@ -66,7 +66,11 @@ def default_config(model_config, task_config):
     c['epoch_fract'] = 1
 
     task_config(c)
-    model_config(c)
+    if c.get('task>model', False):  # task config has higher priority than model
+        model_config(c)
+        task_config(c)
+    else:
+        model_config(c)
     return c
 
 
@@ -90,7 +94,7 @@ def train_model(runid, model, task, c):
         fit_kwargs['class_weight'] = {'score': {0: one_ratio, 1: 0.5}}
     if c['epoch_fract'] != 1:
         # XXX: samples_per_epoch is in brmson/keras fork, TODO fit_generator()?
-        fit_kwargs['samples_per_epoch'] = int(len(task.gr['si0']) * c['epoch_fract'])
+        fit_kwargs['samples_per_epoch'] = int(len(task.gr['score']) * c['epoch_fract'])
     task.fit_model(model, weightsf='weights-'+runid+'-bestval.h5',
                    batch_size=c['batch_size'], nb_epoch=c['nb_epoch'],
                    **fit_kwargs)

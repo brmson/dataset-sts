@@ -17,12 +17,14 @@ Dataset contains triplets of:
   * questions: dataset of yes/no questions, partially from mTurk,
     partially auto-generated
   * answers: gold standard answer for each question
-  * sentences: (hopefully) relevant sentences from our Argus news-articles
+  * sentences: sentences from our Argus news-articles
     database (The Guardian, NYtimes, and a couple of archive.org-fetched RSS
     streams from ABCnews, Reuters, etc)
 
-Data split to train-test sets, same as the split used for Argus evaluation.
+Data split to train-val-test sets, same as the split used for Argus evaluation.
 
+
+** old results
 | Model                    | trnQAcc  | testQAcc | settings
 |--------------------------|----------|----------|--------------
 | avg                      | 0.870466 | 0.784722 | ``dropout=0`` ``nb_runs=4``

@@ -15,7 +15,7 @@ import pysts.nlp as nlp
 
 
 def embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w,
-              trainable=True, add_flags=True):
+              trainable=True, add_flags=True, create_inputs=True):
     """ The universal sequence input layer.
 
     Declare inputs si0, si1, f0, f1 (vectorized sentences and NLP flags)
@@ -25,10 +25,11 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w,
     With trainable=True, allows adaptation of the embedding matrix during
     training.  With add_flags=True, append the NLP flags to the embeddings. """
 
-    for m, p in [(0, s0pad), (1, s1pad)]:
-        model.add_input('si%d'%(m,), input_shape=(p,), dtype='int')
-        if add_flags:
-            model.add_input('f%d'%(m,), input_shape=(p, nlp.flagsdim))
+    if create_inputs:
+        for m, p in [(0, s0pad), (1, s1pad)]:
+            model.add_input('si%d'%(m,), input_shape=(p,), dtype='int')
+            if add_flags:
+                model.add_input('f%d'%(m,), input_shape=(p, nlp.flagsdim))
 
     if add_flags:
         outputs = ['e0[0]', 'e1[0]']
@@ -36,7 +37,7 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w,
         outputs = ['e0', 'e1']
 
     model.add_shared_node(name='emb', inputs=['si0', 'si1'], outputs=outputs,
-                          layer=Embedding(input_dim=vocab.size(), input_length=p,
+                          layer=Embedding(input_dim=vocab.size(), input_length=s1pad,
                                           output_dim=glove.N, mask_zero=True,
                                           weights=[vocab.embmatrix(glove)], trainable=trainable,
                                           dropout=dropout_w))
@@ -199,6 +200,20 @@ def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra
     model.add_node(name=pfx+'mlp', input=pfx+'hdn',
                    layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
     return pfx+'mlp'
+
+
+def mulsum_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
+    """ Element-wise features from the pair fed to a concat of sum and multiplication of inputs.
+    """
+    if sum_mode == 'absdiff':
+        absdiff_merge(model, inputs, pfx, "sum")
+    else:
+        model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
+    model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
+
+    model.add_node(name=pfx+'mulsum', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
+                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg), activation='linear'))
+    return pfx+'mulsum'
 
 
 def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
