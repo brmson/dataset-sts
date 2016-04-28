@@ -192,7 +192,6 @@ class AnsSelTask(AbstractTask):
             print('[Prescoring] Prune')
             gr = graph_input_prune(gr, ypred, N, skip_oneclass=skip_oneclass)
 
-        print(gr)
         return gr
 
     def build_model(self, module_prep_model, do_compile=True):
