@@ -38,7 +38,7 @@ t. mean is the same as test (artifact of sts-semeval oriented evaluation).
 | attn1511                 | 0.835484 | 0.732324 | 0.722736 | (defaults)
 |                          |±0.023749 |±0.011295 |±0.009434 |
 |--------------------------|----------|----------|----------|---------
-| rnn                      | 0.946294 | 0.792281 | 0.799129 | Ubuntu transfer learning (``ptscorer=B.dot_ptscorer`` ``pdim=1`` ``inp_e_dropout=0`` ``dropout=0`` ``adapt_ubuntu=False`` ``vocabt='ubuntu'``)
+| rnn                      | 0.946294 | 0.792281 | 0.799129 | Ubuntu transfer learning (``ptscorer=B.dot_ptscorer`` ``pdim=1`` ``inp_e_dropout=0`` ``dropout=0`` ``adapt_ubuntu=False``)
 |                          |±0.018979 |±0.009483 |±0.009060 |
 
 These results are obtained like this:

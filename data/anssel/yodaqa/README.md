@@ -112,7 +112,7 @@ large2470:
 | attn1511                 | 0.445635    | 0.408495 | 0.288100 | 0.430892 | (defaults)
 |                          |±0.056352    |±0.008744 |±0.005601 |±0.017858 |
 |--------------------------|-------------|----------|----------|----------|---------
-| rnn                      | 0.623209    | 0.517763 | 0.359331 | 0.539284 | Ubuntu transfer learning (``ptscorer=B.dot_ptscorer`` ``pdim=1`` ``inp_e_dropout=0`` ``dropout=0`` ``balance_class=True`` ``adapt_ubuntu=True`` ``vocabt='ubuntu'`` ``opt='rmsprop'``)
+| rnn                      | 0.623209    | 0.517763 | 0.359331 | 0.539284 | Ubuntu transfer learning (``ptscorer=B.dot_ptscorer`` ``pdim=1`` ``inp_e_dropout=0`` ``dropout=0`` ``balance_class=True`` ``adapt_ubuntu=True`` ``opt='rmsprop'``)
 |                          |±0.014351    |±0.007724 |±0.003003 |±0.005755 |
 |--------------------------|-------------|----------|----------|----------|---------
 | avg                      | 0.647144    | 0.420943 | 0.289044 | 0.419559 | ``f_add_kw=True``
@@ -132,6 +132,16 @@ These results are obtained like this:
 
 	tools/train.py avg anssel data/anssel/yodaqa/large2470-training.csv data/anssel/yodaqa/large2470-val.csv nb_runs=16
 	tools/eval.py avg anssel data/anssel/yodaqa/large2470-training.csv data/anssel/yodaqa/large2470-val.csv data/anssel/yodaqa/large2470-test.csv weights-anssel-avg--69489c8dc3b6ce11-*-bestval.h5
+
+Transfer learning has been performed like this:
+
+	tools/transfer.py rnn ubuntu data/anssel/ubuntu/v2-vocab.pickle ubu-weights-rnn--23fa2eff7cda310d-bestval.h5 anssel data/anssel/yodaqa/curatedv2-training.csv data/anssel/yodaqa/curatedv2-val.csv pdim=1 ptscorer=B.dot_ptscorer dropout=0 inp_e_dropout=0 balance_class=True adapt_ubuntu=True "opt='rmsprop'" nb_runs=16
+	tools/eval.py rnn anssel data/anssel/yodaqa/curatedv2-training.csv data/anssel/yodaqa/curatedv2-val.csv data/anssel/yodaqa/curatedv2-test.csv weights-ubuntu-anssel-rnn-1cd9ebbf9c99f926-*-bestval.h5 "vocabf='data/anssel/ubuntu/v2-vocab.pickle'" "vocabt='ubuntu'" pdim=1 ptscorer=B.dot_ptscorer inp_e_dropout=0 dropout=0 balance_class=True adapt_ubuntu=True "opt='rmsprop'"
+
+where the ubu-weights model can be downloaded from
+
+	http://pasky.or.cz/dev/brmson/ubu-weights-rnn--23fa2eff7cda310d-bestval.h5
+
 
 Older Datasets
 --------------
