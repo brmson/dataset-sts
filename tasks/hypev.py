@@ -24,6 +24,7 @@ import pysts.loader as loader
 import pysts.nlp as nlp
 from pysts.kerasts import graph_input_anssel
 from pysts.kerasts.blocks import mulsum_ptscorer, embedding
+from pysts.kerasts.callbacks import HypEvCB
 from pysts.kerasts.clasrel_layers import Reshape_, WeightedMean, SumMask
 from pysts.vocab import Vocabulary
 from . import AbstractTask
@@ -118,8 +119,9 @@ class HypEvTask(AbstractTask):
         return model
 
     def fit_callbacks(self, weightsf):
-        return [ModelCheckpoint(weightsf, save_best_only=True, monitor='val_loss', mode='min'),
-                EarlyStopping(monitor='val_loss', mode='min', patience=10)]
+        return [HypEvCB(self.grv),
+                ModelCheckpoint(weightsf, save_best_only=True, monitor='acc', mode='max'),
+                EarlyStopping(monitor='acc', mode='max', patience=10)]
 
     def eval(self, model):
         res = []
