@@ -19,6 +19,7 @@ from keras.layers.core import Activation, TimeDistributedDense, Dense
 from keras.models import Graph
 from keras.regularizers import l2
 
+import pysts.eval as ev
 import pysts.loader as loader
 import pysts.nlp as nlp
 from pysts.kerasts import graph_input_anssel
@@ -126,17 +127,19 @@ class HypEvTask(AbstractTask):
             if gr is None:
                 res.append(None)
                 continue
-            loss, acc = model.evaluate(gr, show_accuracy=True)
-            res.append(YesNoRes(loss, acc))
+            ypred = model.predict(gr)['score'][:,0]
+            res.append(ev.eval_hypev(ypred, gr['score'], fname))
         return tuple(res)
 
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing
         important statistics """
-        return('%s%.6f |%s%.6f |%s%.6f '
-               % (pfx, mres[self.trainf]['Precision'],
-                  pfx, mres[self.valf]['Precision'],
-                  pfx, mres[self.testf].get('Precision', np.nan)))
+        return('%s%.6f |%s%.6f |%s%.6f |%s%.6f |%s%.6f '
+               % (pfx, mres[self.trainf]['QAccuracy'],
+                  pfx, mres[self.valf]['QAccuracy'],
+                  pfx, mres[self.valf]['QF1'],
+                  pfx, mres[self.testf].get('QAccuracy', np.nan),
+                  pfx, mres[self.testf].get('QF1', np.nan)))
 
     def merge_questions(self, gr):
         # s0=questions, s1=sentences
@@ -177,9 +180,6 @@ class HypEvTask(AbstractTask):
               'f04d': np.array(f04d), 'f14d': np.array(f14d), 'score': y}
 
         return gr, y
-
-from collections import namedtuple
-YesNoRes = namedtuple('YesNoRes', ['Loss', 'Precision'])
 
 
 def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, rnn_dim):

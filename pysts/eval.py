@@ -154,35 +154,6 @@ def trec_map(s0, s1, y, ypred):
     return mapt
 
 
-def hypev_classify_mean(s0, y, ypred):
-    """
-    Baseline strategy for question classification for the "hypothesis
-    evaluation" task where we produce a prediction for the question
-    based on multiple (q, a) pairs.
-
-    This simple strategy simply predicts question class by averaging
-    the (q, a) pair predictions.
-
-    Generates instances of (q, y, ypred) tuples, one per question.
-    """
-    for s, ys in aggregate_s0(s0, y, ypred):
-        y = ys[0][0]
-        ypred = np.mean([t[1] for t in ys])
-        yield (s, y, ypred)
-
-
-def hypev_accuracy(qpred):
-    """
-    Compute accuracy of question classification in case of the
-    "hypothesis evaluation" task.  As a parameter, takes an iterable
-    of (q, y, ypred) tuples.
-
-    Example: hypev_accuracy(hypev_classify_mean(s0, y, ypred))
-    """
-    prec = [(np.abs(y - ypred) < 0.5) for s, y, ypred in qpred]
-    return np.mean(prec)
-
-
 STSRes = namedtuple('STSRes', ['Pearson', 'Spearman', 'MSE'])
 
 
@@ -231,15 +202,13 @@ def eval_para(ypred, y, name):
     return ParaRes(rawacc, f_score)
 
 
-HypEvRes = namedtuple('HypEvRes', ['QAccuracy'])
+HypEvRes = namedtuple('HypEvRes', ['QAccuracy', 'QF1'])
 
 
-def eval_hypev(ypred, s0, y, name):
+def eval_hypev(ypred, y, name):
     rawacc, y0acc, y1acc, balacc, f_score = binclass_accuracy(y, ypred)
-    qacc = hypev_accuracy(hypev_classify_mean(s0, y, ypred))
-    print('%s Pair Accuracy: raw %f (y=0 %f, y=1 %f), bal %f' % (name, rawacc, y0acc, y1acc, balacc))
-    print('%s HypEv Accuracy: %f (qclass based on pairs mean)' % (name, qacc))
-    return HypEvRes(qacc)
+    print('%s QAccuracy: real %f  (y=0 %f, y=1 %f, bal %f);  F-Score: %f' % (name, rawacc, y0acc, y1acc, balacc, f_score))
+    return HypEvRes(rawacc, f_score)
 
 
 UbuntuRes = namedtuple('UbuntuRes', ['MRR', 'R2_1', 'R10_1', 'R10_2', 'R10_5'])
