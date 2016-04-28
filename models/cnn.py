@@ -26,6 +26,7 @@ def config(c):
     c['dropout'] = 1/2
     c['l2reg'] = 1e-4
 
+    c['cnnsiamese'] = True
     c['cnnact'] = 'relu'
     c['cnninit'] = 'glorot_uniform'
     c['cdim'] = {1: 1, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2}
@@ -44,7 +45,7 @@ def config(c):
 
 
 def prep_model(model, N, s0pad, s1pad, c):
-    Nc = B.cnnsum_input(model, N, s0pad,
+    Nc = B.cnnsum_input(model, N, s0pad, siamese=c['cnnsiamese'],
                         dropout=c['dropout'], l2reg=c['l2reg'],
                         cnninit=c['cnninit'], cnnact=c['cnnact'], cdim=c['cdim'])
 

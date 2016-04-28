@@ -40,6 +40,9 @@ intervals (t-distribution) are reported.
 |                          |±0.019407    |±0.006259 |±0.007169 |±0.011460 |
 | attn1511                 | 0.852364    | 0.851368 | 0.708163 | 0.789822 | (defaults)
 |                          |±0.017280    |±0.005533 |±0.008958 |±0.013308 |
+|--------------------------|-------------|----------|----------|----------|---------
+| rnn                      | 0.895331    | 0.872205 | 0.731038 | 0.814410 | Ubuntu transfer learning (``ptscorer=B.dot_ptscorer`` ``pdim=1`` ``inp_e_dropout=0`` ``dropout=0`` ``balance_class=True`` ``adapt_ubuntu=True`` ``opt='rmsprop'``)
+|                          |±0.006360    |±0.004435 |±0.007483 |±0.008340 |
 
 These results are obtained like this:
 
