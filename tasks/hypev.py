@@ -42,9 +42,9 @@ class Container:
 
 
 
-class YesNoTask(AbstractTask):
+class HypEvTask(AbstractTask):
     def __init__(self):
-        self.name = 'yesno'
+        self.name = 'hypev'
         self.emb = None
         self.vocab = None
 
@@ -54,9 +54,9 @@ class YesNoTask(AbstractTask):
         c['max_sentences'] = 50
         c['spad'] = 60
         c['embdim'] = 50
-        c['nb_epoch'] = 30
+        c['nb_epoch'] = 100
+        c['batch_size'] = 10
 
-        c['opt'] = 'adam'
         c['inp_e_dropout'] = 0.
         c['w_dropout'] = 0.
         c['dropout'] = 0.
@@ -64,11 +64,7 @@ class YesNoTask(AbstractTask):
         c['e_add_flags'] = True
         c['ptscorer'] = mulsum_ptscorer
         c['mlpsum'] = 'sum'
-        c['Ddim'] = .1
-        c['loss'] = 'binary_crossentropy'
-        c['nb_epoch'] = 100
-        c['batch_size'] = 10
-        c['class_mode'] = 'binary'
+        c['Ddim'] = 0.1
         c['oact'] = 'linear'
 
         # old rnn
@@ -248,4 +244,4 @@ def build_model(glove, vocab, module_prep_model, c):
 
 
 def task():
-    return YesNoTask()
+    return HypEvTask()
