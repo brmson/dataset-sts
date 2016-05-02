@@ -174,7 +174,7 @@ class AnsSelTask(AbstractTask):
         """ Given a gr, prescore the pairs and do either pruning (for each s0,
         keep only top N s1 based on the prescoring) or add the prescore as
         an input. """
-        if 'prescoring_prune' not in self.c and 'prescoring_input' not in self.c:
+        if 'prescoring_model' not in self.c or ('prescoring_prune' not in self.c and 'prescoring_input' not in self.c):
             return gr  # nothing to do
 
         if 'prescoring_model_inst' not in self.c:

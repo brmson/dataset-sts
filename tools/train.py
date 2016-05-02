@@ -113,6 +113,11 @@ def config(model_config, task_config, params):
         k, v = p.split('=')
         c[k] = eval(v)
 
+    # Remove None-values
+    for (k, v) in list(c.iteritems()):
+        if v is None:
+            del c[k]
+
     ps, h = hash_params(c)
 
     # post-ps,h c-munging - only things that are redundant to whatever
