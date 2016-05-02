@@ -65,6 +65,8 @@ def multiclass_accuracy(y, ypred):
     rawacc = (tp*1.0)/y.shape[0]
     return rawacc, class_acc
 
+SnliRes = namedtuple('SnliRes', ['QAccuracy'])
+
 
 def eval_snli(ypred, y, name):
     cls_names= ['contradiction', 'neutral', 'entailment']
@@ -73,7 +75,7 @@ def eval_snli(ypred, y, name):
                                                                                         cls_names[0], cls_acc[0],
                                                                                         cls_names[1],cls_acc[1],
                                                                                         cls_names[2],cls_acc[2]))
-    return (rawacc)
+    return SnliRes(rawacc)
 
 def aggregate_s0(s0, y, ypred, k=None):
     """
