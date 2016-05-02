@@ -194,26 +194,22 @@ def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra
     else:
         model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
     model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
+    mlp_inputs = [pfx+'sum', pfx+'mul'] + extra_inp
 
-    model.add_node(name=pfx+'hdn', inputs=[pfx+'sum', pfx+'mul'] + extra_inp, merge_mode='concat',
-                   layer=Dense(output_dim=int(N*Ddim), W_regularizer=l2(l2reg), activation='sigmoid'))
-    model.add_node(name=pfx+'mlp', input=pfx+'hdn',
-                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
-    return pfx+'mlp'
+    if Ddim != 0:
+        model.add_node(name=pfx+'hdn', inputs=mlp_inputs, merge_mode='concat',
+                       layer=Dense(output_dim=int(N*Ddim), W_regularizer=l2(l2reg), activation='sigmoid'))
+        mlp_inputs = [pfx+'hdn']
 
-
-def mulsum_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
-    """ Element-wise features from the pair fed to a concat of sum and multiplication of inputs.
-    """
-    if sum_mode == 'absdiff':
-        absdiff_merge(model, inputs, pfx, "sum")
+    mlp_args = dict()
+    if len(mlp_inputs) > 1:
+        mlp_args['inputs'] = mlp_inputs
+        mlp_args['merge_mode'] = 'concat'
     else:
-        model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
-    model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
-
-    model.add_node(name=pfx+'mulsum', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
-                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg), activation='linear'))
-    return pfx+'mulsum'
+        mlp_args['input'] = mlp_inputs[0]
+    model.add_node(name=pfx+'mlp',
+                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg)), **mlp_args)
+    return pfx+'mlp'
 
 
 def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
