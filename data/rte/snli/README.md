@@ -10,7 +10,7 @@ Regarding software, use ``tools/snli_preprocess.py`` and ``tools/train.py``
 Model Comparison
 ----------------
 
-For randomized models, 95% confidence intervals (t-distribution) will be reported.
+For randomized models, 95% confidence intervals (t-distribution) are be reported.
 
 Note that NO DROPOUT is applied for any of the models.
 
