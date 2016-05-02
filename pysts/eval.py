@@ -40,6 +40,42 @@ def binclass_accuracy(y, ypred):
 
     return (rawacc, y0acc, y1acc, balacc, f_score)
 
+def multiclass_accuracy(y, ypred):
+    """
+    Compute accuracy for multiclass classification tasks
+    Returns (rawacc, class_acc) where rawacc is the accuracy on the whole set
+    and class_acc contains accuracies on all classes respectively
+    """
+    result = np.zeros(ypred.shape)
+    clss=y.shape[1]
+    class_counts=np.zeros(clss)
+    class_correct=np.zeros(clss)
+    tp=0
+    for row in range(ypred.shape[0]):
+        result[row,np.argmax(ypred[row])]=1;
+        for cls in range(clss):
+            if y[row,cls]==1:
+                class_counts[cls]+=1
+                if result[row,cls]==1:
+                    class_correct[cls]+=1
+                    tp+=1
+    class_acc=np.zeros(clss)
+    for cls in range(clss):
+        class_acc[cls]=(1.0*class_correct[cls])/class_counts[cls]
+    rawacc = (tp*1.0)/y.shape[0]
+    return rawacc, class_acc
+
+SnliRes = namedtuple('SnliRes', ['Accuracy'])
+
+
+def eval_snli(ypred, y, name):
+    cls_names= ['contradiction', 'neutral', 'entailment']
+    rawacc,cls_acc = multiclass_accuracy(y, ypred)
+    print('%s Accuracy: %.3f, %s accuracy %.3f, %s accuracy %.3f, %s accuracy %.3f' %(name, rawacc,
+                                                                                        cls_names[0], cls_acc[0],
+                                                                                        cls_names[1],cls_acc[1],
+                                                                                        cls_names[2],cls_acc[2]))
+    return SnliRes(rawacc)
 
 def aggregate_s0(s0, y, ypred, k=None):
     """
