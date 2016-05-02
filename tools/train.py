@@ -132,8 +132,6 @@ if __name__ == "__main__":
     print('Dataset')
     if 'vocabf' in conf:
         task.load_vocab(conf['vocabf'])
-    if 'testf' in conf:
-        task.load_data(trainf, valf,tesf)
 
     for i_run in range(conf['nb_runs']):
         if conf['nb_runs'] == 1:

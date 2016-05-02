@@ -13,19 +13,13 @@ Before training, you must however run:
 from __future__ import print_function
 from __future__ import division
 
-import importlib
-import sys
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.core import Activation, Dropout
 from keras.models import Graph
-import numpy as np
 
 import pickle
-import pysts.embedding as emb
 import pysts.eval as ev
-import pysts.loader as loader
-import pysts.nlp as nlp
 
 
 from pysts.kerasts import graph_input_anssel
@@ -74,8 +68,8 @@ class SnliTask(AbstractTask):
         return model
 
     def eval(self, model):
-        res = [None]
-        for gr, fname in [(self.grv, self.valf), (self.grt, self.testf)]:
+        res = []
+        for gr, fname in [(self.gr, self.trainf),(self.grv, self.valf), (self.grt, self.testf)]:
             if gr is None:
                 res.append(None)
                 continue

@@ -28,7 +28,7 @@ These results are obtained like this:
    ``tools/snli_preprocess.py --revocab data/rte/snli/snli_1.0_train.jsonl data/rte/snli/snli_1.0_dev.jsonl data/rte/snli/snli_1.0_test.jsonl data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle data/rte/snli/snli_1.0_test.pickle data/rte/snli/v1-vocab.pickle``
 
 
-   ``tools/train.py avg snli  data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle vocabf="data/rte/snli/v1-vocab.pickle" testf="data/rte/snli/snli_1.0_test.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0``
+   ``tools/train.py avg snli  data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle vocabf="data/rte/snli/v1-vocab.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0``
 
 HOWTO
 -----
@@ -46,4 +46,4 @@ Preprocess - create input files and vocabulary
    ``tools/snli_preprocess.py --revocab data/rte/snli/snli_1.0_train.jsonl data/rte/snli/snli_1.0_dev.jsonl data/rte/snli/snli_1.0_test.jsonl data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle data/rte/snli/snli_1.0_test.pickle data/rte/snli/v1-vocab.pickle``
 
 Run selected model on the SNLI task - NO DROPOUT applied:
-   ``tools/train.py avg snli  data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle vocabf="data/rte/snli/v1-vocab.pickle" testf="data/rte/snli/snli_1.0_test.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0``
+   ``tools/train.py avg snli  data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle vocabf="data/rte/snli/v1-vocab.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0``
