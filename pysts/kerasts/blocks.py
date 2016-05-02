@@ -169,21 +169,31 @@ def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
 # This is primarily meant as an output layer, but could be used also for
 # example as an attention mechanism.
 
-def dot_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
+def dot_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', extra_inp=[]):
     """ Score the pair using just dot-product, that is elementwise
     multiplication and then sum.  The dot-product is natural because it
     measures the relative directions of vectors, being essentially
     a non-normalized cosine similarity. """
     # (The Activation is a nop, merge_mode is the important part)
     model.add_node(name=pfx+'dot', inputs=inputs, layer=Activation('linear'), merge_mode='dot', dot_axes=1)
-    return pfx+'dot'
+    if extra_inp:
+        model.add_node(name=pfx+'mlp', inputs=[pfx+'dot'] + extra_inp, merge_mode='concat',
+                       layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+        return pfx+'mlp'
+    else:
+        return pfx+'dot'
 
 
-def cos_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
+def cos_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', extra_inp=[]):
     """ Score the pair using just cosine similarity. """
     # (The Activation is a nop, merge_mode is the important part)
     model.add_node(name=pfx+'cos', inputs=inputs, layer=Activation('linear'), merge_mode='cos', dot_axes=1)
-    return pfx+'cos'
+    if extra_inp:
+        model.add_node(name=pfx+'mlp', inputs=[pfx+'cos'] + extra_inp, merge_mode='concat',
+                       layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+        return pfx+'mlp'
+    else:
+        return pfx+'cos'
 
 
 def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra_inp=[]):
@@ -212,12 +222,12 @@ def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra
     return pfx+'mlp'
 
 
-def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
+def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', extra_inp=[]):
     """ Just train a linear classifier (weighed sum of elements) on concatenation
     of inputs.  You may pass also just a single input (which may make sense
     if you for example process s1 "with regard to s0"). """
-    if len(inputs) > 1:
-        model.add_node(name=pfx+'cat', inputs=inputs, merge_mode='concat',
+    if len(inputs + extra_inp) > 1:
+        model.add_node(name=pfx+'cat', inputs=inputs + extra_inp, merge_mode='concat',
                        layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
     else:
         model.add_node(name=pfx+'cat', input=inputs[0],
