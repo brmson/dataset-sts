@@ -20,6 +20,7 @@ from keras.models import Graph
 
 import pickle
 import pysts.eval as ev
+import numpy as np
 
 
 from pysts.kerasts import graph_input_anssel
@@ -116,6 +117,15 @@ class SnliTask(AbstractTask):
     def fit_callbacks(self, weightsf):
         return [ModelCheckpoint(weightsf, save_best_only=True),
                 EarlyStopping(patience=3)]
+
+
+    def res_columns(self, mres, pfx=' '):
+        """ Produce README-format markdown table row piece summarizing
+        important statistics """
+        return('%s%.6f |%s%.6f |%s%.6f'
+               % (pfx, mres[self.trainf]['Accuracy'],
+                  pfx, mres[self.valf]['Accuracy'],
+                  pfx, mres[self.testf].get('Accuracy', np.nan)))
 
 def task():
     return SnliTask()
