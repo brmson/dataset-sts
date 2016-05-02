@@ -65,7 +65,7 @@ def multiclass_accuracy(y, ypred):
     rawacc = (tp*1.0)/y.shape[0]
     return rawacc, class_acc
 
-SnliRes = namedtuple('SnliRes', ['QAccuracy'])
+SnliRes = namedtuple('SnliRes', ['Accuracy'])
 
 
 def eval_snli(ypred, y, name):
