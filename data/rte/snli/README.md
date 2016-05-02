@@ -14,13 +14,14 @@ For randomized models, 95% confidence intervals (t-distribution) will be reporte
 
 Note that NO DROPOUT is applied for any of the models.
 
-| Model                    | train    | test     | t. mean  | settings
+| Model                    | train    | dev      | test  | settings
 |--------------------------|----------|----------|----------|----------
 | Bowman et al. '16        | 0.892    |  0.832   | NA       | 300D SPINN-NP encoders (3.7m params)
 | Cheng et al. '16         | 0.921    |  0.890   | NA       | 300D LSTMN with deep attention fusion (1.4m params), state-of-art
 |--------------------------|----------|----------|----------|----------
-| avg                      | 0.774939 | 0.726283 | NA       | (defaults)
-| rnn                      | 0.818001 | 0.773208 | NA       | (defaults)
+| avg                      | 0.741874 | 0.708824 | 0.712490 | ``inp_w_dropout=0`` ``dropout=0`` ``inp_e_dropout=0``
+|                          |±0.009237 |±0.003442 |±0.005930 |
+
 
 
 These results are obtained like this:

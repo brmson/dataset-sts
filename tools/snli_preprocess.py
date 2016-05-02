@@ -4,7 +4,7 @@ The preprocessing of the SNLI dataset needs over 10GB and also takes some time. 
 goes through it (...several times) to preprocess it and dump it in
 a way that can be loaded by training scripts efficiently.
 
-Usage: tools/snli_preprocess.py [--revocab] TRAINFILE VALIDATIONFILE DUMPTRAINFILE DUMPVALIDATIONFILE VOCABFILE
+Usage: tools/snli_preprocess.py [--revocab] TRAINFILE VALIDATIONFILE TESTFILE DUMPTRAINFILE DUMPVALIDATIONFILE DUMPTESTFILE VOCABFILE
 
 Example: tools/snli_preprocess.py data/snli/snli_1.0_train.jsonl data/snli/snli_1.0_dev.jsonl data/snli/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle data/snli/snli_1.0_dev.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle
 """
