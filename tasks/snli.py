@@ -96,8 +96,8 @@ class SnliTask(AbstractTask):
 
     def fit_callbacks(self, weightsf):
         return [RTECB(self.grv),
-                ModelCheckpoint(weightsf, save_best_only=True),
-                EarlyStopping(patience=6)]
+                ModelCheckpoint(weightsf, save_best_only=True, monitor='acc', mode='max'),
+                EarlyStopping(monitor='acc', mode='max', patience=6)]
 
     def eval(self, model):
         res = []
