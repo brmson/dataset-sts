@@ -48,33 +48,30 @@ def multiclass_accuracy(y, ypred):
     """
     result = np.zeros(ypred.shape)
     clss=y.shape[1]
-    class_counts=np.zeros(clss)
     class_correct=np.zeros(clss)
-    tp=0
+    ok=0
     for row in range(ypred.shape[0]):
-        result[row,np.argmax(ypred[row])]=1;
+        result[row,np.argmax(ypred[row])]=1
         for cls in range(clss):
-            if y[row,cls]==1:
-                class_counts[cls]+=1
-                if result[row,cls]==1:
+            if y[row,cls]==result[row,cls]:
                     class_correct[cls]+=1
-                    tp+=1
+                    ok+=1
     class_acc=np.zeros(clss)
     for cls in range(clss):
-        class_acc[cls]=(1.0*class_correct[cls])/class_counts[cls]
-    rawacc = (tp*1.0)/y.shape[0]
+        class_acc[cls]=(1.0*class_correct[cls])/y.shape[0]
+    rawacc = (ok*1.0)/y.shape[0]
     return rawacc, class_acc
 
 SnliRes = namedtuple('SnliRes', ['Accuracy'])
 
 
 def eval_snli(ypred, y, name):
-    cls_names= ['contradiction', 'neutral', 'entailment']
-    rawacc,cls_acc = multiclass_accuracy(y, ypred)
-    print('%s Accuracy: %.3f, %s accuracy %.3f, %s accuracy %.3f, %s accuracy %.3f' %(name, rawacc,
+    cls_names = ['contradiction', 'neutral', 'entailment']
+    rawacc, cls_acc = multiclass_accuracy(y, ypred)
+    print('%s Accuracy: %.3f, %s accuracy %.3f, %s accuracy %.3f, %s accuracy %.3f' % (name, rawacc,
                                                                                         cls_names[0], cls_acc[0],
-                                                                                        cls_names[1],cls_acc[1],
-                                                                                        cls_names[2],cls_acc[2]))
+                                                                                        cls_names[1], cls_acc[1],
+                                                                                        cls_names[2], cls_acc[2]))
     return SnliRes(rawacc)
 
 def aggregate_s0(s0, y, ypred, k=None):
