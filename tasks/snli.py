@@ -32,22 +32,11 @@ from .anssel import AbstractTask
 class SnliTask(AbstractTask):
     def __init__(self):
         self.name = 'snli'
-        self.spad=60
+        self.spad = 60
         self.s0pad = self.spad
-        self.s1pad= self.spad
+        self.s1pad = self.spad
         self.emb = None
         self.vocab = None
-
-    def load_vocab(self, vocabf):
-        # use plain pickle because unicode
-        self.vocab = pickle.load(open(vocabf, "rb"))
-        return self.vocab
-
-
-    def load_set(self,fname):
-        si0, si1, f0, f1, y = pickle.load(open(fname,"rb"))
-        gr = graph_input_anssel(si0, si1, y, f0, f1)
-        return ( gr,y,self.vocab)
 
     def config(self, c):
         c['loss'] = 'categorical_crossentropy'
@@ -55,10 +44,20 @@ class SnliTask(AbstractTask):
         c['batch_size'] = 200
         c['epoch_fract'] = 1/4
 
+    def load_vocab(self, vocabf):
+        # use plain pickle because unicode
+        self.vocab = pickle.load(open(vocabf, "rb"))
+        return self.vocab
+
+    def load_set(self, fname):
+        si0, si1, f0, f1, labels = pickle.load(open(fname, "rb"))
+        gr = graph_input_anssel(si0, si1, labels, f0, f1)
+        return (gr, labels, self.vocab)
+
     def build_model(self, module_prep_model, do_compile=True):
         if self.c['ptscorer'] is None:
             # non-neural model
-            return module_prep_model(self.vocab, self.c, output='binary')
+            return module_prep_model(self.vocab, self.c, output='binary')  # FIXME
 
         model = self.prep_model(module_prep_model)
 
@@ -71,7 +70,7 @@ class SnliTask(AbstractTask):
 
     def eval(self, model):
         res = []
-        for gr, fname in [(self.gr, self.trainf),(self.grv, self.valf), (self.grt, self.testf)]:
+        for gr, fname in [(self.gr, self.trainf), (self.grv, self.valf), (self.grt, self.testf)]:
             if gr is None:
                 res.append(None)
                 continue
@@ -90,13 +89,13 @@ class SnliTask(AbstractTask):
         kwargs = dict()
         if self.c['ptscorer'] == B.mlp_ptscorer:
             kwargs['sum_mode'] = self.c['mlpsum']
-        model.add_node(name='scoreS0', input=self.c['ptscorer'](model, final_outputs, self.c['Ddim'], N, self.c['l2reg'],pfx="out0", **kwargs),
+        model.add_node(name='scoreS0', input=self.c['ptscorer'](model, final_outputs, self.c['Ddim'], N, self.c['l2reg'], pfx="out0", **kwargs),
                        layer=Activation('sigmoid'))
 
-        model.add_node(name='scoreS1', input=self.c['ptscorer'](model, final_outputs, self.c['Ddim'], N, self.c['l2reg'],pfx="out1", **kwargs),
+        model.add_node(name='scoreS1', input=self.c['ptscorer'](model, final_outputs, self.c['Ddim'], N, self.c['l2reg'], pfx="out1", **kwargs),
                        layer=Activation('sigmoid'))
 
-        model.add_node(name='scoreS2', input=self.c['ptscorer'](model, final_outputs, self.c['Ddim'], N, self.c['l2reg'],pfx="out2", **kwargs),
+        model.add_node(name='scoreS2', input=self.c['ptscorer'](model, final_outputs, self.c['Ddim'], N, self.c['l2reg'], pfx="out2", **kwargs),
                        layer=Activation('sigmoid'))
 
         model.add_node(name='scoreV', inputs=['scoreS0', 'scoreS1', 'scoreS2'], merge_mode='concat', layer=Activation('softmax'))
@@ -104,21 +103,9 @@ class SnliTask(AbstractTask):
         model.add_output(name='score', input='scoreV')
         return model
 
-
-    def build_model(self, module_prep_model, do_compile=True):
-        if self.c['ptscorer'] is None:
-            # non-neural model
-            return module_prep_model(self.vocab, self.c, output='binary', spad=self.spad)
-        model = self.prep_model(module_prep_model)
-
-        if do_compile:
-            model.compile(loss={'score': self.c['loss']}, optimizer=self.c['opt'])
-        return model
-
     def fit_callbacks(self, weightsf):
         return [ModelCheckpoint(weightsf, save_best_only=True),
                 EarlyStopping(patience=3)]
-
 
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing
