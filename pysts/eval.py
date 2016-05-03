@@ -248,14 +248,14 @@ def eval_ubuntu(ypred, s0, y, name):
     return UbuntuRes(mrr_, r1_2, r1_10, r2_10, r5_10)
 
 
-SnliRes = namedtuple('SnliRes', ['Accuracy'])
+RTERes = namedtuple('RTERes', ['Accuracy'])
 
 
-def eval_snli(ypred, y, name):
+def eval_rte(ypred, y, name):
     cls_names = ['contradiction', 'neutral', 'entailment']
     rawacc, cls_acc = multiclass_accuracy(y, ypred)
     print('%s Accuracy: %.3f, %s accuracy %.3f, %s accuracy %.3f, %s accuracy %.3f' % (name, rawacc,
                                                                                         cls_names[0], cls_acc[0],
                                                                                         cls_names[1], cls_acc[1],
                                                                                         cls_names[2], cls_acc[2]))
-    return SnliRes(rawacc)
+    return RTERes(rawacc)

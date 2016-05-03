@@ -106,7 +106,7 @@ class SnliTask(AbstractTask):
                 res.append(None)
                 continue
             ypred = model.predict(gr)['score']
-            res.append(ev.eval_snli(ypred, gr['score'], fname))
+            res.append(ev.eval_rte(ypred, gr['score'], fname))
         return tuple(res)
 
     def res_columns(self, mres, pfx=' '):
