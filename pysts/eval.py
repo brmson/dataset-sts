@@ -54,8 +54,9 @@ def multiclass_accuracy(y, ypred):
         result[row,np.argmax(ypred[row])]=1
         for cls in range(clss):
             if y[row,cls]==result[row,cls]:
-                    class_correct[cls]+=1
-                    ok+=1
+                class_correct[cls]+=1
+                if y[row,cls] == 1:
+                    ok += 1
     class_acc=np.zeros(clss)
     for cls in range(clss):
         class_acc[cls]=(1.0*class_correct[cls])/y.shape[0]
