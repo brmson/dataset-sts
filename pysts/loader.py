@@ -117,6 +117,8 @@ def load_hypev(dsfile):
     return (s0, s1, np.array(labels))
 
 
+rte_lmappings = {'contradiction': np.array([1,0,0]), 'neutral': np.array([0,1,0]), 'entailment': np.array([0,0,1])}
+
 def load_sick2014(dsfile, mode='relatedness'):
     """ load a dataset in the sick2014 tsv .txt format;
 
@@ -137,12 +139,8 @@ def load_sick2014(dsfile, mode='relatedness'):
             if mode == 'relatedness':
                 label = float(relatedness_score)
             elif mode == 'entailment':
-                if entailment_judgement == 'CONTRADICTION':
-                    label = -1
-                elif entailment_judgement == 'NEUTRAL':
-                    label = 0
-                elif entailment_judgement == 'ENTAILMENT':
-                    label = +1
+                if entailment_judgement.lower() in rte_lmappings:
+                    label = rte_lmappings[entailment_judgement.lower()]
                 else:
                     raise ValueError('invalid label on line: %s' % (line,))
             else:
@@ -183,7 +181,6 @@ def load_snli(dsfile, vocab):
     s0i = []
     s1i = []
     labels = []
-    lmappings={'contradiction': np.array([1,0,0]), 'neutral':np.array([0,1,0]) , 'entailment': np.array([0,0,1])}
     i = 0
     skips=0
     with open(dsfile) as f:
@@ -192,12 +189,12 @@ def load_snli(dsfile, vocab):
             if i % 5000 == 0:
                 print('%d samples read, %d no label skips' % (i,skips))
             label = d['gold_label']
-            if label in lmappings:
+            if label in rte_lmappings:
                 s0 = word_tokenize(d['sentence1'])
                 s1 = word_tokenize(d['sentence2'])
                 s0i.append(s0)
                 s1i.append(s1)
-                labels.append(lmappings[label])
+                labels.append(rte_lmappings[label])
             else:
                 skips+=1
             i += 1

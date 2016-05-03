@@ -47,5 +47,7 @@ in **data/TASKNAME/** subdirectories.
 
 	tools/train.py avg hypev data/hypev/argus/argus_train.csv data/hypev/argus/argus_val.csv dropout=0 nb_runs=4 nb_epoch=16
 
+  * **rte.py** - Recognizing Textual Entailment Task.
+
   * **snli.py** - Stanford Natural Language Inference instance of RTE task.
     The data is serialized efficiently.  Refer to the data/ README.
