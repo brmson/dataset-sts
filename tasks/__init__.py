@@ -61,7 +61,7 @@ class AbstractTask(object):
         kwargs = dict()
         if ptscorer == B.mlp_ptscorer:
             kwargs['sum_mode'] = self.c['mlpsum']
-        if self.c['f_add']:
+        if 'f_add' in self.c:
             for inp in self.c['f_add']:
                 model.add_input(inp, input_shape=(1,))  # assumed scalar
             kwargs['extra_inp'] = self.c['f_add']
