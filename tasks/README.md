@@ -45,4 +45,7 @@ in **data/TASKNAME/** subdirectories.
     Selection" in that we have many s1 for a single s0, but the goal is
     to produce an aggregate judgement on s0 based on the pairs.  Example:
 
-	tools/train.py avg hypev data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv dropout=0 nb_runs=4 nb_epoch=16
+	tools/train.py avg hypev data/hypev/argus/argus_train.csv data/hypev/argus/argus_val.csv dropout=0 nb_runs=4 nb_epoch=16
+
+  * **snli.py** - Stanford Natural Language Inference instance of RTE task.
+    The data is serialized efficiently.  Refer to the data/ README.
