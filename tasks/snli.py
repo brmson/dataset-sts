@@ -7,7 +7,8 @@ Training example:
 
 
 Before training, you must however run:
-   tools/snli_preprocess.py data/snli/snli_1.0_train.jsonl data/snli/snli_1.0_dev.jsonl data/snli/snli_1.0_test.jsonl data/snli/snli_1.0_train.pickle  data/snli/snli_1.0_dev.pickle data/snli/snli_1.0_test.pickle data/snli/v1-vocab.pickle
+
+	tools/snli_preprocess.py --revocab data/rte/snli/snli_1.0/snli_1.0_train.jsonl data/rte/snli/snli_1.0/snli_1.0_dev.jsonl data/rte/snli/snli_1.0/snli_1.0_test.jsonl data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle data/rte/snli/snli_1.0_test.pickle data/rte/snli/v1-vocab.pickle
 """
 
 from __future__ import print_function

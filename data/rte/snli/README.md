@@ -27,25 +27,17 @@ Note that NO DROPOUT is applied for any of the models.
 
 These results are obtained like this:
 
-   ``tools/snli_preprocess.py --revocab data/rte/snli/snli_1.0_train.jsonl data/rte/snli/snli_1.0_dev.jsonl data/rte/snli/snli_1.0_test.jsonl data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle data/rte/snli/snli_1.0_test.pickle data/rte/snli/v1-vocab.pickle``
-
-
-   ``tools/train.py avg snli  data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle vocabf="data/rte/snli/v1-vocab.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0``
+	tools/train.py avg snli data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle "vocabf='data/rte/snli/v1-vocab.pickle'" nb_runs=4 inp_w_dropout=0 dropout=0 inp_e_dropout=0
+	tools/eval.py avg snli data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle data/rte/snli/snli_1.0_test.pickle weights-snli-avg--69489c8dc3b6ce11-*-bestval.h5 "vocabf='data/rte/snli/v1-vocab.pickle'" nb_runs=4 inp_w_dropout=0 dropout=0 inp_e_dropout=0
 
 HOWTO
 -----
 
-Go to data/snli
-    ``cd data/snli``
+	cd data/rte/snli
+	wget http://nlp.stanford.edu/projects/snli/snli_1.0.zip
+	unzip snli_1.0.zip
+	cd ../../..
+	tools/snli_preprocess.py --revocab data/rte/snli/snli_1.0/snli_1.0_train.jsonl data/rte/snli/snli_1.0/snli_1.0_dev.jsonl data/rte/snli/snli_1.0/snli_1.0_test.jsonl data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle data/rte/snli/snli_1.0_test.pickle data/rte/snli/v1-vocab.pickle
+	tools/train.py avg snli data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle "vocabf='data/rte/snli/v1-vocab.pickle'" inp_w_dropout=0 dropout=0 inp_e_dropout=0
 
-Download dataset
-    ``wget http://nlp.stanford.edu/projects/snli/snli_1.0.zip``
-    ``unzip snli_1.0.zip``
-
-Go to datasets-sts/
-
-Preprocess - create input files and vocabulary
-   ``tools/snli_preprocess.py --revocab data/rte/snli/snli_1.0_train.jsonl data/rte/snli/snli_1.0_dev.jsonl data/rte/snli/snli_1.0_test.jsonl data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle data/rte/snli/snli_1.0_test.pickle data/rte/snli/v1-vocab.pickle``
-
-Run selected model on the SNLI task - NO DROPOUT applied:
-   ``tools/train.py avg snli  data/rte/snli/snli_1.0_train.pickle data/rte/snli/snli_1.0_dev.pickle vocabf="data/rte/snli/v1-vocab.pickle" inp_w_dropout=0 dropout=0 inp_e_dropout=0``
+NO DROPOUT applied (like for Ubuntu Dialogue).
