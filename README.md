@@ -113,7 +113,7 @@ sentences as entailment, contradiction or unknown.
 
   * [X] **data/rte/sick2014/** SemEval SICK2014 Task also includes entailment data
 
-  * [ ] [The Stanford Natural Language Inference (SNLI) Corpus](http://nlp.stanford.edu/projects/snli/)
+  * [X] **data/rte/snli/** [The Stanford Natural Language Inference (SNLI) Corpus](http://nlp.stanford.edu/projects/snli/)
 (570k pairs dataset for an RTE-type task).
 
   * [ ] RTE Datasets up to RTE-3 http://nlp.stanford.edu/RTE3-pilot/ (TODO)

@@ -40,6 +40,28 @@ def binclass_accuracy(y, ypred):
 
     return (rawacc, y0acc, y1acc, balacc, f_score)
 
+def multiclass_accuracy(y, ypred):
+    """
+    Compute accuracy for multiclass classification tasks
+    Returns (rawacc, class_acc) where rawacc is the accuracy on the whole set
+    and class_acc contains accuracies on all classes respectively
+    """
+    result = np.zeros(ypred.shape)
+    clss=y.shape[1]
+    class_correct=np.zeros(clss)
+    ok=0
+    for row in range(ypred.shape[0]):
+        result[row,np.argmax(ypred[row])]=1
+        for cls in range(clss):
+            if y[row,cls]==result[row,cls]:
+                class_correct[cls]+=1
+                if y[row,cls] == 1:
+                    ok += 1
+    class_acc=np.zeros(clss)
+    for cls in range(clss):
+        class_acc[cls]=(1.0*class_correct[cls])/y.shape[0]
+    rawacc = (ok*1.0)/y.shape[0]
+    return rawacc, class_acc
 
 def aggregate_s0(s0, y, ypred, k=None):
     """
@@ -224,3 +246,16 @@ def eval_ubuntu(ypred, s0, y, name):
     print('%s 2-R@1: %f' % (name, r1_2))
     print('%s 10-R@1: %f  10-R@2: %f  10-R@5: %f' % (name, r1_10, r2_10, r5_10))
     return UbuntuRes(mrr_, r1_2, r1_10, r2_10, r5_10)
+
+
+RTERes = namedtuple('RTERes', ['Accuracy'])
+
+
+def eval_rte(ypred, y, name):
+    cls_names = ['contradiction', 'neutral', 'entailment']
+    rawacc, cls_acc = multiclass_accuracy(y, ypred)
+    print('%s Accuracy: %.3f, %s accuracy %.3f, %s accuracy %.3f, %s accuracy %.3f' % (name, rawacc,
+                                                                                        cls_names[0], cls_acc[0],
+                                                                                        cls_names[1], cls_acc[1],
+                                                                                        cls_names[2], cls_acc[2]))
+    return RTERes(rawacc)
