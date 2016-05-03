@@ -44,3 +44,15 @@ class STSPearsonCB(Callback):
                             loader.sts_categorical2labels(self.val_gr['classes']), 'Val', quiet=True).Pearson
         print('                  train Pearson %f    val Pearson %f' % (prtr, prval))
         logs['pearson'] = prval
+
+
+class RTECB(Callback):
+    """ A callback that monitors RTE validation accuracy after each epoch """
+    def __init__(self, val_gr):
+        self.val_gr = val_gr  # graph_input()
+
+    def on_epoch_end(self, epoch, logs={}):
+        ypred = self.model.predict(self.val_gr)['score']
+        acc, cls_acc = ev.multiclass_accuracy(self.val_gr['score'], ypred)
+        print('                                                       val acc %f' % (acc,))
+        logs['acc'] = acc

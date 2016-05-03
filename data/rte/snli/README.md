@@ -1,6 +1,7 @@
 The Stanford Natural Language Inference (SNLI) Corpus
 =====================================================
 
+http://nlp.stanford.edu/projects/snli/
 
 More on the dataset at http://nlp.stanford.edu/pubs/snli_paper.pdf.
 
