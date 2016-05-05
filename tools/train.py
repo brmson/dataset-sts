@@ -85,6 +85,10 @@ def default_config(model_config, task_config):
     c['nb_runs'] = 1
     c['epoch_fract'] = 1
 
+    c['prescoring'] = None
+    c['prescoring_prune'] = None
+    c['prescoring_input'] = None
+
     task_config(c)
     if c.get('task>model', False):  # task config has higher priority than model
         model_config(c)
@@ -113,16 +117,11 @@ def config(model_config, task_config, params):
         k, v = p.split('=')
         c[k] = eval(v)
 
-    # Remove None-values
-    for (k, v) in list(c.iteritems()):
-        if v is None:
-            del c[k]
-
     ps, h = hash_params(c)
 
     # post-ps,h c-munging - only things that are redundant to whatever
     # is user-visible
-    if 'prescoring' in c:
+    if c['prescoring'] is not None:
         prescoring_setup(c, task_config)
 
     return c, ps, h

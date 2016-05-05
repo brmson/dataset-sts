@@ -174,7 +174,7 @@ class AnsSelTask(AbstractTask):
         """ Given a gr, prescore the pairs and do either pruning (for each s0,
         keep only top N s1 based on the prescoring) or add the prescore as
         an input. """
-        if 'prescoring_model' not in self.c or ('prescoring_prune' not in self.c and 'prescoring_input' not in self.c):
+        if 'prescoring_model' not in self.c or (self.c['prescoring_prune'] is None and self.c['prescoring_input'] is None):
             return gr  # nothing to do
 
         if 'prescoring_model_inst' not in self.c:
@@ -183,11 +183,11 @@ class AnsSelTask(AbstractTask):
         print('[Prescoring] Predict')
         ypred = self.c['prescoring_model_inst'].predict(gr)['score'][:,0]
 
-        if 'prescoring_input' in self.c:
+        if self.c['prescoring_input'] is not None:
             inp = self.c['prescoring_input']
             gr[inp] = np.reshape(ypred, (len(ypred), 1))  # 1D to 2D
 
-        if 'prescoring_prune' in self.c:
+        if self.c['prescoring_prune'] is not None:
             N = self.c['prescoring_prune']
             print('[Prescoring] Prune')
             gr = graph_input_prune(gr, ypred, N, skip_oneclass=skip_oneclass)
