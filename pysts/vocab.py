@@ -37,6 +37,10 @@ class Vocabulary:
 
         self.embcache = dict()
 
+    def add_word(self, word):
+        if word not in self.word_idx:
+            self.word_idx[word] = len(self.word_idx)
+
     def vectorize(self, slist, spad=60):
         """ build an spad-ed matrix of word indices from a list of
         token sequences """

@@ -33,6 +33,8 @@ class AbstractTask(object):
             self.grt, self.yt = (None, None)
 
         if self.c.get('adapt_ubuntu', False):
+            self.vocab.add_word('__eou__')
+            self.vocab.add_word('__eot__')
             self.gr = loader.graph_adapt_ubuntu(self.gr, self.vocab)
             self.grv = loader.graph_adapt_ubuntu(self.grv, self.vocab)
             if self.grt is not None:
