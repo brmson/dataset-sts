@@ -23,7 +23,7 @@ import pysts.kerasts.blocks as B
 
 
 def config(c):
-    c['dropout'] = 1/2
+    c['dropout'] = 0
     c['l2reg'] = 1e-4
 
     c['cnnsiamese'] = True
@@ -36,7 +36,7 @@ def config(c):
     c['pact'] = 'tanh'
 
     # model-external:
-    c['inp_e_dropout'] = 1/2
+    c['inp_e_dropout'] = 0
     c['inp_w_dropout'] = 0
     # anssel-specific:
     c['ptscorer'] = B.mlp_ptscorer

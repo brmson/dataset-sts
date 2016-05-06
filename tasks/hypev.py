@@ -23,7 +23,7 @@ import pysts.eval as ev
 import pysts.loader as loader
 import pysts.nlp as nlp
 from pysts.kerasts import graph_input_anssel
-from pysts.kerasts.blocks import mulsum_ptscorer, embedding
+import pysts.kerasts.blocks as B
 from pysts.kerasts.callbacks import HypEvCB
 from pysts.kerasts.clasrel_layers import Reshape_, WeightedMean, SumMask
 from pysts.vocab import Vocabulary
@@ -64,9 +64,9 @@ class HypEvTask(AbstractTask):
         c['dropout'] = 0.
         c['l2reg'] = 0.01
         c['e_add_flags'] = True
-        c['ptscorer'] = mulsum_ptscorer
+        c['ptscorer'] = B.mlp_ptscorer
         c['mlpsum'] = 'sum'
-        c['Ddim'] = 0.1
+        c['Ddim'] = 0
         c['oact'] = 'linear'
 
         # old rnn
@@ -186,8 +186,8 @@ class HypEvTask(AbstractTask):
 
 def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, rnn_dim):
     # Input embedding and encoding
-    N = embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'],
-                  c['w_dropout'], add_flags=c['e_add_flags'], create_inputs=False)
+    N = B.embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'],
+                    c['w_dropout'], add_flags=c['e_add_flags'], create_inputs=False)
     # Sentence-aggregate embeddings
     final_outputs = module_prep_model(model, N, s0pad, s1pad, c)
 

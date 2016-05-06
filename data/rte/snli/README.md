@@ -17,6 +17,7 @@ Note that NO DROPOUT is applied for any of the models.
 
 | Model                    | train    | dev      | test  | settings
 |--------------------------|----------|----------|----------|----------
+| Bowman et al.(2015) LSTM | 0.848    |          | 0.776    | The proposed 100d LSTM model with three tanh layers processing sentence embedding concatenation
 | Bowman et al. '16        | 0.892    |   NA     | 0.832    | 300D SPINN-NP encoders (3.7m params)
 | Cheng et al. '16         | 0.921    |   NA     | 0.890    | 300D LSTMN with deep attention fusion (1.4m params), state-of-art
 |--------------------------|----------|----------|----------|----------

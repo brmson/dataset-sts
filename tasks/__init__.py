@@ -33,6 +33,8 @@ class AbstractTask(object):
             self.grt, self.yt = (None, None)
 
         if self.c.get('adapt_ubuntu', False):
+            self.vocab.add_word('__eou__')
+            self.vocab.add_word('__eot__')
             self.gr = loader.graph_adapt_ubuntu(self.gr, self.vocab)
             self.grv = loader.graph_adapt_ubuntu(self.grv, self.vocab)
             if self.grt is not None:
@@ -54,17 +56,17 @@ class AbstractTask(object):
             # (assuming that the question match is carried over to the answer
             # via attention or another mechanism)
             ptscorer = B.cat_ptscorer
-            final_outputs = final_outputs[1]
+            final_outputs = [final_outputs[1]]
         else:
             ptscorer = self.c['ptscorer']
 
         kwargs = dict()
         if ptscorer == B.mlp_ptscorer:
             kwargs['sum_mode'] = self.c['mlpsum']
-        if self.c['f_add_kw']:
-            model.add_input('kw', input_shape=(1,))
-            model.add_input('akw', input_shape=(1,))
-            kwargs['extra_inp'] = ['kw', 'akw']
+        if 'f_add' in self.c:
+            for inp in self.c['f_add']:
+                model.add_input(inp, input_shape=(1,))  # assumed scalar
+            kwargs['extra_inp'] = self.c['f_add']
         model.add_node(name='scoreS', input=ptscorer(model, final_outputs, self.c['Ddim'], N, self.c['l2reg'], **kwargs),
                        layer=Activation(oact))
         model.add_output(name='score', input='scoreS')

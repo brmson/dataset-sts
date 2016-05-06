@@ -67,23 +67,27 @@ def rnn_input(model, N, spad, dropout=3/4, dropoutfix_inp=0, dropoutfix_rec=0,
     At any rate, the output layers are e0s_, e1s_.
 
     If rnnlevels>1, a multi-level stacked RNN architecture like in Wang&Nyberg
-    http://www.aclweb.org/anthology/P15-2116 is applied.
+    http://www.aclweb.org/anthology/P15-2116 is applied, however with skip-connections
+    i.e. the inner RNNs have both the outer RNN and original embeddings as inputs.
     """
+    deep_inputs = inputs
     for i in range(1, rnnlevels):
         rnn_input(model, N, spad, dropout=0, sdim=sdim, rnnbidi=rnnbidi, return_sequences=True,
                   rnn=rnn, rnnact=rnnact, rnninit=rnninit, rnnbidi_mode=rnnbidi_mode,
-                  rnnlevels=1, inputs=inputs, pfx='L%d'%(i,))
-        inputs = ['L%de0s_'%(i,), 'L%de1s_'%(i,)]
+                  rnnlevels=1, inputs=deep_inputs, pfx=pfx+'L%d'%(i,))
+        model.add_node(name=pfx+'L%de0s_j'%(i,), inputs=[inputs[0], pfx+'L%de0s_'%(i,)], merge_mode='concat', layer=Activation('linear'))
+        model.add_node(name=pfx+'L%de1s_j'%(i,), inputs=[inputs[1], pfx+'L%de1s_'%(i,)], merge_mode='concat', layer=Activation('linear'))
+        deep_inputs = ['L%de0s_j'%(i,), 'L%de1s_j'%(i,)]
 
     if rnnbidi:
         if rnnbidi_mode == 'concat':
             sdim /= 2
-        model.add_shared_node(name=pfx+'rnnf', inputs=inputs, outputs=[pfx+'e0sf', pfx+'e1sf'],
+        model.add_shared_node(name=pfx+'rnnf', inputs=deep_inputs, outputs=[pfx+'e0sf', pfx+'e1sf'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
                                         return_sequences=return_sequences,
                                         dropout_W=dropoutfix_inp, dropout_U=dropoutfix_rec))
-        model.add_shared_node(name=pfx+'rnnb', inputs=inputs, outputs=[pfx+'e0sb', pfx+'e1sb'],
+        model.add_shared_node(name=pfx+'rnnb', inputs=deep_inputs, outputs=[pfx+'e0sb', pfx+'e1sb'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
                                         return_sequences=return_sequences, go_backwards=True,
@@ -92,7 +96,7 @@ def rnn_input(model, N, spad, dropout=3/4, dropoutfix_inp=0, dropoutfix_rec=0,
         model.add_node(name=pfx+'e1s', inputs=[pfx+'e1sf', pfx+'e1sb'], merge_mode=rnnbidi_mode, layer=Activation('linear'))
 
     else:
-        model.add_shared_node(name=pfx+'rnn', inputs=inputs, outputs=[pfx+'e0s', pfx+'e1s'],
+        model.add_shared_node(name=pfx+'rnn', inputs=deep_inputs, outputs=[pfx+'e0s', pfx+'e1s'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
                                         return_sequences=return_sequences,
@@ -169,21 +173,31 @@ def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
 # This is primarily meant as an output layer, but could be used also for
 # example as an attention mechanism.
 
-def dot_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
+def dot_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', extra_inp=[]):
     """ Score the pair using just dot-product, that is elementwise
     multiplication and then sum.  The dot-product is natural because it
     measures the relative directions of vectors, being essentially
     a non-normalized cosine similarity. """
     # (The Activation is a nop, merge_mode is the important part)
     model.add_node(name=pfx+'dot', inputs=inputs, layer=Activation('linear'), merge_mode='dot', dot_axes=1)
-    return pfx+'dot'
+    if extra_inp:
+        model.add_node(name=pfx+'mlp', inputs=[pfx+'dot'] + extra_inp, merge_mode='concat',
+                       layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+        return pfx+'mlp'
+    else:
+        return pfx+'dot'
 
 
-def cos_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
+def cos_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', extra_inp=[]):
     """ Score the pair using just cosine similarity. """
     # (The Activation is a nop, merge_mode is the important part)
     model.add_node(name=pfx+'cos', inputs=inputs, layer=Activation('linear'), merge_mode='cos', dot_axes=1)
-    return pfx+'cos'
+    if extra_inp:
+        model.add_node(name=pfx+'mlp', inputs=[pfx+'cos'] + extra_inp, merge_mode='concat',
+                       layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+        return pfx+'mlp'
+    else:
+        return pfx+'cos'
 
 
 def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra_inp=[]):
@@ -194,34 +208,30 @@ def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra
     else:
         model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
     model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
+    mlp_inputs = [pfx+'sum', pfx+'mul'] + extra_inp
 
-    model.add_node(name=pfx+'hdn', inputs=[pfx+'sum', pfx+'mul'] + extra_inp, merge_mode='concat',
-                   layer=Dense(output_dim=int(N*Ddim), W_regularizer=l2(l2reg), activation='sigmoid'))
-    model.add_node(name=pfx+'mlp', input=pfx+'hdn',
-                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
+    if Ddim != 0:
+        model.add_node(name=pfx+'hdn', inputs=mlp_inputs, merge_mode='concat',
+                       layer=Dense(output_dim=int(N*Ddim), W_regularizer=l2(l2reg), activation='sigmoid'))
+        mlp_inputs = [pfx+'hdn']
+
+    mlp_args = dict()
+    if len(mlp_inputs) > 1:
+        mlp_args['inputs'] = mlp_inputs
+        mlp_args['merge_mode'] = 'concat'
+    else:
+        mlp_args['input'] = mlp_inputs[0]
+    model.add_node(name=pfx+'mlp',
+                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg)), **mlp_args)
     return pfx+'mlp'
 
 
-def mulsum_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum'):
-    """ Element-wise features from the pair fed to a concat of sum and multiplication of inputs.
-    """
-    if sum_mode == 'absdiff':
-        absdiff_merge(model, inputs, pfx, "sum")
-    else:
-        model.add_node(name=pfx+'sum', inputs=inputs, layer=Activation('linear'), merge_mode='sum')
-    model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
-
-    model.add_node(name=pfx+'mulsum', inputs=[pfx+'sum', pfx+'mul'], merge_mode='concat',
-                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg), activation='linear'))
-    return pfx+'mulsum'
-
-
-def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out'):
+def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', extra_inp=[]):
     """ Just train a linear classifier (weighed sum of elements) on concatenation
     of inputs.  You may pass also just a single input (which may make sense
     if you for example process s1 "with regard to s0"). """
-    if len(inputs) > 1:
-        model.add_node(name=pfx+'cat', inputs=inputs, merge_mode='concat',
+    if len(inputs + extra_inp) > 1:
+        model.add_node(name=pfx+'cat', inputs=inputs + extra_inp, merge_mode='concat',
                        layer=Dense(output_dim=1, W_regularizer=l2(l2reg)))
     else:
         model.add_node(name=pfx+'cat', input=inputs[0],

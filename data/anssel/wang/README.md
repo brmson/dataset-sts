@@ -34,7 +34,7 @@ intervals (t-distribution) are reported.
 |--------------------------|-------------|----------|----------|----------|---------
 | rnn                      | 0.791770    | 0.842155 | 0.648863 | 0.742747 | (defaults)
 |                          |±0.017036    |±0.009447 |±0.010918 |±0.009896 |
-| cnn                      | 0.845162    | 0.841343 | 0.690906 | 0.770042 | (defaults)
+| cnn                      | 0.845162    | 0.841343 | 0.690906 | 0.770042 | ``inp_e_dropout=1/2`` ``dropout=1/2``
 |                          |±0.015552    |±0.005409 |±0.006910 |±0.010381 |
 | rnncnn                   | 0.922721    | 0.849363 | 0.716519 | 0.797826 | (defaults)
 |                          |±0.019407    |±0.006259 |±0.007169 |±0.011460 |
@@ -43,11 +43,29 @@ intervals (t-distribution) are reported.
 |--------------------------|-------------|----------|----------|----------|---------
 | rnn                      | 0.895331    | 0.872205 | 0.731038 | 0.814410 | Ubuntu transfer learning (``ptscorer=B.dot_ptscorer`` ``pdim=1`` ``inp_e_dropout=0`` ``dropout=0`` ``balance_class=True`` ``adapt_ubuntu=True`` ``opt='rmsprop'``)
 |                          |±0.006360    |±0.004435 |±0.007483 |±0.008340 |
+|--------------------------|-------------|----------|----------|----------|---------
+| avg + BM25               | 0.880256    | 0.857196 | 0.583656 | 0.809148 |
+|                          |±0.006249    |±0.004471 |±0.003216 |±0.006647 |
+| DAN + BM25               | 0.884725    | 0.854399 | 0.571438 | 0.790041 | ``inp_e_dropout=0`` ``inp_w_dropout=1/3`` ``deep=2`` ``pact='relu'``
+|                          |±0.010711    |±0.006776 |±0.005435 |±0.009364 |
+| rnn + BM25               | 0.855969    | 0.858265 | 0.574919 | 0.809619 |
+|                          |±0.004530    |±0.004576 |±0.003262 |±0.006840 |
+| cnn + BM25               | 0.957526    | 0.872277 | 0.578244 | 0.789422 |
+|                          |±0.012634    |±0.006433 |±0.004377 |±0.009193 |
+| rnncnn + BM25            | 0.924293    | 0.855948 | 0.576938 | 0.794583 |
+|                          |±0.015503    |±0.006826 |±0.004248 |±0.007316 |
+| attn1511 + BM25          | 0.909971    | 0.868992 | 0.592856 | 0.816968 |
+|                          |±0.009855    |±0.004665 |±0.004913 |±0.011196 |
+
 
 These results are obtained like this:
 
 	tools/train.py avg anssel data/anssel/wang/train-all.csv data/anssel/wang/dev.csv nb_runs=16
 	tools/eval.py avg anssel data/anssel/wang/train-all.csv data/anssel/wang/dev.csv data/anssel/wang/test.csv weights-anssel-avg--69489c8dc3b6ce11-*-bestval.h5
+
+BM25 results are obtained with:
+
+	"prescoring='termfreq'" "prescoring_weightsf='weights-anssel-termfreq-3368350fbcab42e4-bestval.h5'" "prescoring_input='bm25'" "f_add=['bm25']" prescoring_prune=20
 
 
 Dataset
