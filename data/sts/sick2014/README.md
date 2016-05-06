@@ -72,6 +72,8 @@ Reporting accuracy...
 |--------------------------|----------|----------|----------|---------
 | rnn                      | 0.930833 | 0.829750 | 0.812614 | Ubuntu transfer learning (``pdim=1`` ``ptscorer=B.mlp_ptscorer`` ``dropout=0`` ``inp_e_dropout=0`` ``adapt_ubuntu=True``)
 |                          |±0.017211 |±0.007164 |±0.004619 |
+| rnn                      | 0.926556 | 0.831625 | 0.830703 | SNLI transfer learning (``dropout=0`` ``inp_e_dropout=0``)
+|                          |±0.005925 |±0.003019 |±0.001528 |
 
 
 These results are obtained like this:
