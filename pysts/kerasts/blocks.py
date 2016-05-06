@@ -67,23 +67,27 @@ def rnn_input(model, N, spad, dropout=3/4, dropoutfix_inp=0, dropoutfix_rec=0,
     At any rate, the output layers are e0s_, e1s_.
 
     If rnnlevels>1, a multi-level stacked RNN architecture like in Wang&Nyberg
-    http://www.aclweb.org/anthology/P15-2116 is applied.
+    http://www.aclweb.org/anthology/P15-2116 is applied, however with skip-connections
+    i.e. the inner RNNs have both the outer RNN and original embeddings as inputs.
     """
+    deep_inputs = inputs
     for i in range(1, rnnlevels):
         rnn_input(model, N, spad, dropout=0, sdim=sdim, rnnbidi=rnnbidi, return_sequences=True,
                   rnn=rnn, rnnact=rnnact, rnninit=rnninit, rnnbidi_mode=rnnbidi_mode,
-                  rnnlevels=1, inputs=inputs, pfx='L%d'%(i,))
-        inputs = ['L%de0s_'%(i,), 'L%de1s_'%(i,)]
+                  rnnlevels=1, inputs=deep_inputs, pfx=pfx+'L%d'%(i,))
+        model.add_node(name=pfx+'L%de0s_j'%(i,), inputs=[inputs[0], pfx+'L%de0s_'%(i,)], merge_mode='concat', layer=Activation('linear'))
+        model.add_node(name=pfx+'L%de1s_j'%(i,), inputs=[inputs[1], pfx+'L%de1s_'%(i,)], merge_mode='concat', layer=Activation('linear'))
+        deep_inputs = ['L%de0s_j'%(i,), 'L%de1s_j'%(i,)]
 
     if rnnbidi:
         if rnnbidi_mode == 'concat':
             sdim /= 2
-        model.add_shared_node(name=pfx+'rnnf', inputs=inputs, outputs=[pfx+'e0sf', pfx+'e1sf'],
+        model.add_shared_node(name=pfx+'rnnf', inputs=deep_inputs, outputs=[pfx+'e0sf', pfx+'e1sf'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
                                         return_sequences=return_sequences,
                                         dropout_W=dropoutfix_inp, dropout_U=dropoutfix_rec))
-        model.add_shared_node(name=pfx+'rnnb', inputs=inputs, outputs=[pfx+'e0sb', pfx+'e1sb'],
+        model.add_shared_node(name=pfx+'rnnb', inputs=deep_inputs, outputs=[pfx+'e0sb', pfx+'e1sb'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
                                         return_sequences=return_sequences, go_backwards=True,
@@ -92,7 +96,7 @@ def rnn_input(model, N, spad, dropout=3/4, dropoutfix_inp=0, dropoutfix_rec=0,
         model.add_node(name=pfx+'e1s', inputs=[pfx+'e1sf', pfx+'e1sb'], merge_mode=rnnbidi_mode, layer=Activation('linear'))
 
     else:
-        model.add_shared_node(name=pfx+'rnn', inputs=inputs, outputs=[pfx+'e0s', pfx+'e1s'],
+        model.add_shared_node(name=pfx+'rnn', inputs=deep_inputs, outputs=[pfx+'e0s', pfx+'e1s'],
                               layer=rnn(input_dim=N, output_dim=int(N*sdim), input_length=spad,
                                         init=rnninit, activation=rnnact,
                                         return_sequences=return_sequences,
