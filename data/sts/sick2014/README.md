@@ -31,8 +31,8 @@ t. mean is the same as test (artifact of sts-semeval oriented evaluation).
 |--------------------------|----------|----------|----------|---------
 | rnn                      | 0.732334 | 0.684798 | 0.663615 | (defaults)
 |                          |±0.035202 |±0.016028 |±0.022356 |
-| cnn                      | 0.893748 | 0.763518 | 0.757617 | ``inp_e_dropout=1/2`` ``dropout=1/2`` (FIXME)
-|                          |±0.011819 |±0.005309 |±0.005817 |
+| cnn                      | 0.923268 | 0.757300 | 0.762184 | (defaults)
+|                          |±0.028907 |±0.010743 |±0.006005 |
 | rnncnn                   | 0.940838 | 0.784702 | 0.790240 | (defaults)
 |                          |±0.012955 |±0.002831 |±0.004763 |
 | attn1511                 | 0.835484 | 0.732324 | 0.722736 | (defaults)
@@ -40,6 +40,8 @@ t. mean is the same as test (artifact of sts-semeval oriented evaluation).
 |--------------------------|----------|----------|----------|---------
 | rnn                      | 0.946294 | 0.792281 | 0.799129 | Ubuntu transfer learning (``ptscorer=B.dot_ptscorer`` ``pdim=1`` ``inp_e_dropout=0`` ``dropout=0`` ``adapt_ubuntu=False``)
 |                          |±0.018979 |±0.009483 |±0.009060 |
+| rnn                      | 0.936499 | 0.787830 | 0.798314 | SNLI transfer learning (``dropout=0`` ``inp_e_dropout=0``)
+|                          |±0.042884 |±0.007839 |±0.007330 |
 
 These results are obtained like this:
 

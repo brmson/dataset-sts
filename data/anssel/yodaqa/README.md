@@ -44,10 +44,6 @@ Model Comparison
 
 For randomized models, 95% confidence intervals (t-distribution) are reported.
 
-The f_add_kw versions are ensembles of raw neural networks with yodaqakw scores.
-We'll also shortly report BM25 ensemble results.  The new way to write this option
-is ``f_add=['kw', 'akw']``.
-
 curatedv2:
 
 | Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings
@@ -113,7 +109,7 @@ large2470:
 | attn1511                 | 0.445635    | 0.408495 | 0.288100 | 0.430892 | (defaults)
 |                          |±0.056352    |±0.008744 |±0.005601 |±0.017858 |
 |--------------------------|-------------|----------|----------|----------|---------
-| rnn                      | 0.623209    | 0.517763 | 0.359331 | 0.539284 | Ubuntu transfer learning (``ptscorer=B.dot_ptscorer`` ``pdim=1`` ``inp_e_dropout=0`` ``dropout=0`` ``balance_class=True`` ``adapt_ubuntu=True`` ``opt='rmsprop'``)
+| Ubu. rnn                 | 0.623209    | 0.517763 | 0.359331 | 0.539284 | Ubuntu transfer learning (``ptscorer=B.dot_ptscorer`` ``pdim=1`` ``inp_e_dropout=0`` ``dropout=0`` ``balance_class=True`` ``adapt_ubuntu=True`` ``opt='rmsprop'``)
 |                          |±0.014351    |±0.007724 |±0.003003 |±0.005755 |
 |--------------------------|-------------|----------|----------|----------|---------
 | avg + BM25               | 0.587060    | 0.461915 | 0.278288 | 0.480614 |
@@ -128,6 +124,12 @@ large2470:
 |                          |±0.021074    |±0.004721 |±0.003550 |±0.009965 |
 | attn1511 + BM25          | 0.531593    | 0.462170 | 0.286069 | 0.499340 |
 |                          |±0.039245    |±0.006922 |±0.003301 |±0.008598 |
+|--------------------------|-------------|----------|----------|----------|---------
+| Ubu. rnn + BM25          | 0.540773    | 0.477836 | 0.290694 | 0.514866 | Ubuntu transfer learning (``ptscorer=B.mlp_ptscorer`` ``pdim=1`` ``inp_e_dropout=0`` ``dropout=0`` ``balance_class=True`` ``adapt_ubuntu=True`` ``opt='rmsprop'`` ``epoch_fract=1``)
+|                          |±0.015786    |±0.005804 |±0.001523 |±0.003545 |
+| SNLI rnn + BM25          | 0.601618    | 0.423854 | 0.264144 | 0.460083 | SNLI transfer learning (``dropout=0`` ``inp_e_dropout=0`` ``balance_class=True`` ``opt='rmsprop'`` ``epoch_fract=1``)
+|                          |±0.092094    |±0.009707 |±0.005109 |±0.015438 |
+
 
 These results are obtained like this:
 

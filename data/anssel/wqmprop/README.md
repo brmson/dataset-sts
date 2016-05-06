@@ -19,3 +19,15 @@ There are two types of data sets:
   * Files with prefix enttok- have named entities replaced by ENT_TOK. Only entities, which participated on given path creation were replaced.
 
 These files can be generated using scipt propsel-dataset-refresh.sh contained in https://github.com/brmson/dataset-factoid-webquestions.
+
+Model Comparison
+----------------
+
+For randomized models, 95% confidence intervals (t-distribution) are reported.
+
+Original (w/o enttok- substitutions):
+
+| Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings
+|--------------------------|-------------|----------|----------|----------|---------
+| termfreq BM25 #w         | 0.184683    | 0.177923 | 0.216100 | 0.193827 | (defaults)
+|--------------------------|-------------|----------|----------|----------|---------
