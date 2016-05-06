@@ -69,7 +69,7 @@ class RTETask(AbstractTask):
             # (assuming that the question match is carried over to the answer
             # via attention or another mechanism)
             ptscorer = B.cat_ptscorer
-            final_outputs = final_outputs[1]
+            final_outputs = [final_outputs[1]]
         else:
             ptscorer = self.c['ptscorer']
 
