@@ -12,6 +12,7 @@ from __future__ import print_function
 
 import codecs
 import csv
+import gzip
 from nltk.tokenize import word_tokenize
 import numpy as np
 import json
@@ -219,6 +220,50 @@ def load_msrpara(dsfile):
             s0.append(word_tokenize(s0x))
             s1.append(word_tokenize(s1x))
     return (s0, s1, np.array(labels))
+
+
+def load_askubuntu_texts(tfile):
+    # https://github.com/taolei87/rcnn/blob/master/code/qa/myio.py
+    empty_cnt = 0
+    texts = {}
+    fopen = gzip.open if tfile.endswith(".gz") else open
+    with fopen(tfile) as fin:
+        for line in fin:
+            id, title, body = line.split("\t")
+            if len(title) == 0:
+                continue
+            title = title.strip().split()
+            body = body.strip().split()
+            texts[id] = title  #(title, body)
+    return texts
+
+
+def load_askubuntu_q(qfile):
+    # https://github.com/taolei87/rcnn/blob/master/code/qa/myio.py
+    links = []
+    with open(qfile) as fin:
+        for line in fin:
+            parts = line.split("\t")
+            pid, pos, neg = parts[:3]
+            pos = pos.split()
+            neg = neg.split()
+            if len(pos) == 0: continue
+            s = set()
+            qids = [ ]
+            qlabels = [ ]
+            for q in neg:
+                if q not in s:
+                    qids.append(q)
+                    qlabels.append(0 if q not in pos else 1)
+                    s.add(q)
+            for q in pos:
+                if q not in s:
+                    qids.append(q)
+                    qlabels.append(1)
+                    s.add(q)
+            links.append((pid, qids, qlabels))
+    return links
+
 
 
 def concat_datasets(datasets):
