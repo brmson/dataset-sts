@@ -12,6 +12,7 @@ Model Comparison
 ----------------
 
 For randomized models, 95% confidence intervals (t-distribution) are be reported.
+Each model is run 4×.
 
 Note that NO DROPOUT is applied for any of the models.
 
@@ -21,11 +22,12 @@ Note that NO DROPOUT is applied for any of the models.
 | Bowman et al. '16        | 0.892    |   NA     | 0.832    | 300D SPINN-NP encoders (3.7m params)
 | Cheng et al. '16         | 0.921    |   NA     | 0.890    | 300D LSTMN with deep attention fusion (1.4m params), state-of-art
 |--------------------------|----------|----------|----------|----------
-| avg                      | 0.741874 | 0.708824 | 0.712490 | ``inp_w_dropout=0`` ``dropout=0`` ``inp_e_dropout=0``
-|                          |±0.009237 |±0.003442 |±0.005930 |
-| rnn                      | 0.770763 | 0.753759 | 0.747303 | ``inp_w_dropout=0`` ``dropout=0`` ``inp_e_dropout=0``
-|                          |±0.025463 |±0.009667 |±0.007605 |
-
+| avg                      | 0.735293 | 0.706106 | 0.710378 | ``dropout=0`` ``inp_e_dropout=0``
+|                          |±0.014398 |±0.004129 |±0.007915 |
+| rnn                      | 0.784382 | 0.754344 | 0.748651 | ``dropout=0`` ``inp_e_dropout=0``
+|                          |±0.019295 |±0.006224 |±0.009505 |
+| attn1511                 | 0.828611 | 0.781472 | 0.773921 | ``dropout=0`` ``inp_e_dropout=0``
+|                          |±0.013870 |±0.002253 |±0.004134 |
 
 These results are obtained like this:
 
