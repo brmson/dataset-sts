@@ -10,8 +10,8 @@ To evaluate using KeraSTS, refer to ``tools/sts_train.py``.
 Otherwise, for a Python code example for evaluation and processing, see
 https://github.com/ryankiros/skip-thoughts/blob/master/eval_sick.py
 
-Model Comparison
-----------------
+STS Model Comparison
+--------------------
 
 For randomized models, 95% confidence intervals (t-distribution) are reported.
 t. mean is the same as test (artifact of sts-semeval oriented evaluation).
@@ -45,3 +45,37 @@ These results are obtained like this:
 
 	tools/train.py avg sts data/sts/sick2014/SICK_train.txt data/sts/sick2014/SICK_trial.txt nb_runs=16
 	tools/eval.py avg sts data/sts/sick2014/SICK_train.txt data/sts/sick2014/SICK_trial.txt data/sts/sick2014/SICK_test_annotated.txt weights-sts-avg--69489c8dc3b6ce11-*-bestval.h5
+
+RTE Model Comparison
+--------------------
+
+Reporting accuracy...
+
+| Model                    | train    | trial    | test     | settings
+|--------------------------|----------|----------|----------|---------
+| Bowman et al.(2015) Lex  | 0.904    |          | 0.778    | (the "Lexicalized" Excitement-derived baseline)
+| Bowman et al.(2015) LSTM | 1.000    |          | 0.713    | (the proposed 100d LSTM model)
+| Bowman et al.(2015) SNLI | 0.999    |          | 0.808    | (the proposed 100d LSTM model transferred from SNLI)
+|--------------------------|----------|----------|----------|---------
+| avg                      | 0.770347 | 0.678750 | 0.652172 | (defaults)
+|                          |±0.020479 |±0.018501 |±0.016917 |
+| DAN                      | 0.714889 | 0.682625 | 0.662472 | ``inp_e_dropout=0`` ``inp_w_dropout=1/3`` ``deep=2`` ``pact='relu'``
+|                          |±0.009707 |±0.003892 |±0.002700 |
+| rnn                      | 0.759486 | 0.738875 | 0.731568 | (defaults)
+|                          |±0.015704 |±0.014402 |±0.010432 |
+| cnn                      | 0.926708 | 0.822375 | 0.799104 | ``dropout=0`` ``inp_e_dropout=0``
+|                          |±0.008168 |±0.002850 |±0.003824 |
+| rnncnn                   | 0.765472 | 0.717750 | 0.709420 | (defaults)
+|                          |±0.084148 |±0.060789 |±0.058780 |
+| attn1511                 | 0.857792 | 0.783875 | 0.766757 | ``ptscorer='1'``
+|                          |±0.010444 |±0.005104 |±0.004373 |
+|--------------------------|----------|----------|----------|---------
+| rnn                      | 0.930833 | 0.829750 | 0.812614 | Ubuntu transfer learning (``pdim=1`` ``ptscorer=B.mlp_ptscorer`` ``dropout=0`` ``inp_e_dropout=0`` ``adapt_ubuntu=True``)
+|                          |±0.017211 |±0.007164 |±0.004619 |
+
+
+These results are obtained like this:
+
+	tools/train.py avg rte data/sts/sick2014/SICK_train.txt data/sts/sick2014/SICK_trial.txt nb_runs=16
+	tools/eval.py avg rte data/sts/sick2014/SICK_train.txt data/sts/sick2014/SICK_trial.txt data/sts/sick2014/SICK_test_annotated.txt weights-rte-avg--69489c8dc3b6ce11-*-bestval.h5
+
