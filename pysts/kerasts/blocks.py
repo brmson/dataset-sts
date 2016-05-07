@@ -210,19 +210,32 @@ def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra
     model.add_node(name=pfx+'mul', inputs=inputs, layer=Activation('linear'), merge_mode='mul')
     mlp_inputs = [pfx+'sum', pfx+'mul'] + extra_inp
 
-    if Ddim != 0:
-        model.add_node(name=pfx+'hdn', inputs=mlp_inputs, merge_mode='concat',
-                       layer=Dense(output_dim=int(N*Ddim), W_regularizer=l2(l2reg), activation='sigmoid'))
-        mlp_inputs = [pfx+'hdn']
+    def mlp_args(mlp_inputs):
+        """ return model.add_node() args that are good for mlp_inputs list
+        of both length 1 and more than 1. """
+        mlp_args = dict()
+        if len(mlp_inputs) > 1:
+            mlp_args['inputs'] = mlp_inputs
+            mlp_args['merge_mode'] = 'concat'
+        else:
+            mlp_args['input'] = mlp_inputs[0]
+        return mlp_args
 
-    mlp_args = dict()
-    if len(mlp_inputs) > 1:
-        mlp_args['inputs'] = mlp_inputs
-        mlp_args['merge_mode'] = 'concat'
-    else:
-        mlp_args['input'] = mlp_inputs[0]
+    # Ddim may be either 0 (no hidden layer), scalar (single hidden layer) or
+    # list (multiple hidden layers)
+    if Ddim == 0:
+        Ddim = []
+    elif not isinstance(Ddim, list):
+        Ddim = [Ddim]
+    if Ddim:
+        for i, D in enumerate(Ddim):
+            model.add_node(name=pfx+'hdn[%d]'%(i,),
+                           layer=Dense(output_dim=int(N*D), W_regularizer=l2(l2reg), activation='tanh'),
+                           **mlp_args(mlp_inputs))
+            mlp_inputs = [pfx+'hdn[%d]'%(i,)]
+
     model.add_node(name=pfx+'mlp',
-                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg)), **mlp_args)
+                   layer=Dense(output_dim=1, W_regularizer=l2(l2reg)), **mlp_args(mlp_inputs))
     return pfx+'mlp'
 
 
