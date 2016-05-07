@@ -199,6 +199,7 @@ def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, r
     else:
         next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_')
         model.add_node(name='scoreS1', input=next_input, layer=Activation(oact))
+        next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S2_')
         model.add_node(name='scoreS2', input=next_input, layer=Activation(oact))
 
 
