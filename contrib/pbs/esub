@@ -1,0 +1,29 @@
+#!/bin/bash
+# esub - ssub wrapper to run final evaluation on trained models
+#
+# Example: ./esub "-p +64 -q gpu -l mem=16gb -l walltime=1:00:00 -l nodes=1:gpu=1:ppn=1:^cl_gram:^cl_konos" R_ay_2cnn_xyzzy data/anssel/yodaqa/curatedv2-test.csv dropout=1/2 "cnnact='relu'" "cdim={2: 3}"
+#
+# Run from the joblogs directory where runs of the given ID are stored.
+# Basic parameters (model, task, files) are initialized from the job logs.
+# But you must pass the config parameters explicitly!
+
+qsubopt=$1; shift
+jobid=$1; shift
+testf=$1; shift
+
+head -n1 *.$jobid
+
+trainline=$(cat *.$jobid | head -n1)
+# python -u tools/train.py avg hypev data/hypev/argus/argus_train.csv data/hypev/argus/argus_val.csv nb_runs=4
+# python -u tools/transfer.py rnn ubuntu data/anssel/ubuntu/v2-vocab.pickle weights-ubuntu-rnn--7a4dc53030450b89-00-bestval.h5 hypev data/hypev/argus/argus_train.csv data/hypev/argus/argus_val.csv pdim=1 ptscorer=B.mlp_ptscorer dropout=0 inp_e_dropout=0 task1_conf={'ptscorer':B.dot_ptscorer} opt='rmsprop' nb_runs=4
+read _ _ o m t train val _ <<<"$trainline"
+if [ "$o" = "tools/transfer.py" ]; then
+	# try again
+	read _ _ o m _ _ _ t train val _ <<<"$trainline"
+fi
+
+Ejobid=E${jobid:1}
+weightsf=$(grep RunID: *.$jobid | awk '{print"weights-"$2"-bestval.h5"}')
+
+echo tools/eval.py $m $t "$train" "$val" "$testf" $weightsf "$@"
+~/ssub "$qsubopt -N $Ejobid" tools/eval.py $m $t "$train" "$val" "$testf" $weightsf "$@"

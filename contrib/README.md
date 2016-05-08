@@ -5,7 +5,7 @@ This directory contains various contributed auxiliary scripts.
 
   * **pbs/** - scripts for easy management of jobs in PBS-compatible
     systems; the defaults correspond to the MetaCentrum Czech national
-    supercomputer grid
+    supercomputer grid; symlink all the files to your home directory
 
   * **ev.sh** - script for quick evaluation of multiple train runs
     regarding expected validation set performance
