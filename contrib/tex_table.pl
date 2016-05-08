@@ -1,14 +1,15 @@
 #!/usr/bin/perl
 
 while (<>) {
+	chomp;
 	if (/^\|--/) {
 		print("\\hline\n");
 		next;
 	}
 	s/^\| //;
+	s/ *\|$//;
 	s/±/ \\pm/g;
-	s/ \|$/\\\\/;
-	@a = split(/ *\| */, $_);
+	@a = split(/ *\| */, $_, -1);
 	my $m = shift @a;
 	@b = ();
 	for $r (@a) {
