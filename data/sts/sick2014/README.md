@@ -58,6 +58,7 @@ Reporting accuracy...
 | Bowman et al.(2015) Lex  | 0.904    |          | 0.778    | (the "Lexicalized" Excitement-derived baseline)
 | Bowman et al.(2015) LSTM | 1.000    |          | 0.713    | (the proposed 100d LSTM model)
 | Bowman et al.(2015) SNLI | 0.999    |          | 0.808    | (the proposed 100d LSTM model transferred from SNLI)
+| Lai et Hockenmaier (2014)|          | 0.842    | 0.845    | (the SemEval 2014 Task 1 winner)
 |--------------------------|----------|----------|----------|---------
 | avg                      | 0.770347 | 0.678750 | 0.652172 | (defaults)
 |                          |±0.020479 |±0.018501 |±0.016917 |
