@@ -1,0 +1,22 @@
+#!/bin/bash
+# ssub - qsub wrapper that can take full script commandline
+#
+# Example: ./ssub "-p 0 -q gpu -l mem=16gb -l walltime=1:00:00 -l nodes=1:gpu=1:ppn=1:^cl_gram:^cl_konos -N R_ay_2cnn_xyzzy" tools/train.py cnn anssel data/anssel/yodaqa/curatedv2-training.csv data/anssel/yodaqa/curatedv2-val.csv dropout=1/2 "cnnact='relu'" "cdim={2: 3}"
+#
+# Note that " must be used for outer shell quoting of config parameters rather than '.
+
+qsubopt=$1; shift
+
+cat ~/script.sh | while read -r line; do
+	if [ "$line" = "@CMD@" ]; then
+		echo -n "cmd=("
+		for par; do
+			echo -n "\"$par\" "
+		done
+		echo ")"
+	else
+		echo "$line"
+	fi
+done >~/scriptx.sh
+echo qsub $qsubopt ~/scriptx.sh
+qsub $qsubopt ~/scriptx.sh
