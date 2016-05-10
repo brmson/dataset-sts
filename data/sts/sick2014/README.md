@@ -22,7 +22,7 @@ t. mean is the same as test (artifact of sts-semeval oriented evaluation).
 | termfreq BM25 #w         | 0.476338 | 0.458441 | 0.474453 | (defaults)
 | ECNU run1                |          |          | 0.8414   | STS2014 winner
 | Kiros et al. (2015)      |          |          | 0.8655   | skip-thoughts
-| Tai et al. (2015)        |          |          | 0.8676   | TreeLSTM; state-of-art
+| Mueller et al. (2016)    |          |          | 0.8822   | MaLSTM; state-of-art
 |--------------------------|----------|----------|----------|---------
 | avg                      | 0.722639 | 0.625970 | 0.621415 | (defaults)
 |                          |±0.035858 |±0.015800 |±0.017411 |
