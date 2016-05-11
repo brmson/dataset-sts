@@ -59,7 +59,7 @@ def config(c):
 
 
 def prep_model(model, N, s0pad, s1pad, c):
-    winputs = ['e0_', 'e1_']
+    winputs = ['e0', 'e1']
     if c['wproject']:
         model.add_shared_node(name='wproj', inputs=winputs, outputs=['e0w', 'e1w'],
                               layer=TimeDistributedDense(output_dim=int(N*c['wdim']),

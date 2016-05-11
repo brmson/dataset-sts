@@ -22,14 +22,18 @@ except ImportError:
 class Embedder(object):
     """ Generic embedding interface.
 
-    Required: attributes g and N """
+    Required:
+      * w: dict mapping tokens to indices
+      * g: matrix with one row per token index
+      * N: embedding dimensionality
+    """
 
     def map_tokens(self, tokens, ndim=2):
         """ for the given list of tokens, return a list of GloVe embeddings,
         or a single plain bag-of-words average embedding if ndim=1.
 
         Unseen words (that's actually *very* rare) are mapped to 0-vectors. """
-        gtokens = [self.g[t] for t in tokens if t in self.g]
+        gtokens = [self.g[self.w[t]] for t in tokens if t in self.w]
         if not gtokens:
             return np.zeros((1, self.N)) if ndim == 2 else np.zeros(self.N)
         gtokens = np.array(gtokens)
@@ -41,6 +45,15 @@ class Embedder(object):
     def map_set(self, ss, ndim=2):
         """ apply map_tokens on a whole set of sentences """
         return [self.map_tokens(s, ndim=ndim) for s in ss]
+
+    def map_j(self, sj0):
+        """ for the given list of token indices, return a list of GloVe
+        embeddings """
+        return [self.g[j] for j in sj0]
+
+    def map_jset(self, sj):
+        """ apply map_j on a whole set of sentences """
+        return np.array([self.map_j(sj0) for sj0 in sj], dtype='float32')
 
     def pad_set(self, ss, spad, N=None):
         """ Given a set of sentences transformed to per-word embeddings
@@ -77,14 +90,19 @@ class GloVe(Embedder):
         Glovepath should contain %d, which is substituted for the embedding
         dimension N. """
         self.N = N
-        self.g = dict()
+        self.w = dict()
+        self.g = []
         self.glovepath = glovepath % (N,)
+
+        # [0] must be a zero vector
+        self.g.append(np.zeros(self.N))
 
         with open(self.glovepath, 'r') as f:
             for line in f:
                 l = line.split()
                 word = l[0]
-                self.g[word] = np.array(l[1:]).astype(float)
+                self.w[word] = len(self.g)
+                self.g.append(np.array(l[1:]).astype(float))
 
 
 class Word2Vec(Embedder):
@@ -94,10 +112,18 @@ class Word2Vec(Embedder):
         """
         self.N = N
         self.w2vpath = w2vpath % (N,)
+        self.w = dict()
+        self.g = []
 
         import gensim
-        self.g = gensim.models.Word2Vec.load_word2vec_format(self.w2vpath, binary=True)
+        gdict = gensim.models.Word2Vec.load_word2vec_format(self.w2vpath, binary=True)
         assert self.N == self.g.vector_size
+
+        # [0] must be a zero vector
+        self.g.append(np.zeros(self.N))
+        for tok in gdict:
+            self.w[tok] = len(self.g)
+            self.g.append(np.array(gdict[tok]).astype(float))
 
 
 class SkipThought(Embedder):

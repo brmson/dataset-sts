@@ -66,6 +66,8 @@ def default_config(model_config, task_config):
     # TODO: Move this to AbstractTask()?
     c = dict()
     c['embdim'] = 300
+    c['embprune'] = 100
+    c['embicase'] = False
     c['inp_e_dropout'] = 1/2
     c['inp_w_dropout'] = 0
     c['e_add_flags'] = True
@@ -177,7 +179,7 @@ if __name__ == "__main__":
     print('Dataset')
     if 'vocabf' in conf:
         task.load_vocab(conf['vocabf'])
-    task.load_data(trainf,valf)
+    task.load_data(trainf, valf)
     for i_run in range(conf['nb_runs']):
         if conf['nb_runs'] == 1:
             runid = '%s-%s-%x' % (taskname, modelname, h)

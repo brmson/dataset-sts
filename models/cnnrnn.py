@@ -57,7 +57,7 @@ def config(c):
 def cnn_input(model, N, spad, l2reg=1e-4,
               cnninit='glorot_uniform', cnnact='tanh',
               cdim=2, cfiltlen=3):
-    """ A CNN pooling layer that takes sequence of embeddings e0_, e1_ and
+    """ A CNN pooling layer that takes sequence of embeddings e0, e1 and
     processes them using a CNN to produce a new sequence of fixed-length-context
     sensitive embeddings.  Returns output tensor shape.
 
@@ -65,7 +65,7 @@ def cnn_input(model, N, spad, l2reg=1e-4,
     """
     nb_filter = int(N*cdim)
     model.add_shared_node(name='aconv',
-                          inputs=['e0_', 'e1_'], outputs=['e0c', 'e1c'],
+                          inputs=['e0', 'e1'], outputs=['e0c', 'e1c'],
                           layer=Convolution1D(input_shape=(spad, N),
                                               nb_filter=nb_filter, filter_length=cfiltlen,
                                               activation=cnnact, W_regularizer=l2(l2reg),

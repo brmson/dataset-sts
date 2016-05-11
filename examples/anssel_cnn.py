@@ -65,16 +65,22 @@ s0pad = 60
 s1pad = 60
 
 
-def load_set(fname, vocab=None):
+def load_set(fname, emb, vocab=None):
     s0, s1, y, _, _, _ = loader.load_anssel(fname)
 
     if vocab is None:
         vocab = Vocabulary(s0 + s1)
 
-    si0 = vocab.vectorize(s0)
-    si1 = vocab.vectorize(s1)
+    si0, sj0 = vocab.vectorize(s0, emb)
+    si1, sj1 = vocab.vectorize(s1, emb)
+    se0 = emb.map_jset(sj0)
+    se1 = emb.map_jset(sj1)
     f0, f1 = nlp.sentence_flags(s0, s1, s0pad, s1pad)
-    gr = graph_input_anssel(si0, si1, y, f0, f1)
+    gr = graph_input_anssel(si0, si1, sj0, sj1, se0, se1, y, f0, f1)
+
+    # XXX: Pre-generating the whole (se0, se1) produces a *big* memory footprint
+    # for the dataset.  In KeraSTS, we solve this by using fit_generator (also
+    # because of epoch_fract) and embed just per-batch.
 
     return (s0, s1, y, vocab, gr)
 
@@ -125,11 +131,11 @@ if __name__ == "__main__":
 
     glove = emb.GloVe(N=args.N)
     if args.wang == 1:
-        s0, s1, y, vocab, gr = load_set('data/anssel/wang/train-all.csv')
-        s0t, s1t, yt, _, grt = load_set('data/anssel/wang/dev.csv', vocab)
+        s0, s1, y, vocab, gr = load_set('data/anssel/wang/train-all.csv', glove)
+        s0t, s1t, yt, _, grt = load_set('data/anssel/wang/dev.csv', glove, vocab)
     else:
-        s0, s1, y, vocab, gr = load_set('data/anssel/yodaqa/curatedv1-training.csv')
-        s0t, s1t, yt, _, grt = load_set('data/anssel/yodaqa/curatedv1-val.csv', vocab)
+        s0, s1, y, vocab, gr = load_set('data/anssel/yodaqa/curatedv1-training.csv', glove)
+        s0t, s1t, yt, _, grt = load_set('data/anssel/yodaqa/curatedv1-val.csv', glove, vocab)
 
     kwargs = eval('dict(' + args.params + ')')
     model = prep_model(glove, vocab, oact='linear', **kwargs)

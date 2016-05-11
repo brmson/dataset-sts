@@ -54,8 +54,6 @@ def prescoring_model(model_module, c, weightsf):
 def graph_input_prune(gr, ypred, N, skip_oneclass=False):
     """ Given a gr and a given scoring, keep only top N s1 for each s0,
     and stash the others away to _x-suffixed keys (for potential recovery). """
-    slices = []
-
     def prune_filter(ypred, N):
         """ yield (index, passed) tuples """
         ys = sorted(enumerate(ypred), key=lambda yy: yy[1], reverse=True)
@@ -69,7 +67,7 @@ def graph_input_prune(gr, ypred, N, skip_oneclass=False):
     i = 0
     grp = dict([(k, []) for k in gr.keys()] + [(k+'_x', []) for k in gr.keys()])
     for j in range(len(gr['si0']) + 1):
-        if j < len(gr['si0']) and (j == 0 or np.all(gr['si0'][j] == gr['si0'][j-1])):
+        if j < len(gr['si0']) and (j == 0 or np.all(gr['si0'][j]+gr['sj0'][j] == gr['si0'][j-1]+gr['sj0'][j-1])):
             # within same-s0 block, carry on
             continue
         # block boundary
@@ -154,14 +152,16 @@ class AnsSelTask(AbstractTask):
         # TODO: Make use of the t-annotations
 
         if self.vocab is None:
-            vocab = Vocabulary(s0 + s1)
+            vocab = Vocabulary(s0 + s1, prune_N=self.c['embprune'], icase=self.c['embicase'])
         else:
             vocab = self.vocab
 
-        si0 = vocab.vectorize(s0, spad=self.s0pad)
-        si1 = vocab.vectorize(s1, spad=self.s1pad)
+        si0, sj0 = vocab.vectorize(s0, self.emb, spad=self.s0pad)
+        si1, sj1 = vocab.vectorize(s1, self.emb, spad=self.s1pad)
+        se0 = self.emb.map_jset(sj0)
+        se1 = self.emb.map_jset(sj1)
         f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
-        gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1, kw=kw, akw=akw)
+        gr = graph_input_anssel(si0, si1, sj0, sj1, se0, se1, y, f0, f1, s0, s1, kw=kw, akw=akw)
 
         if save_cache:
             with open(cache_filename, "wb") as f:
@@ -212,7 +212,7 @@ class AnsSelTask(AbstractTask):
         return model
 
     def fit_callbacks(self, weightsf):
-        return [AnsSelCB(self.grv_p['si0'], self.grv_p),
+        return [AnsSelCB(self.grv_p['si0']+self.grv_p['sj0'], self.grv_p),
                 ModelCheckpoint(weightsf, save_best_only=True, monitor='mrr', mode='max'),
                 EarlyStopping(monitor='mrr', mode='max', patience=4)]
 
@@ -243,7 +243,7 @@ class AnsSelTask(AbstractTask):
             ypred = model.predict(gr_p)['score'][:,0]
             gr, ypred = graph_input_unprune(gr, gr_p, ypred, 0. if self.c['loss'] == 'binary_crossentropy' else float(-1e15))
 
-            res.append(ev.eval_anssel(ypred, gr['si0'], gr['si1'], gr['score'], fname, MAP=True))
+            res.append(ev.eval_anssel(ypred, gr['si0']+gr['sj0'], gr['si1']+gr['sj1'], gr['score'], fname, MAP=True))
         return tuple(res)
 
     def predict(self, model):

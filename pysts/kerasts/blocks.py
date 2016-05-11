@@ -18,9 +18,20 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w,
               trainable=True, add_flags=True, create_inputs=True):
     """ The universal sequence input layer.
 
-    Declare inputs si0, si1, f0, f1 (vectorized sentences and NLP flags)
-    and generate outputs e0, e1 representing vector sequences, and e0_, e1_
-    with dropout applied.  Returns the vector dimensionality.
+    Declare inputs si0, si1, se0, se1, f0, f1 (vectorized sentences and NLP flags)
+    and generate outputs e0, e1.  Returns the vector dimensionality.
+
+    The word vectors are passed either as non-zero **si** element and zero **se**
+    vector, or vice versa.  **si** are indices to a trainable embedding matrix,
+    while **se** are hardcoded embeddings.  The motivation of this is that most
+    frequent words (which represent semantic operators, like "and", "not",
+    "how" etc.) as well as special words (OOV, interpunction) are passed as
+    indices and therefore have adaptable embeddings, while the long tail of
+    less used words is substituted to hardcoded embeddings on input, so that
+    the full GloVe matrix does not need to be in GPU memory and we generalize
+    to words unseen at training time.  At any rate, after the embedding layer
+    the inputs are summed, so for the rest of the models it makes no difference
+    how each word is passed.
 
     With trainable=True, allows adaptation of the embedding matrix during
     training.  With add_flags=True, append the NLP flags to the embeddings. """
@@ -28,27 +39,28 @@ def embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w,
     if create_inputs:
         for m, p in [(0, s0pad), (1, s1pad)]:
             model.add_input('si%d'%(m,), input_shape=(p,), dtype='int')
+            model.add_input('se%d'%(m,), input_shape=(p, glove.N))
             if add_flags:
                 model.add_input('f%d'%(m,), input_shape=(p, nlp.flagsdim))
 
-    if add_flags:
-        outputs = ['e0[0]', 'e1[0]']
-    else:
-        outputs = ['e0', 'e1']
-
-    model.add_shared_node(name='emb', inputs=['si0', 'si1'], outputs=outputs,
-                          layer=Embedding(input_dim=vocab.size(), input_length=s1pad,
+    emb = vocab.embmatrix(glove)
+    model.add_shared_node(name='emb', inputs=['si0', 'si1'], outputs=['e0[0]', 'e1[0]'],
+                          layer=Embedding(input_dim=emb.shape[0], input_length=s1pad,
                                           output_dim=glove.N, mask_zero=True,
-                                          weights=[vocab.embmatrix(glove)], trainable=trainable,
+                                          weights=[emb], trainable=trainable,
                                           dropout=dropout_w))
+    model.add_node(name='e0[1]', inputs=['e0[0]', 'se0'], merge_mode='sum', layer=Activation('linear'))
+    model.add_node(name='e1[1]', inputs=['e1[0]', 'se1'], merge_mode='sum', layer=Activation('linear'))
+    eputs = ['e0[1]', 'e1[1]']
     if add_flags:
         for m in [0, 1]:
-            model.add_node(name='e%d'%(m,), inputs=['e%d[0]'%(m,), 'f%d'%(m,)], merge_mode='concat', layer=Activation('linear'))
+            model.add_node(name='e%d[f]'%(m,), inputs=[eputs[m], 'f%d'%(m,)], merge_mode='concat', layer=Activation('linear'))
+        eputs = ['e0[f]', 'e1[f]']
         N = glove.N + nlp.flagsdim
     else:
         N = glove.N
 
-    model.add_shared_node(name='embdrop', inputs=['e0', 'e1'], outputs=['e0_', 'e1_'],
+    model.add_shared_node(name='embdrop', inputs=eputs, outputs=['e0', 'e1'],
                           layer=Dropout(dropout, input_shape=(N,)))
 
     return N
@@ -58,8 +70,8 @@ def rnn_input(model, N, spad, dropout=3/4, dropoutfix_inp=0, dropoutfix_rec=0,
               sdim=2, rnnbidi=True, return_sequences=False,
               rnn=GRU, rnnact='tanh', rnninit='glorot_uniform', rnnbidi_mode='sum',
               rnnlevels=1,
-              inputs=['e0_', 'e1_'], pfx=''):
-    """ An RNN layer that takes sequence of embeddings e0_, e1_ and
+              inputs=['e0', 'e1'], pfx=''):
+    """ An RNN layer that takes sequence of embeddings e0, e1 and
     processes them using an RNN + dropout.
 
     If return_sequences=False, it returns just the final hidden state of the RNN;
@@ -121,8 +133,8 @@ def add_multi_node(model, name, inputs, outputs, layer_class,
 def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
                  cnninit='glorot_uniform', cnnact='tanh',
                  cdim={1: 1/2, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2},
-                 inputs=['e0_', 'e1_'], pfx='', siamese=True):
-    """ An CNN pooling layer that takes sequence of embeddings e0_, e1_ and
+                 inputs=['e0', 'e1'], pfx='', siamese=True):
+    """ An CNN pooling layer that takes sequence of embeddings e0, e1 and
     processes them using a CNN + max-pooling to produce a single "summary
     embedding" (*NOT* a sequence of embeddings).
 
@@ -256,7 +268,7 @@ def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', extra_inp=[]):
 def absdiff_merge(model, inputs, pfx="out", layer_name="absdiff"):
     """ Merging two layers into one, via element-wise subtraction and then taking absolute value.
 
-    Example of usage: layer_name = absdiff_merge(model, inputs=["e0_", "e1_"])
+    Example of usage: layer_name = absdiff_merge(model, inputs=["e0", "e1"])
 
     TODO: The more modern way appears to be to use "join" merge mode and Lambda layer.
     """
