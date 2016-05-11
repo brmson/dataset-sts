@@ -100,12 +100,11 @@ if __name__ == "__main__":
         model.load_weights(weightf)
 
         print('Predict&Eval (best val epoch)')
-        resv = task.predict(model)
+        resv = task.predict(model, task.gr_v)
         res[valf].append(resv)
         print()
 
-    
-    for i, ypred in enumerate(resv[0]):
+    for i, ypred in enumerate(res.values()):
         s0 = ' '.join(task.grv['s0'][i])
         s1 = ' '.join(task.grv['s1'][i])
         y = task.grv['score'][i]

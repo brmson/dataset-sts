@@ -158,10 +158,8 @@ class AnsSelTask(AbstractTask):
 
         si0, sj0 = vocab.vectorize(s0, self.emb, spad=self.s0pad)
         si1, sj1 = vocab.vectorize(s1, self.emb, spad=self.s1pad)
-        se0 = self.emb.map_jset(sj0)
-        se1 = self.emb.map_jset(sj1)
         f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
-        gr = graph_input_anssel(si0, si1, sj0, sj1, se0, se1, y, f0, f1, s0, s1, kw=kw, akw=akw)
+        gr = graph_input_anssel(si0, si1, sj0, sj1, None, None, y, f0, f1, s0, s1, kw=kw, akw=akw)
 
         if save_cache:
             with open(cache_filename, "wb") as f:
@@ -212,7 +210,7 @@ class AnsSelTask(AbstractTask):
         return model
 
     def fit_callbacks(self, weightsf):
-        return [AnsSelCB(self.grv_p['si0']+self.grv_p['sj0'], self.grv_p),
+        return [AnsSelCB(self, self.grv_p),
                 ModelCheckpoint(weightsf, save_best_only=True, monitor='mrr', mode='max'),
                 EarlyStopping(monitor='mrr', mode='max', patience=4)]
 
@@ -225,8 +223,7 @@ class AnsSelTask(AbstractTask):
         if self.c['epoch_fract'] != 1:
             kwargs['samples_per_epoch'] = int(len(gr_p['si0']) * self.c['epoch_fract'])
 
-        kwargs['callbacks'] = self.fit_callbacks(kwargs.pop('weightsf'))
-        return model.fit(gr_p, validation_data=self.grv_p, **kwargs)
+        return super().fit_model(model, **kwargs)
 
     def eval(self, model):
         res = []
@@ -240,22 +237,11 @@ class AnsSelTask(AbstractTask):
             # dataset, actually!  Therefore, we then unprune again.
             # TODO: Cache the pruning
             gr_p = self.prescoring_apply(gr)
-            ypred = model.predict(gr_p)['score'][:,0]
+            ypred = self.predict(model, gr_p)
             gr, ypred = graph_input_unprune(gr, gr_p, ypred, 0. if self.c['loss'] == 'binary_crossentropy' else float(-1e15))
 
             res.append(ev.eval_anssel(ypred, gr['si0']+gr['sj0'], gr['si1']+gr['sj1'], gr['score'], fname, MAP=True))
         return tuple(res)
-
-    def predict(self, model):
-        res = []
-        for gr, fname in [(self.grv, self.valf)]:
-            if gr is None:
-                res.append(None)
-                continue
-            ypred = model.predict(gr)['score'][:,0]
-            res.append(ypred)
-        return tuple(res)
-
 
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing

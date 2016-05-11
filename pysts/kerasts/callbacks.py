@@ -10,12 +10,13 @@ import pysts.loader as loader
 
 class AnsSelCB(Callback):
     """ A callback that monitors answer selection validation MRR after each epoch """
-    def __init__(self, val_s0, val_gr):
-        self.val_s0 = val_s0
-        self.val_gr = val_gr  # graph_input()
+    def __init__(self, task, val_gr):
+        self.task = task
+        self.val_s0 = self.task.grv_p['si0'] + self.task.grv_p['sj0']
+        self.val_gr = val_gr
 
     def on_epoch_end(self, epoch, logs={}):
-        ypred = self.model.predict(self.val_gr)['score'][:,0]
+        ypred = self.task.predict(self.model, self.val_gr)
         mrr = ev.mrr(self.val_s0, self.val_gr['score'], ypred)
         print('                                                       val mrr %f' % (mrr,))
         logs['mrr'] = mrr

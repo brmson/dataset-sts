@@ -84,8 +84,8 @@ def get_score():
     gr, y, _ = task.load_set(f.name)
 
     # XXX: 'score' assumed
-    res = model.predict(gr)['score'][:,0]
-    return jsonify({'score': res.tolist()}), 200
+    res = task.predict(model, gr)
+    return jsonify({'score': res}), 200
 
 
 if __name__ == "__main__":

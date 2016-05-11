@@ -41,7 +41,6 @@ import pysts.loader as loader
 from pysts.hyperparam import hash_params
 
 import pysts.kerasts.blocks as B
-from pysts.kerasts.callbacks import AnsSelCB
 from pysts.kerasts.objectives import pearsonobj
 
 from train import config, train_model

@@ -46,14 +46,9 @@ class Embedder(object):
         """ apply map_tokens on a whole set of sentences """
         return [self.map_tokens(s, ndim=ndim) for s in ss]
 
-    def map_j(self, sj0):
-        """ for the given list of token indices, return a list of GloVe
-        embeddings """
-        return [self.g[j] for j in sj0]
-
     def map_jset(self, sj):
-        """ apply map_j on a whole set of sentences """
-        return np.array([self.map_j(sj0) for sj0 in sj], dtype='float32')
+        """ for a set of sentence emb indices, get per-token embeddings """
+        return self.g[sj]
 
     def pad_set(self, ss, spad, N=None):
         """ Given a set of sentences transformed to per-word embeddings
@@ -103,6 +98,7 @@ class GloVe(Embedder):
                 word = l[0]
                 self.w[word] = len(self.g)
                 self.g.append(np.array(l[1:]).astype(float))
+        self.g = np.array(self.g, dtype='float32')
 
 
 class Word2Vec(Embedder):
@@ -124,6 +120,7 @@ class Word2Vec(Embedder):
         for tok in gdict:
             self.w[tok] = len(self.g)
             self.g.append(np.array(gdict[tok]).astype(float))
+        self.g = np.array(self.g, dtype='float32')
 
 
 class SkipThought(Embedder):

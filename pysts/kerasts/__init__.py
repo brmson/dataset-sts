@@ -25,8 +25,10 @@ def graph_input_anssel(si0, si1, sj0, sj1, se0, se1, y, f0=None, f1=None, s0=Non
     """
     gr = {'si0': si0, 'si1': si1,
           'sj0': sj0, 'sj1': sj1,
-          'se0': se0, 'se1': se1,
           'score': y}
+    if se0 is not None:
+        gr['se0'] = se0
+        gr['se1'] = se1
     if f0 is not None:
         gr['f0'] = f0
         gr['f1'] = f1

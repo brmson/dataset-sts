@@ -1,6 +1,14 @@
+from __future__ import print_function
+from __future__ import division
+
 from keras.layers.core import Activation
 from keras.models import Graph
+import numpy as np
+import random
+import traceback
+
 import pysts.loader as loader
+from pysts.kerasts import graph_input_slice
 import pysts.kerasts.blocks as B
 
 
@@ -40,6 +48,29 @@ class AbstractTask(object):
             if self.grt is not None:
                 self.grt = loader.graph_adapt_ubuntu(self.grt, self.vocab)
 
+    def sample_pairs(self, gr, batch_size, shuffle=True, once=False):
+        """ A generator that produces random pairs from the dataset """
+        try:
+            id_N = int((len(gr['si0']) + batch_size-1) / batch_size)
+            ids = list(range(id_N))
+            while True:
+                if shuffle:
+                    # XXX: We never swap samples between batches, does it matter?
+                    random.shuffle(ids)
+                for i in ids:
+                    sl = slice(i * batch_size, (i+1) * batch_size)
+                    ogr = graph_input_slice(gr, sl)
+                    ogr['se0'] = self.emb.map_jset(ogr['sj0'])
+                    ogr['se1'] = self.emb.map_jset(ogr['sj1'])
+                    # print(sl)
+                    # print('<<0>>', ogr['sj0'], ogr['se0'])
+                    # print('<<1>>', ogr['sj1'], ogr['se1'])
+                    yield ogr
+                if once:
+                    break
+        except Exception:
+            traceback.print_exc()
+
     def prep_model(self, module_prep_model, oact='sigmoid'):
         # Input embedding and encoding
         model = Graph()
@@ -73,5 +104,13 @@ class AbstractTask(object):
         return model
 
     def fit_model(self, model, **kwargs):
+        batch_size = kwargs.pop('batch_size')
         kwargs['callbacks'] = self.fit_callbacks(kwargs.pop('weightsf'))
-        return model.fit(self.gr, validation_data=self.grv, **kwargs)
+        return model.fit_generator(self.sample_pairs(self.gr, batch_size), **kwargs)
+
+    def predict(self, model, gr):
+        batch_size = 16384  # XXX: hardcoded
+        ypred = []
+        for ogr in self.sample_pairs(gr, batch_size, shuffle=False, once=True):
+            ypred += list(model.predict(ogr)['score'][:,0])
+        return np.array(ypred)
