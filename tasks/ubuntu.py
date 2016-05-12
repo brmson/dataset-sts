@@ -44,11 +44,13 @@ except ImportError:  # python3
     import pickle as cPickle
 import pickle
 import random
+import traceback
 
 import pysts.eval as ev
 from pysts.kerasts import graph_input_anssel, graph_input_slice
 import pysts.nlp as nlp
 
+from . import AbstractTask
 from .anssel import AnsSelTask
 
 
@@ -64,26 +66,11 @@ def pad_graph(gr, s0pad, s1pad):
     """ pad sequences in the graph """
     gr['si0'] = pad_sequences(gr['si0'], maxlen=s0pad, truncating='pre', padding='post')
     gr['si1'] = pad_sequences(gr['si1'], maxlen=s1pad, truncating='pre', padding='post')
+    gr['sj0'] = pad_sequences(gr['sj0'], maxlen=s0pad, truncating='pre', padding='post')
+    gr['sj1'] = pad_sequences(gr['sj1'], maxlen=s1pad, truncating='pre', padding='post')
     gr['f0'] = pad_3d_sequence(gr['f0'], maxlen=s0pad, nd=nlp.flagsdim)
     gr['f1'] = pad_3d_sequence(gr['f1'], maxlen=s1pad, nd=nlp.flagsdim)
     gr['score'] = np.array(gr['score'])
-
-
-def sample_pairs(gr, batch_size, s0pad, s1pad, once=False):
-    """ A generator that produces random pairs from the dataset """
-    # XXX: We drop the last few samples if (1e6 % batch_size != 0)
-    # XXX: We never swap samples between batches, does it matter?
-    ids = range(int(len(gr['si0']) / batch_size))
-    while True:
-        random.shuffle(ids)
-        for i in ids:
-            sl = slice(i * batch_size, (i+1) * batch_size)
-            ogr = graph_input_slice(gr, sl)
-            # TODO: Add support for discarding too long samples?
-            pad_graph(ogr, s0pad=s0pad, s1pad=s1pad)
-            yield ogr
-        if once:
-            break
 
 
 class UbuntuTask(AnsSelTask):
@@ -106,8 +93,8 @@ class UbuntuTask(AnsSelTask):
         return self.vocab
 
     def load_set(self, fname, cache_dir=None):
-        si0, si1, f0, f1, labels = cPickle.load(open(fname, "rb"))
-        gr = graph_input_anssel(si0, si1, labels, f0, f1)
+        si0, si1, sj0, sj1, f0, f1, labels = cPickle.load(open(fname, "rb"))
+        gr = graph_input_anssel(si0, si1, sj0, sj1, None, None, labels, f0, f1)
         return (gr, labels, self.vocab)
 
     def load_data(self, trainf, valf, testf=None):
@@ -117,18 +104,44 @@ class UbuntuTask(AnsSelTask):
 
         self.gr, self.y, self.vocab = self.load_set(trainf)
         self.grv, self.yv, _ = self.load_set(valf)
-        pad_graph(self.grv, self.s0pad, self.s1pad)
         if testf is not None:
             self.grt, self.yt, _ = self.load_set(testf)
-            pad_graph(self.grt, self.s0pad, self.s1pad)
         else:
             self.grt, self.yt = (None, None)
 
+    def sample_pairs(self, gr, batch_size, shuffle=True, once=False):
+        """ A generator that produces random pairs from the dataset """
+        try:
+            id_N = int((len(gr['si0']) + batch_size-1) / batch_size)
+            ids = list(range(id_N))
+            while True:
+                if shuffle:
+                    # XXX: We never swap samples between batches, does it matter?
+                    random.shuffle(ids)
+                for i in ids:
+                    sl = slice(i * batch_size, (i+1) * batch_size)
+                    ogr = graph_input_slice(gr, sl)
+                    # TODO: Add support for discarding too long samples?
+                    pad_graph(ogr, s0pad=self.s0pad, s1pad=self.s1pad)
+                    ogr['se0'] = self.emb.map_jset(ogr['sj0'])
+                    ogr['se1'] = self.emb.map_jset(ogr['sj1'])
+                    # print(sl)
+                    # print('<<0>>', ogr['sj0'], ogr['se0'])
+                    # print('<<1>>', ogr['sj1'], ogr['se1'])
+                    yield ogr
+                if once:
+                    break
+        except Exception:
+            traceback.print_exc()
+
     def fit_model(self, model, **kwargs):
-        batch_size = kwargs.pop('batch_size')
         self.grv_p = self.grv  # no prescoring support (for now?)
-        kwargs['callbacks'] = self.fit_callbacks(kwargs.pop('weightsf'))
-        return model.fit_generator(sample_pairs(self.gr, batch_size, self.s0pad, self.s1pad), **kwargs)
+
+        # Recompute epoch_fract based on the new train set size
+        if self.c['epoch_fract'] != 1:
+            kwargs['samples_per_epoch'] = int(len(self.gr['si0']) * self.c['epoch_fract'])
+
+        return AbstractTask.fit_model(self, model, **kwargs)
 
     def eval(self, model):
         res = [None]
@@ -136,8 +149,8 @@ class UbuntuTask(AnsSelTask):
             if gr is None:
                 res.append(None)
                 continue
-            ypred = model.predict(gr)['score'][:,0]
-            res.append(ev.eval_ubuntu(ypred, gr['si0'], gr['score'], fname))
+            ypred = self.predict(model, gr)
+            res.append(ev.eval_ubuntu(ypred, np.array(gr['si0']) + np.array(gr['sj0']), gr['score'], fname))
         return tuple(res)
 
     def res_columns(self, mres, pfx=' '):

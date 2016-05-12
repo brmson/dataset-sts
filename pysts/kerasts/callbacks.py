@@ -3,6 +3,7 @@ Task-specific callbacks for the fit() function.
 """
 
 from keras.callbacks import Callback
+import numpy as np
 
 import pysts.eval as ev
 import pysts.loader as loader
@@ -12,7 +13,7 @@ class AnsSelCB(Callback):
     """ A callback that monitors answer selection validation MRR after each epoch """
     def __init__(self, task, val_gr):
         self.task = task
-        self.val_s0 = self.task.grv_p['si0'] + self.task.grv_p['sj0']
+        self.val_s0 = np.array(val_gr['si0']) + np.array(val_gr['sj0'])
         self.val_gr = val_gr
 
     def on_epoch_end(self, epoch, logs={}):
