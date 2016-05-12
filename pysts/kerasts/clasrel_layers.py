@@ -44,7 +44,8 @@ class WeightedMean(MaskedLayer):
 
     def get_config(self):
         config = {'name': self.__class__.__name__,
-                  'activation': self.activation.__name__}
+                  'activation': self.activation.__name__,
+                  'max_sentences': self.max_sentences}
         base_config = super(WeightedMean, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
@@ -105,8 +106,6 @@ class SumMask(Layer):
         return K.expand_dims(K.switch(K.sum(X, -1), 1, 0))
 
     def get_config(self):
-        config = {'name': self.__class__.__name__,
-                  'input_dim': self.input_dim,
-                  'output_dim': self.output_dim}
+        config = {'name': self.__class__.__name__}
         base_config = super(SumMask, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
