@@ -101,6 +101,7 @@ def load_hypev(dsfile):
     s0 = []
     s1 = []
     labels = []
+    qids = []
 
     with open(dsfile) as f:
         c = csv.DictReader(f)
@@ -109,13 +110,17 @@ def load_hypev(dsfile):
             try:
                 htext = l['htext'].decode('utf8')
                 mtext = l['mtext'].decode('utf8')
+                if 'qid' in l:
+                    qids.append(l['qid'].decode('utf8'))
             except AttributeError:  # python3 has no .decode()
                 htext = l['htext']
                 mtext = l['mtext']
+                if 'qid' in l:
+                    qids.append(l['qid'])
             labels.append(label)
             s0.append(htext.split(' '))
             s1.append(mtext.split(' '))
-    return (s0, s1, np.array(labels))
+    return (s0, s1, np.array(labels), qids if qids else None)
 
 
 rte_lmappings = {'contradiction': np.array([1,0,0]), 'neutral': np.array([0,1,0]), 'entailment': np.array([0,0,1])}

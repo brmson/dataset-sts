@@ -225,12 +225,19 @@ def eval_para(ypred, y, name):
 
 
 HypEvRes = namedtuple('HypEvRes', ['QAccuracy', 'QF1'])
+AbcdRes = namedtuple('ABCDRes', ['AbcdAccuracy', 'AbcdMRR'])
 
 
-def eval_hypev(ypred, y, name):
-    rawacc, y0acc, y1acc, balacc, f_score = binclass_accuracy(y, ypred)
-    print('%s QAccuracy: real %f  (y=0 %f, y=1 %f, bal %f);  F-Score: %f' % (name, rawacc, y0acc, y1acc, balacc, f_score))
-    return HypEvRes(rawacc, f_score)
+def eval_hypev(qids, ypred, y, name):
+    if qids is None:
+        rawacc, y0acc, y1acc, balacc, f_score = binclass_accuracy(y, ypred)
+        print('%s QAccuracy: real %f  (y=0 %f, y=1 %f, bal %f);  F-Score: %f' % (name, rawacc, y0acc, y1acc, balacc, f_score))
+        return HypEvRes(rawacc, f_score)
+    else:
+        rawacc = recall_at(qids, y, ypred, N=1)
+        mrr_ = mrr(qids, y, ypred)
+        print('%s AbcdAccuracy: %f;  MRR: %f' % (name, rawacc, mrr_))
+        return AbcdRes(rawacc, mrr_)
 
 
 UbuntuRes = namedtuple('UbuntuRes', ['MRR', 'R2_1', 'R10_1', 'R10_2', 'R10_5'])

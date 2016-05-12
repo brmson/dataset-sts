@@ -34,7 +34,7 @@ from . import AbstractTask
 
 class Container:
     """Container for merging question's sentences together."""
-    def __init__(self, q_text, s0, s1, si0, si1, sj0, sj1, f0, f1, y):
+    def __init__(self, q_text, s0, s1, si0, si1, sj0, sj1, f0, f1, y, qid):
         self.q_text = q_text  # str of question
         self.s0 = s0
         self.s1 = s1
@@ -45,6 +45,7 @@ class Container:
         self.f0 = f0
         self.f1 = f1
         self.y = y
+        self.qid = qid
 
 
 class HypEvTask(AbstractTask):
@@ -92,7 +93,7 @@ class HypEvTask(AbstractTask):
             except (IOError, TypeError, KeyError):
                 save_cache = True
 
-        s0, s1, y = loader.load_hypev(fname)
+        s0, s1, y, qids = loader.load_hypev(fname)
 
         if self.vocab is None:
             vocab = Vocabulary(s0 + s1, prune_N=self.c['embprune'], icase=self.c['embicase'])
@@ -103,6 +104,8 @@ class HypEvTask(AbstractTask):
         si1, sj1 = vocab.vectorize(s1, self.emb, spad=self.s1pad)
         f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
         gr = graph_input_anssel(si0, si1, sj0, sj1, None, None, y, f0, f1, s0, s1)
+        if qids is not None:
+            gr['qids'] = qids
         gr, y = self.merge_questions(gr)
         if save_cache:
             with open(cache_filename, "wb") as f:
@@ -157,18 +160,26 @@ class HypEvTask(AbstractTask):
                 res.append(None)
                 continue
             ypred = self.predict(model, gr)
-            res.append(ev.eval_hypev(ypred, gr['score'], fname))
+            res.append(ev.eval_hypev(gr.get('qids', None), ypred, gr['score'], fname))
         return tuple(res)
 
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing
         important statistics """
-        return('%s%.6f |%s%.6f |%s%.6f |%s%.6f |%s%.6f '
-               % (pfx, mres[self.trainf]['QAccuracy'],
-                  pfx, mres[self.valf]['QAccuracy'],
-                  pfx, mres[self.valf]['QF1'],
-                  pfx, mres[self.testf].get('QAccuracy', np.nan),
-                  pfx, mres[self.testf].get('QF1', np.nan)))
+        if isinstance(mres, ev.HypEvRes):
+            return('%s%.6f |%s%.6f |%s%.6f |%s%.6f |%s%.6f '
+                   % (pfx, mres[self.trainf]['QAccuracy'],
+                      pfx, mres[self.valf]['QAccuracy'],
+                      pfx, mres[self.valf]['QF1'],
+                      pfx, mres[self.testf].get('QAccuracy', np.nan),
+                      pfx, mres[self.testf].get('QF1', np.nan)))
+        else:  # ev.AbcdRes
+            return('%s%.6f |%s%.6f |%s%.6f |%s%.6f |%s%.6f '
+                   % (pfx, mres[self.trainf]['AbcdAccuracy'],
+                      pfx, mres[self.valf]['AbcdAccuracy'],
+                      pfx, mres[self.valf]['AbcdMRR'],
+                      pfx, mres[self.testf].get('AbcdAccuracy', np.nan),
+                      pfx, mres[self.testf].get('AbcdMRR', np.nan)))
 
     def merge_questions(self, gr):
         # s0=questions, s1=sentences
@@ -184,7 +195,8 @@ class HypEvTask(AbstractTask):
             container = Container(gr['s0'][i], gr['s0'][i:i_], gr['s1'][i:i_],
                                   gr['si0'][i:i_], gr['si1'][i:i_],
                                   gr['sj0'][i:i_], gr['sj1'][i:i_],
-                                  gr['f0'][i:i_], gr['f1'][i:i_], gr['score'][i])
+                                  gr['f0'][i:i_], gr['f1'][i:i_], gr['score'][i],
+                                  gr['qids'][i] if 'qids' in gr else None)
             containers.append(container)
 
         si03d, si13d, sj03d, sj13d, f04d, f14d = [], [], [], [], [], []
@@ -213,11 +225,14 @@ class HypEvTask(AbstractTask):
             f14d.append(f1)
 
         y = np.array([c.y for c in containers])
-        gr = {'si03d': np.array(si03d), 'si13d': np.array(si13d),
-              'sj03d': np.array(sj03d), 'sj13d': np.array(sj13d),
-              'f04d': np.array(f04d), 'f14d': np.array(f14d), 'score': y}
+        gr3d = {'si03d': np.array(si03d), 'si13d': np.array(si13d),
+                'sj03d': np.array(sj03d), 'sj13d': np.array(sj13d),
+                'f04d': np.array(f04d), 'f14d': np.array(f14d), 'score': y}
 
-        return gr, y
+        if 'qids' in gr and gr['qids'] is not None:
+            gr3d['qids'] = [c.qid for c in containers]
+
+        return gr3d, y
 
 
 def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, rnn_dim):

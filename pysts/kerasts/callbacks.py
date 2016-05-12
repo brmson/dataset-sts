@@ -30,8 +30,12 @@ class HypEvCB(Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         ypred = self.task.predict(self.model, self.val_gr)
-        acc = ev.binclass_accuracy(self.val_gr['score'], ypred)[0]
-        print('                                                       val acc %f' % (acc,))
+        if 'qids' not in self.val_gr or self.val_gr['qids'] is None:
+            acc = ev.binclass_accuracy(self.val_gr['score'], ypred)[0]
+            print('                                                       val acc %f' % (acc,))
+        else:
+            acc = ev.recall_at(self.val_gr['qids'], self.val_gr['score'], ypred, N=1)
+            print('                                                       val abcdacc %f' % (acc,))
         logs['acc'] = acc
 
 
