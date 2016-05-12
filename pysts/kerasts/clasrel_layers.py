@@ -34,9 +34,9 @@ class WeightedMean(MaskedLayer):
     def get_output(self, train=False):
         e = 1e-6  # constant used for numerical stability
         X = self.get_input(train)
-        # mask = X[:, :, 2]
-        s = X[:, :, 0]  # * mask
-        t = X[:, :, 1]  # * mask
+        mask = X[:, :, 2]
+        s = X[:, :, 0] * mask
+        t = X[:, :, 1] * mask
 
         output = self.activation(K.sum(s * t, axis=1) / (T.sum(t, axis=-1)) + e)
         output = K.reshape(output, (-1, 1))

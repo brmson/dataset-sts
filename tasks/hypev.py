@@ -199,7 +199,7 @@ class HypEvTask(AbstractTask):
                                   gr['qids'][i] if 'qids' in gr else None)
             containers.append(container)
 
-        si03d, si13d, sj03d, sj13d, f04d, f14d = [], [], [], [], [], []
+        si03d, si13d, sj03d, sj13d, f04d, f14d, mask = [], [], [], [], [], [], []
         for c in containers:
             si0 = prep.pad_sequences(c.si0.T, maxlen=self.c['max_sentences'],
                                      padding='post', truncating='post').T
@@ -224,10 +224,16 @@ class HypEvTask(AbstractTask):
             f04d.append(f0)
             f14d.append(f1)
 
+            m = np.where(np.sum(si1 + sj1, axis=1) > 0, 1., 0.)
+            mask.append(m)
+
         y = np.array([c.y for c in containers])
         gr3d = {'si03d': np.array(si03d), 'si13d': np.array(si13d),
                 'sj03d': np.array(sj03d), 'sj13d': np.array(sj13d),
-                'f04d': np.array(f04d), 'f14d': np.array(f14d), 'score': y}
+                'f04d': np.array(f04d), 'f14d': np.array(f14d),
+                'mask': np.array(mask),
+                'score': y}
+        print(gr3d['mask'])
 
         if 'qids' in gr and gr['qids'] is not None:
             gr3d['qids'] = [c.qid for c in containers]
@@ -270,6 +276,8 @@ def build_model(glove, vocab, module_prep_model, c):
         model.add_input('f14d', (max_sentences, s1pad, nlp.flagsdim))
         model.add_node(Reshape_((s0pad, nlp.flagsdim)), 'f0', input='f04d')
         model.add_node(Reshape_((s1pad, nlp.flagsdim)), 'f1', input='f14d')
+    model.add_input('mask', (max_sentences,))
+    model.add_node(Reshape_((max_sentences, 1)), 'mask1', input='mask')
 
     # ===================== reshape to (batch_size * max_sentences, s_pad)
     model.add_node(Reshape_((s0pad,)), 'si0', input='si03d')
@@ -296,7 +304,7 @@ def build_model(glove, vocab, module_prep_model, c):
     #model.add_node(SumMask(), 'mask', input='si03d')  # XXX: needs to take se03d into account too
     # ===================== mean of class over rel
     model.add_node(WeightedMean(max_sentences=max_sentences),
-                   name='weighted_mean', inputs=['c', 'r'])  # , 'mask'])
+                   name='weighted_mean', inputs=['c', 'r', 'mask1'])
     model.add_output(name='score', input='weighted_mean')
     return model
 
