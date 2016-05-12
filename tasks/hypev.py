@@ -166,7 +166,7 @@ class HypEvTask(AbstractTask):
     def res_columns(self, mres, pfx=' '):
         """ Produce README-format markdown table row piece summarizing
         important statistics """
-        if isinstance(mres, ev.HypEvRes):
+        if 'QAccuracy' in mres[self.trainf]:  # ev.HypEvRes
             return('%s%.6f |%s%.6f |%s%.6f |%s%.6f |%s%.6f '
                    % (pfx, mres[self.trainf]['QAccuracy'],
                       pfx, mres[self.valf]['QAccuracy'],
