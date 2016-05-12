@@ -223,7 +223,7 @@ class AnsSelTask(AbstractTask):
         if self.c['epoch_fract'] != 1:
             kwargs['samples_per_epoch'] = int(len(gr_p['si0']) * self.c['epoch_fract'])
 
-        return super().fit_model(model, **kwargs)
+        return AbstractTask.fit_model(self, model, **kwargs)
 
     def eval(self, model):
         res = []
