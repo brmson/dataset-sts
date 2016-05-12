@@ -30,7 +30,7 @@ class Vocabulary:
         vocab = list(map(itemgetter(0),
                          sorted(filter(lambda k: itemgetter(1)(k) >= count_thres,
                                        vocabset.items()),
-                                key=itemgetter(1), reverse=True)))
+                                key=itemgetter(1, 0), reverse=True)))
         vocab_N = len(vocab)
         if prune_N is not None:
             vocab = vocab[:prune_N]
