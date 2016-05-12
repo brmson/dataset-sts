@@ -78,6 +78,9 @@ class HypEvTask(AbstractTask):
         c['pdim'] = 2.5
         c['pact'] = 'tanh'
 
+        # which question classes of mctest to load
+        c['mcqtypes'] = ['one', 'multiple']
+
     def load_set(self, fname, cache_dir=None):
         # TODO: Make the cache-handling generic,
         # and offer a way to actually pass cache_dir
@@ -93,7 +96,10 @@ class HypEvTask(AbstractTask):
             except (IOError, TypeError, KeyError):
                 save_cache = True
 
-        s0, s1, y, qids = loader.load_hypev(fname)
+        if '/mc' in fname:
+            s0, s1, y, qids = loader.load_mctest(fname, self.c['mcqtypes'])
+        else:
+            s0, s1, y, qids = loader.load_hypev(fname)
 
         if self.vocab is None:
             vocab = Vocabulary(s0 + s1, prune_N=self.c['embprune'], icase=self.c['embicase'])
@@ -233,7 +239,6 @@ class HypEvTask(AbstractTask):
                 'f04d': np.array(f04d), 'f14d': np.array(f14d),
                 'mask': np.array(mask),
                 'score': y}
-        print(gr3d['mask'])
 
         if 'qids' in gr and gr['qids'] is not None:
             gr3d['qids'] = [c.qid for c in containers]

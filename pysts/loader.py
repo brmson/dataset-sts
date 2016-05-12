@@ -123,6 +123,50 @@ def load_hypev(dsfile):
     return (s0, s1, np.array(labels), qids if qids else None)
 
 
+def load_mctest(basename, qtypes):
+    """ load a dataset in the MCTest format - pair of .statements.tsv and .ans
+    files with the given basename stem. """
+    s0 = []
+    s1 = []
+    labels = []
+    qids = []
+
+    tsvf = open(basename + '.statements.tsv')
+    ansf = open(basename + '.ans')
+
+    tsvcol = ['qid', 'comment', 'story',
+              'q0', 'htext0A', 'htext0B', 'htext0C', 'htext0D',
+              'q1', 'htext1A', 'htext1B', 'htext1C', 'htext1D',
+              'q2', 'htext2A', 'htext2B', 'htext2C', 'htext2D',
+              'q3', 'htext3A', 'htext3B', 'htext3C', 'htext3D']
+
+    n_stories = 0
+    n_questions = 0
+    for tsvl, ansl in zip(tsvf, ansf):
+        data = dict(zip(tsvcol, tsvl.split('\t')))
+        ansdata = ansl.split('\t')
+
+        storytext = data['story'].replace('\\newline', '\n')
+        story = [(word_tokenize(s) + ['.']) for s in storytext.split('.')]
+        n_stories += 1
+
+        for i, ans in enumerate(ansdata):
+            qtype = data['q%d' % (i,)].split(':')[0]
+            if qtype not in qtypes:
+                continue
+            for letter in ['A', 'B', 'C', 'D']:
+                n_questions += 1
+                htext = word_tokenize(data['htext%d%s' % (i, letter)])
+                for mtext in story:
+                    s0.append(htext)
+                    s1.append(mtext)
+                    qids.append(data['qid'])
+                    labels.append(1. if ans == letter else 0.)
+
+    print('Loaded %d stories, %d questions (%s types)' % (n_stories, n_questions, qtypes))
+    return (s0, s1, np.array(labels), qids)
+
+
 rte_lmappings = {'contradiction': np.array([1,0,0]), 'neutral': np.array([0,1,0]), 'entailment': np.array([0,0,1])}
 
 def load_sick2014(dsfile, mode='relatedness'):

@@ -152,7 +152,7 @@ however a judgement about S0 alone (typically true / false).
 
   * [X] **data/hypev/argus/** Argus Dataset (Yes/No Question vs. News Headline)
 
-  * [X] [AI2 8th Grade Science Questions](http://allenai.org/data.html)
+  * [X] **data/hypev/ai2-8grade/** [AI2 8th Grade Science Questions](http://allenai.org/data.html)
 are 641 school Science quiz questions (A/B/C/D test format), stemming from
 [The Allen AI Science Challenge](https://www.kaggle.com/c/the-allen-ai-science-challenge/)
 We are going to produce a dataset that merges questions and answers in a single
@@ -163,7 +163,7 @@ this repo for some time.  (We may also want to include the Elementary dataset.)
   * [ ] bAbI has a variety of datasets, especially re memory networks (memory
 relevant to a given question), though with an extremely limited vocabulary.
 
-  * [ ] [Machine Comprehension Test (MCTest)](http://research.microsoft.com/en-us/um/redmond/projects/mctest/)
+  * [X] **data/hypev/mctest/** [Machine Comprehension Test (MCTest)](http://research.microsoft.com/en-us/um/redmond/projects/mctest/)
 contains 300 children stories with many sentences and 4 questions each.
 A share-alike type licence.
 
