@@ -8,10 +8,6 @@
 # BASE_TIME is a top estimate of how long a single RNN run takes on the dataset
 # (in hours).
 
-nb_runs=4
-nb_runs_t=8
-base_time=1  # [hour]
-
 nb_runs="$1"; shift
 base_time="$1"; shift
 dataid="$1"; shift
@@ -46,6 +42,18 @@ case $dataid in
 	rg)
 		task=hypev
 		data="data/hypev/argus/argus_train.csv data/hypev/argus/argus_val.csv"
+		;;
+	r8c)
+		task=hypev
+		data="data/hypev/ai2-8grade/ck12v0-train.csv data/hypev/ai2-8grade/ck12v0-dev.csv"
+		;;
+	r8e)
+		task=hypev
+		data="data/hypev/ai2-8grade/enwv0-train.csv data/hypev/ai2-8grade/enwv0-dev.csv"
+		;;
+	r8)
+		task=hypev
+		data="data/hypev/ai2-8grade/v0-train.csv data/hypev/ai2-8grade/v0-dev.csv"
 		;;
 	esi)
 		task=rte
