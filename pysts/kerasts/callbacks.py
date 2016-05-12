@@ -24,11 +24,12 @@ class AnsSelCB(Callback):
 
 class HypEvCB(Callback):
     """ A callback that monitors hypothesis evaluation validation accuracy after each epoch """
-    def __init__(self, val_gr):
+    def __init__(self, task, val_gr):
+        self.task = task
         self.val_gr = val_gr  # graph_input()
 
     def on_epoch_end(self, epoch, logs={}):
-        ypred = self.model.predict(self.val_gr)['score'][:,0]
+        ypred = self.task.predict(self.model, self.val_gr)
         acc = ev.binclass_accuracy(self.val_gr['score'], ypred)[0]
         print('                                                       val acc %f' % (acc,))
         logs['acc'] = acc

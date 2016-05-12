@@ -113,8 +113,8 @@ def load_hypev(dsfile):
                 htext = l['htext']
                 mtext = l['mtext']
             labels.append(label)
-            s0.append(htext.lower().split(' '))
-            s1.append(mtext.lower().split(' '))
+            s0.append(htext.split(' '))
+            s1.append(mtext.split(' '))
     return (s0, s1, np.array(labels))
 
 

@@ -12,6 +12,8 @@ from __future__ import print_function
 
 import numpy as np
 import pickle
+import random
+import traceback
 
 import keras.preprocessing.sequence as prep
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -22,7 +24,7 @@ from keras.regularizers import l2
 import pysts.eval as ev
 import pysts.loader as loader
 import pysts.nlp as nlp
-from pysts.kerasts import graph_input_anssel
+from pysts.kerasts import graph_input_anssel, graph_input_slice
 import pysts.kerasts.blocks as B
 from pysts.kerasts.callbacks import HypEvCB
 from pysts.kerasts.clasrel_layers import Reshape_, WeightedMean, SumMask
@@ -32,16 +34,17 @@ from . import AbstractTask
 
 class Container:
     """Container for merging question's sentences together."""
-    def __init__(self, q_text, s0, s1, si0, si1, f0, f1, y):
+    def __init__(self, q_text, s0, s1, si0, si1, sj0, sj1, f0, f1, y):
         self.q_text = q_text  # str of question
         self.s0 = s0
         self.s1 = s1
         self.si0 = si0
         self.si1 = si1
+        self.sj0 = sj0
+        self.sj1 = sj1
         self.f0 = f0
         self.f1 = f1
         self.y = y
-
 
 
 class HypEvTask(AbstractTask):
@@ -56,6 +59,7 @@ class HypEvTask(AbstractTask):
         c['max_sentences'] = 50
         c['spad'] = 60
         c['embdim'] = 50
+        c['embicase'] = True
         c['nb_epoch'] = 100
         c['batch_size'] = 10
 
@@ -91,14 +95,14 @@ class HypEvTask(AbstractTask):
         s0, s1, y = loader.load_hypev(fname)
 
         if self.vocab is None:
-            vocab = Vocabulary(s0 + s1)  # FIXME: lower?
+            vocab = Vocabulary(s0 + s1, prune_N=self.c['embprune'], icase=self.c['embicase'])
         else:
             vocab = self.vocab
 
-        si0 = vocab.vectorize(s0, spad=self.s0pad)
-        si1 = vocab.vectorize(s1, spad=self.s1pad)
+        si0, sj0 = vocab.vectorize(s0, self.emb, spad=self.s0pad)
+        si1, sj1 = vocab.vectorize(s1, self.emb, spad=self.s1pad)
         f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
-        gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
+        gr = graph_input_anssel(si0, si1, sj0, sj1, None, None, y, f0, f1, s0, s1)
         gr, y = self.merge_questions(gr)
         if save_cache:
             with open(cache_filename, "wb") as f:
@@ -106,6 +110,29 @@ class HypEvTask(AbstractTask):
                 print("save")
 
         return (gr, y, vocab)
+
+    def sample_pairs(self, gr, batch_size, shuffle=True, once=False):
+        """ A generator that produces random pairs from the dataset """
+        try:
+            id_N = int((len(gr['si03d']) + batch_size-1) / batch_size)
+            ids = list(range(id_N))
+            while True:
+                if shuffle:
+                    # XXX: We never swap samples between batches, does it matter?
+                    random.shuffle(ids)
+                for i in ids:
+                    sl = slice(i * batch_size, (i+1) * batch_size)
+                    ogr = graph_input_slice(gr, sl)
+                    ogr['se03d'] = self.emb.map_jset(ogr['sj03d'])
+                    ogr['se13d'] = self.emb.map_jset(ogr['sj13d'])
+                    # print(sl)
+                    # print('<<0>>', ogr['sj0'], ogr['se0'])
+                    # print('<<1>>', ogr['sj1'], ogr['se1'])
+                    yield ogr
+                if once:
+                    break
+        except Exception:
+            traceback.print_exc()
 
     def build_model(self, module_prep_model, do_compile=True):
 
@@ -119,7 +146,7 @@ class HypEvTask(AbstractTask):
         return model
 
     def fit_callbacks(self, weightsf):
-        return [HypEvCB(self.grv),
+        return [HypEvCB(self, self.grv),
                 ModelCheckpoint(weightsf, save_best_only=True, monitor='acc', mode='max'),
                 EarlyStopping(monitor='acc', mode='max', patience=10)]
 
@@ -129,7 +156,7 @@ class HypEvTask(AbstractTask):
             if gr is None:
                 res.append(None)
                 continue
-            ypred = model.predict(gr)['score'][:,0]
+            ypred = self.predict(model, gr)
             res.append(ev.eval_hypev(ypred, gr['score'], fname))
         return tuple(res)
 
@@ -156,10 +183,11 @@ class HypEvTask(AbstractTask):
         for i, i_ in zip(ixs, ixs[1:]+[len(gr['s0'])]):
             container = Container(gr['s0'][i], gr['s0'][i:i_], gr['s1'][i:i_],
                                   gr['si0'][i:i_], gr['si1'][i:i_],
+                                  gr['sj0'][i:i_], gr['sj1'][i:i_],
                                   gr['f0'][i:i_], gr['f1'][i:i_], gr['score'][i])
             containers.append(container)
 
-        si03d, si13d, f04d, f14d = [], [], [], []
+        si03d, si13d, sj03d, sj13d, f04d, f14d = [], [], [], [], [], []
         for c in containers:
             si0 = prep.pad_sequences(c.si0.T, maxlen=self.c['max_sentences'],
                                      padding='post', truncating='post').T
@@ -167,6 +195,13 @@ class HypEvTask(AbstractTask):
                                      padding='post', truncating='post').T
             si03d.append(si0)
             si13d.append(si1)
+
+            sj0 = prep.pad_sequences(c.sj0.T, maxlen=self.c['max_sentences'],
+                                     padding='post', truncating='post').T
+            sj1 = prep.pad_sequences(c.sj1.T, maxlen=self.c['max_sentences'],
+                                     padding='post', truncating='post').T
+            sj03d.append(sj0)
+            sj13d.append(sj1)
 
             f0 = prep.pad_sequences(c.f0.transpose((1, 0, 2)), maxlen=self.c['max_sentences'],
                                     padding='post',
@@ -179,6 +214,7 @@ class HypEvTask(AbstractTask):
 
         y = np.array([c.y for c in containers])
         gr = {'si03d': np.array(si03d), 'si13d': np.array(si13d),
+              'sj03d': np.array(sj03d), 'sj13d': np.array(sj13d),
               'f04d': np.array(f04d), 'f14d': np.array(f14d), 'score': y}
 
         return gr, y
@@ -212,6 +248,8 @@ def build_model(glove, vocab, module_prep_model, c):
     # ===================== inputs of size (batch_size, max_sentences, s_pad)
     model.add_input('si03d', (max_sentences, s0pad), dtype=int)  # XXX: cannot be cast to int->problem?
     model.add_input('si13d', (max_sentences, s1pad), dtype=int)
+    model.add_input('se03d', (max_sentences, s0pad, glove.N))
+    model.add_input('se13d', (max_sentences, s1pad, glove.N))
     if True:  # TODO: if flags
         model.add_input('f04d', (max_sentences, s0pad, nlp.flagsdim))
         model.add_input('f14d', (max_sentences, s1pad, nlp.flagsdim))
@@ -221,6 +259,8 @@ def build_model(glove, vocab, module_prep_model, c):
     # ===================== reshape to (batch_size * max_sentences, s_pad)
     model.add_node(Reshape_((s0pad,)), 'si0', input='si03d')
     model.add_node(Reshape_((s1pad,)), 'si1', input='si13d')
+    model.add_node(Reshape_((s0pad, glove.N)), 'se0', input='se03d')
+    model.add_node(Reshape_((s1pad, glove.N)), 'se1', input='se13d')
 
     # ===================== outputs from sts
     _prep_model(model, glove, vocab, module_prep_model, c, c['oact'], s0pad, s1pad, rnn_dim)  # out = ['scoreS1', 'scoreS2']
@@ -238,10 +278,10 @@ def build_model(glove, vocab, module_prep_model, c):
                                         b_regularizer=l2(c['l2reg'])),
                    'r', input='sts_in2')
 
-    model.add_node(SumMask(), 'mask', input='si03d')
+    #model.add_node(SumMask(), 'mask', input='si03d')  # XXX: needs to take se03d into account too
     # ===================== mean of class over rel
     model.add_node(WeightedMean(max_sentences=max_sentences),
-                   name='weighted_mean', inputs=['c', 'r', 'mask'])
+                   name='weighted_mean', inputs=['c', 'r'])  # , 'mask'])
     model.add_output(name='score', input='weighted_mean')
     return model
 
