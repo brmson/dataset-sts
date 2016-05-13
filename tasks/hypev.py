@@ -253,11 +253,11 @@ def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, r
     # Sentence-aggregate embeddings
     final_outputs = module_prep_model(model, N, s0pad, s1pad, c)
 
-    if c['ptscorer'] is None:
-        model.add_node(name='scoreS1', input=final_outputs[0],
-                       layer=Dense(rnn_dim, activation=oact))
+    if c['ptscorer'] == '1':
+        model.add_node(name='scoreS1', input=final_outputs[1],
+                       layer=Dense(rnn_dim, activation=oact, W_regularizer=l2(c['l2reg'])))
         model.add_node(name='scoreS2', input=final_outputs[1],
-                       layer=Dense(rnn_dim, activation=oact))
+                       layer=Dense(rnn_dim, activation=oact, W_regularizer=l2(c['l2reg'])))
     else:
         next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_')
         model.add_node(name='scoreS1', input=next_input, layer=Activation(oact))
