@@ -65,7 +65,7 @@ class HypEvTask(AbstractTask):
         c['batch_size'] = 10
 
         c['inp_e_dropout'] = 0.
-        c['w_dropout'] = 0.
+        c['inp_w_dropout'] = 0.
         c['dropout'] = 0.
         c['e_add_flags'] = True
         c['ptscorer'] = B.mlp_ptscorer
@@ -248,7 +248,7 @@ class HypEvTask(AbstractTask):
 def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, rnn_dim):
     # Input embedding and encoding
     N = B.embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'],
-                    c['w_dropout'], add_flags=c['e_add_flags'], create_inputs=False)
+                    c['inp_w_dropout'], add_flags=c['e_add_flags'], create_inputs=False)
     # Sentence-aggregate embeddings
     final_outputs = module_prep_model(model, N, s0pad, s1pad, c)
 
