@@ -129,7 +129,7 @@ class STSTask(AbstractTask):
             if gr is None:
                 res.append(None)
                 continue
-            ypred = self.predict(model, gr)['classes']
+            ypred = self.predict(model, gr)
             res.append(ev.eval_sts(ypred, gr['classes'], fname))
         return tuple(res)
 
