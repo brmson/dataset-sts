@@ -67,7 +67,6 @@ class HypEvTask(AbstractTask):
         c['inp_e_dropout'] = 0.
         c['w_dropout'] = 0.
         c['dropout'] = 0.
-        c['l2reg'] = 0.01
         c['e_add_flags'] = True
         c['ptscorer'] = B.mlp_ptscorer
         c['mlpsum'] = 'sum'
