@@ -41,13 +41,14 @@ class HypEvCB(Callback):
 
 
 class STSPearsonCB(Callback):
-    def __init__(self, train_gr, val_gr):
+    def __init__(self, task, train_gr, val_gr):
+        self.task = task
         self.train_gr = train_gr
         self.val_gr = val_gr
     def on_epoch_end(self, epoch, logs={}):
-        prtr = ev.eval_sts(self.model.predict(self.train_gr)['classes'],
+        prtr = ev.eval_sts(self.task.predict(self.model, self.train_gr),
                            loader.sts_categorical2labels(self.train_gr['classes']), 'Train', quiet=True).Pearson
-        prval = ev.eval_sts(self.model.predict(self.val_gr)['classes'],
+        prval = ev.eval_sts(self.task.predict(self.model, self.val_gr),
                             loader.sts_categorical2labels(self.val_gr['classes']), 'Val', quiet=True).Pearson
         print('                  train Pearson %f    val Pearson %f' % (prtr, prval))
         logs['pearson'] = prval

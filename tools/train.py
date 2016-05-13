@@ -135,7 +135,11 @@ def train_model(runid, model, task, c):
     if c['balance_class']:
         one_ratio = np.sum(task.gr['score'] == 1) / len(task.gr['score'])
         fit_kwargs['class_weight'] = {'score': {0: one_ratio, 1: 0.5}}
-    fit_kwargs['samples_per_epoch'] = int(len(task.gr['score']) * c['epoch_fract'])
+    if 'score' in task.gr:
+        n_samples = len(task.gr['score'])
+    else:
+        n_samples = len(task.gr['classes'])
+    fit_kwargs['samples_per_epoch'] = int(n_samples * c['epoch_fract'])
     task.fit_model(model, weightsf='weights-'+runid+'-bestval.h5',
                    batch_size=c['batch_size'], nb_epoch=c['nb_epoch'],
                    **fit_kwargs)
