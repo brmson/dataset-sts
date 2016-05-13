@@ -55,6 +55,18 @@ case $dataid in
 		task=hypev
 		data="data/hypev/ai2-8grade/v0-train.csv data/hypev/ai2-8grade/v0-dev.csv"
 		;;
+	rm1)
+		task=hypev
+		data="data/hypev/mctest/mc160.train data/hypev/mctest/mc160.dev"
+		;;
+	rm5)
+		task=hypev
+		data="data/hypev/mctest/mc500.train data/hypev/mctest/mc500.dev"
+		;;
+	rm)
+		task=hypev
+		data="data/hypev/mctest/mc660.train data/hypev/mctest/mc660.dev"
+		;;
 	esi)
 		task=rte
 		data="data/rte/sick2014/SICK_train.txt data/rte/sick2014/SICK_trial.txt"
