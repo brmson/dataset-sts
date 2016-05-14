@@ -30,11 +30,12 @@ from pysts.kerasts.callbacks import HypEvCB
 from pysts.kerasts.clasrel_layers import Reshape_, WeightedMean, SumMask
 from pysts.vocab import Vocabulary
 from . import AbstractTask
+from .anssel import AnsSelTask
 
 
 class Container:
     """Container for merging question's sentences together."""
-    def __init__(self, q_text, s0, s1, si0, si1, sj0, sj1, f0, f1, y, qid):
+    def __init__(self, q_text, s0, s1, si0, si1, sj0, sj1, f0, f1, y, qid, fx):
         self.q_text = q_text  # str of question
         self.s0 = s0
         self.s1 = s1
@@ -46,6 +47,10 @@ class Container:
         self.f1 = f1
         self.y = y
         self.qid = qid
+        # fx is a dict of "extra" features
+        # TODO: Make this whole thing a dict that self-describes the
+        # required transformations
+        self.fx = fx
 
 
 class HypEvTask(AbstractTask):
@@ -53,6 +58,9 @@ class HypEvTask(AbstractTask):
         self.name = 'hypev'
         self.emb = None
         self.vocab = None
+
+        # Prescore individual htext,mtext pairs using anssel model.
+        self.prescoring_task = AnsSelTask
 
     def config(self, c):
         c['task>model'] = True
@@ -188,6 +196,9 @@ class HypEvTask(AbstractTask):
                       pfx, mres[self.testf].get('AbcdMRR', np.nan)))
 
     def merge_questions(self, gr):
+        # First, apply prescoring
+        gr = self.prescoring_apply(gr)
+
         # s0=questions, s1=sentences
         q_t = ''
         ixs = []
@@ -202,10 +213,15 @@ class HypEvTask(AbstractTask):
                                   gr['si0'][i:i_], gr['si1'][i:i_],
                                   gr['sj0'][i:i_], gr['sj1'][i:i_],
                                   gr['f0'][i:i_], gr['f1'][i:i_], gr['score'][i],
-                                  gr['qids'][i] if 'qids' in gr else None)
+                                  gr['qids'][i] if 'qids' in gr else None,
+                                  dict([(k, gr[k][i:i_]) for k in self.c.get('f_add', [])]))
             containers.append(container)
 
         si03d, si13d, sj03d, sj13d, f04d, f14d, mask = [], [], [], [], [], [], []
+        gr_extra = dict()
+        for k in self.c.get('f_add', []):
+            gr_extra[k] = []
+
         for c in containers:
             si0 = prep.pad_sequences(c.si0.T, maxlen=self.c['max_sentences'],
                                      padding='post', truncating='post').T
@@ -230,6 +246,11 @@ class HypEvTask(AbstractTask):
             f04d.append(f0)
             f14d.append(f1)
 
+            for k in self.c.get('f_add', []):
+                fx = prep.pad_sequences(c.fx[k].T, maxlen=self.c['max_sentences'],
+                                        padding='post', truncating='post').T
+                gr_extra[k].append(fx)
+
             m = np.where(np.sum(si1 + sj1, axis=1) > 0, 1., 0.)
             mask.append(m)
 
@@ -243,6 +264,10 @@ class HypEvTask(AbstractTask):
         if 'qids' in gr and gr['qids'] is not None:
             gr3d['qids'] = [c.qid for c in containers]
 
+        for k in gr_extra.keys():
+            #gr3d[k] = np.reshape(np.array(gr_extra[k]), (len(containers), self.c['max_sentences']))
+            gr3d[k + '3d'] = np.array(gr_extra[k])
+
         return gr3d, y
 
 
@@ -253,17 +278,28 @@ def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, r
     # Sentence-aggregate embeddings
     final_outputs = module_prep_model(model, N, s0pad, s1pad, c)
 
+    kwargs = dict()
+    if c['ptscorer'] == B.mlp_ptscorer:
+        kwargs['sum_mode'] = c['mlpsum']
+    if 'f_add' in c:
+        for inp in c['f_add']:
+            model.add_input(inp+'3d', input_shape=(c['max_sentences'], 1))  # assumed scalar
+            model.add_node(Reshape_((1,)), inp, input=inp+'3d')  # disperse to individual pairs
+        kwargs['extra_inp'] = c['f_add']
+
     if c['ptscorer'] == '1':
+        if kwargs['extra_inp']:
+            print("Warning: Ignoring extra_inp with ptscorer '1'")
         model.add_node(name='scoreS1', input=final_outputs[1],
                        layer=Dense(rnn_dim, activation=oact, W_regularizer=l2(c['l2reg'])))
         if make_S2:
             model.add_node(name='scoreS2', input=final_outputs[1],
                            layer=Dense(rnn_dim, activation=oact, W_regularizer=l2(c['l2reg'])))
     else:
-        next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_')
+        next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_', **kwargs)
         model.add_node(name='scoreS1', input=next_input, layer=Activation(oact))
         if make_S2:
-            next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S2_')
+            next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S2_', **kwargs)
             model.add_node(name='scoreS2', input=next_input, layer=Activation(oact))
 
 
