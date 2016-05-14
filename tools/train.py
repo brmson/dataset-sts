@@ -63,18 +63,6 @@ import pysts.kerasts.blocks as B
 from tasks import default_config
 
 
-def prescoring_setup(c, task_config):
-    """ Based on c prescoring entry, produce a model instance """
-
-    c['prescoring_model'] = importlib.import_module('.'+c['prescoring'], 'models')
-
-    # XXX: prescoring_conf is the original parameter dict,
-    # prescoring_c is the final conf dict
-    c['prescoring_c'] = default_config(c['prescoring_model'].config, task_config)
-    for k, v in c.get('prescoring_conf', {}).items():
-        c['prescoring_c'][k] = v
-
-
 def config(model_config, task_config, params):
     c = default_config(model_config, task_config)
 
@@ -83,11 +71,6 @@ def config(model_config, task_config, params):
         c[k] = eval(v)
 
     ps, h = hash_params(c)
-
-    # post-ps,h c-munging - only things that are redundant to whatever
-    # is user-visible
-    if c['prescoring'] is not None:
-        prescoring_setup(c, task_config)
 
     return c, ps, h
 

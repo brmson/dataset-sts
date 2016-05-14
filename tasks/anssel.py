@@ -26,7 +26,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 import numpy as np
 
 import pysts.eval as ev
-from pysts.kerasts import graph_input_anssel, graph_nparray_anssel
+from pysts.kerasts import graph_input_anssel, graph_input_unprune
 from pysts.kerasts.callbacks import AnsSelCB
 from pysts.kerasts.objectives import ranknet
 import pysts.loader as loader
@@ -36,89 +36,6 @@ from pysts.vocab import Vocabulary
 from . import AbstractTask
 
 
-def prescoring_model(model_module, c, weightsf):
-    """ Setup and return a pre-scoring model """
-    # We just make another instance of our task with the prescoring model
-    # specific config, build the model and apply it
-    prescore_task = task()
-    prescore_task.set_conf(c)
-
-    print('[Prescoring] Model')
-    model = prescore_task.build_model(model_module.prep_model)
-
-    print('[Prescoring] ' + weightsf)
-    model.load_weights(weightsf)
-    return model
-
-
-def graph_input_prune(gr, ypred, N, skip_oneclass=False):
-    """ Given a gr and a given scoring, keep only top N s1 for each s0,
-    and stash the others away to _x-suffixed keys (for potential recovery). """
-    def prune_filter(ypred, N):
-        """ yield (index, passed) tuples """
-        ys = sorted(enumerate(ypred), key=lambda yy: yy[1], reverse=True)
-        i = 0
-        for n, y in ys:
-            yield n, (i < N)
-            i += 1
-
-    # Go through (s0, s1), keeping track of the beginning of the current
-    # s0 block, and appending pruned versions
-    i = 0
-    grp = dict([(k, []) for k in gr.keys()] + [(k+'_x', []) for k in gr.keys()])
-    for j in range(len(gr['si0']) + 1):
-        if j < len(gr['si0']) and (j == 0 or np.all(gr['si0'][j]+gr['sj0'][j] == gr['si0'][j-1]+gr['sj0'][j-1])):
-            # within same-s0 block, carry on
-            continue
-        # block boundary
-
-        # possibly check if we have both classes picked (for training)
-        if skip_oneclass:
-            n_picked = 0
-            for n, passed in prune_filter(ypred[i:j], N):
-                if not passed:
-                    break
-                n_picked += gr['score'][i + n] > 0
-            if n_picked == 0:
-                # only false; tough luck, prune everything for this s0
-                for k in gr.keys():
-                    grp[k+'_x'] += list(gr[k][i:j])
-                i = j
-                continue
-
-        # append pruned subset
-        for n, passed in prune_filter(ypred[i:j], N):
-            for k in gr.keys():
-                if passed:
-                    grp[k].append(gr[k][i + n])
-                else:
-                    grp[k+'_x'].append(gr[k][i + n])
-
-        i = j
-
-    return graph_nparray_anssel(grp)
-
-
-def graph_input_unprune(gro, grp, ypred, xval):
-    """ Reconstruct original graph gro from a pruned graph grp,
-    with predictions set to always False for the filtered out samples.
-    (xval denotes how the False is represented) """
-    if 'score_x' not in grp:
-        return grp, ypred  # not actually pruned
-
-    gru = dict([(k, list(grp[k])) for k in gro.keys()])
-
-    # XXX: this will generate non-continuous s0 blocks,
-    # hopefully okay for all ev tools
-    for k in gro.keys():
-        gru[k] += grp[k+'_x']
-    ypred = list(ypred)
-    ypred += [xval for i in grp['score_x']]
-    ypred = np.array(ypred)
-
-    return graph_nparray_anssel(gru), ypred
-
-
 class AnsSelTask(AbstractTask):
     def __init__(self):
         self.name = 'anssel'
@@ -126,6 +43,8 @@ class AnsSelTask(AbstractTask):
         self.s1pad = 60
         self.emb = None
         self.vocab = None
+
+        self.prescoring_task = AnsSelTask
 
     def config(self, c):
         c['loss'] = ranknet
@@ -167,30 +86,6 @@ class AnsSelTask(AbstractTask):
                 print("save")
 
         return (gr, y, vocab)
-
-    def prescoring_apply(self, gr, skip_oneclass=False):
-        """ Given a gr, prescore the pairs and do either pruning (for each s0,
-        keep only top N s1 based on the prescoring) or add the prescore as
-        an input. """
-        if 'prescoring_model' not in self.c or (self.c['prescoring_prune'] is None and self.c['prescoring_input'] is None):
-            return gr  # nothing to do
-
-        if 'prescoring_model_inst' not in self.c:
-            # cache the prescoring model instance
-            self.c['prescoring_model_inst'] = prescoring_model(self.c['prescoring_model'], self.c['prescoring_c'], self.c['prescoring_weightsf'])
-        print('[Prescoring] Predict')
-        ypred = self.c['prescoring_model_inst'].predict(gr)['score'][:,0]
-
-        if self.c['prescoring_input'] is not None:
-            inp = self.c['prescoring_input']
-            gr[inp] = np.reshape(ypred, (len(ypred), 1))  # 1D to 2D
-
-        if self.c['prescoring_prune'] is not None:
-            N = self.c['prescoring_prune']
-            print('[Prescoring] Prune')
-            gr = graph_input_prune(gr, ypred, N, skip_oneclass=skip_oneclass)
-
-        return gr
 
     def build_model(self, module_prep_model, do_compile=True):
         if self.c['ptscorer'] is None:
