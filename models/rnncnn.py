@@ -27,6 +27,7 @@ def config(c):
     c['sdim'] = 1
     c['rnnlevels'] = 1
 
+    c['cnnsiamese'] = True
     c['cnnact'] = 'relu'
     c['cnninit'] = 'glorot_uniform'
     c['cdim'] = {1: 1, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2}
@@ -52,7 +53,7 @@ def prep_model(model, N, s0pad, s1pad, c):
                 rnnbidi_mode=c['rnnbidi_mode'], rnnlevels=c['rnnlevels'])
 
     Nc = B.cnnsum_input(model, N, s0pad, inputs=['e0s_', 'e1s_'], pfx='cnn',
-                        dropout=c['dropout'], l2reg=c['l2reg'],
+                        dropout=c['dropout'], l2reg=c['l2reg'], siamese=c['cnnsiamese'],
                         cnninit=c['cnninit'], cnnact=c['cnnact'], cdim=c['cdim'])
 
     # Projection
