@@ -49,10 +49,18 @@ import tasks
 
 
 def transfer_eval(runid, module_prep_model, task1, task2, weightsf, c):
+    if 'model1' in c:
+        # Support for transfer across models (e.g. from rnn to attn1511)
+        # XXX: No separate model1_conf
+        model1_module = importlib.import_module('.'+c['model1'], 'models')
+        module_prep_model1 = model1_module.prep_model
+    else:
+        module_prep_model1 = module_prep_model
+
     # We construct both original and new model, then copy over
     # the weights from the original model
     print('Model')
-    model1 = task1.build_model(module_prep_model, do_compile=False)
+    model1 = task1.build_model(module_prep_model1, do_compile=False)
     model = task2.build_model(module_prep_model)
     print('Model (weights)')
     model1.load_weights(weightsf)
