@@ -12,6 +12,44 @@ from pysts.kerasts import graph_input_slice
 import pysts.kerasts.blocks as B
 
 
+def default_config(model_config, task_config):
+    # TODO: Move this to AbstractTask()?
+    c = dict()
+    c['embdim'] = 300
+    c['embprune'] = 100
+    c['embicase'] = False
+    c['inp_e_dropout'] = 1/2
+    c['inp_w_dropout'] = 0
+    c['e_add_flags'] = True
+
+    c['ptscorer'] = B.mlp_ptscorer
+    c['mlpsum'] = 'sum'
+    c['Ddim'] = 2
+    c['f_add_kw'] = False
+
+    c['loss'] = 'mse'  # you really want to override this in each task's config()
+    c['balance_class'] = False
+
+    c['opt'] = 'adam'
+    c['fix_layers'] = []  # mainly useful for transfer learning, or 'emb' to fix embeddings
+    c['batch_size'] = 160
+    c['nb_epoch'] = 16
+    c['nb_runs'] = 1
+    c['epoch_fract'] = 1
+
+    c['prescoring'] = None
+    c['prescoring_prune'] = None
+    c['prescoring_input'] = None
+
+    task_config(c)
+    if c.get('task>model', False):  # task config has higher priority than model
+        model_config(c)
+        task_config(c)
+    else:
+        model_config(c)
+    return c
+
+
 class AbstractTask(object):
     def set_conf(self, c):
         self.c = c
