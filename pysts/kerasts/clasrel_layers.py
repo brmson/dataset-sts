@@ -13,6 +13,9 @@ class WeightedMean(MaskedLayer):
     """Special layer for the ClasRel model, utilizes 3 inputs:
     classification, relevance and masking. The output is combined classification
     over relevance where mask was nonzero.
+
+    in case you don't want to use relevance weighing, just pass mask twice,
+    instead of the relevance too.
     """
 
     input_ndim = 3

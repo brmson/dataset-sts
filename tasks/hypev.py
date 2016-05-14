@@ -58,6 +58,7 @@ class HypEvTask(AbstractTask):
         c['task>model'] = True
         c['loss'] = 'binary_crossentropy'
         c['max_sentences'] = 50
+        c['use_relevance'] = True
         c['spad'] = 60
         c['embdim'] = 50
         c['embicase'] = True
@@ -245,7 +246,7 @@ class HypEvTask(AbstractTask):
         return gr3d, y
 
 
-def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, rnn_dim):
+def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, rnn_dim, make_S2):
     # Input embedding and encoding
     N = B.embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'],
                     c['inp_w_dropout'], add_flags=c['e_add_flags'], create_inputs=False)
@@ -255,13 +256,15 @@ def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, r
     if c['ptscorer'] == '1':
         model.add_node(name='scoreS1', input=final_outputs[1],
                        layer=Dense(rnn_dim, activation=oact, W_regularizer=l2(c['l2reg'])))
-        model.add_node(name='scoreS2', input=final_outputs[1],
-                       layer=Dense(rnn_dim, activation=oact, W_regularizer=l2(c['l2reg'])))
+        if make_S2:
+            model.add_node(name='scoreS2', input=final_outputs[1],
+                           layer=Dense(rnn_dim, activation=oact, W_regularizer=l2(c['l2reg'])))
     else:
         next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_')
         model.add_node(name='scoreS1', input=next_input, layer=Activation(oact))
-        next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S2_')
-        model.add_node(name='scoreS2', input=next_input, layer=Activation(oact))
+        if make_S2:
+            next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S2_')
+            model.add_node(name='scoreS2', input=next_input, layer=Activation(oact))
 
 
 def build_model(glove, vocab, module_prep_model, c):
@@ -290,25 +293,31 @@ def build_model(glove, vocab, module_prep_model, c):
     model.add_node(Reshape_((s1pad, glove.N)), 'se1', input='se13d')
 
     # ===================== outputs from sts
-    _prep_model(model, glove, vocab, module_prep_model, c, c['oact'], s0pad, s1pad, rnn_dim)  # out = ['scoreS1', 'scoreS2']
+    _prep_model(model, glove, vocab, module_prep_model, c, c['oact'], s0pad, s1pad, rnn_dim, c['use_relevance'])  # out = ['scoreS1', 'scoreS2']
     # ===================== reshape (batch_size * max_sentences,) -> (batch_size, max_sentences, rnn_dim)
     model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in1', input='scoreS1')
-    model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in2', input='scoreS2')
+    if c['use_relevance']:
+        model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in2', input='scoreS2')
 
     # ===================== [w_full_dim, q_full_dim] -> [class, rel]
     model.add_node(TimeDistributedDense(1, activation='sigmoid',
                                         W_regularizer=l2(c['l2reg']),
                                         b_regularizer=l2(c['l2reg'])),
                    'c', input='sts_in1')
-    model.add_node(TimeDistributedDense(1, activation='sigmoid',
-                                        W_regularizer=l2(c['l2reg']),
-                                        b_regularizer=l2(c['l2reg'])),
-                   'r', input='sts_in2')
+    if c['use_relevance']:
+        model.add_node(TimeDistributedDense(1, activation='sigmoid',
+                                            W_regularizer=l2(c['l2reg']),
+                                            b_regularizer=l2(c['l2reg'])),
+                       'r', input='sts_in2')
 
     #model.add_node(SumMask(), 'mask', input='si03d')  # XXX: needs to take se03d into account too
     # ===================== mean of class over rel
-    model.add_node(WeightedMean(max_sentences=max_sentences),
-                   name='weighted_mean', inputs=['c', 'r', 'mask1'])
+    if c['use_relevance']:
+        model.add_node(WeightedMean(max_sentences=max_sentences),
+                       name='weighted_mean', inputs=['c', 'r', 'mask1'])
+    else:
+        model.add_node(WeightedMean(max_sentences=max_sentences),
+                       name='weighted_mean', inputs=['c', 'mask1', 'mask1'])
     model.add_output(name='score', input='weighted_mean')
     return model
 
