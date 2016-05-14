@@ -5,6 +5,23 @@ s1 evidence (typically mix of relevant and irrelevant).
 See data/hypev/... for details and actual datasets.
 Training example:
     tools/train.py cnn hypev data/hypev/argus/argus_train.csv data/hypev/argus/argus_test.csv dropout=0
+
+Class/rel mode selection:
+
+    * rel_mode can be either 'scoreS2' (default), f_add value
+      or None (for no relevancy weighing)
+    * class_mode can be either 'scoreS1' (default), f_add value
+      or None
+
+Prescoring example (BM25 for relevancy and as an extra classification feature
+and pruning least related evidence):
+
+    "prescoring='termfreq'" "prescoring_weightsf='weights-anssel-termfreq-3368350fbcab42e4-bestval.h5'" "prescoring_input='bm25'" "f_add=['bm25']" "f_add_S1=['bm25']" "rel_mode='bm25'" prescoring_prune=20 max_sentences=20
+
+N.B. if you use prescoring as an input (either for _mode or as extra MLP input),
+you must list it as both f_add and _mode or f_add_S1 or f_add_S2 (f_add does
+not imply MLP input by itself, contrary to other tasks).
+
 """
 
 from __future__ import division
@@ -66,7 +83,8 @@ class HypEvTask(AbstractTask):
         c['task>model'] = True
         c['loss'] = 'binary_crossentropy'
         c['max_sentences'] = 50
-        c['use_relevance'] = True
+        c['class_mode'] = 'scoreS1'
+        c['rel_mode'] = 'scoreS2'
         c['spad'] = 60
         c['embdim'] = 50
         c['embicase'] = True
@@ -271,35 +289,41 @@ class HypEvTask(AbstractTask):
         return gr3d, y
 
 
-def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, rnn_dim, make_S2):
+def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, rnn_dim, make_S1, make_S2):
+    if not make_S1 and not make_S2:
+        return
+
     # Input embedding and encoding
     N = B.embedding(model, glove, vocab, s0pad, s1pad, c['inp_e_dropout'],
                     c['inp_w_dropout'], add_flags=c['e_add_flags'], create_inputs=False)
     # Sentence-aggregate embeddings
     final_outputs = module_prep_model(model, N, s0pad, s1pad, c)
 
-    kwargs = dict()
+    kwargs_S1 = dict()
+    kwargs_S2 = dict()
     if c['ptscorer'] == B.mlp_ptscorer:
-        kwargs['sum_mode'] = c['mlpsum']
-    if 'f_add' in c:
-        for inp in c['f_add']:
-            model.add_input(inp+'3d', input_shape=(c['max_sentences'], 1))  # assumed scalar
-            model.add_node(Reshape_((1,)), inp, input=inp+'3d')  # disperse to individual pairs
-        kwargs['extra_inp'] = c['f_add']
+        kwargs_S1['sum_mode'] = c['mlpsum']
+        kwargs_S1['sum_mode'] = c['mlpsum']
+    if 'f_add_S1' in c:
+        kwargs_S1['extra_inp'] = c['f_add_S1']
+    if 'f_add_S2' in c:
+        kwargs_S2['extra_inp'] = c['f_add_S2']
 
     if c['ptscorer'] == '1':
-        if kwargs['extra_inp']:
+        if 'extra_inp' in kwargs_S1 or 'extra_inp' in kwargs_S1:
             print("Warning: Ignoring extra_inp with ptscorer '1'")
-        model.add_node(name='scoreS1', input=final_outputs[1],
-                       layer=Dense(rnn_dim, activation=oact, W_regularizer=l2(c['l2reg'])))
+        if make_S1:
+            model.add_node(name='scoreS1', input=final_outputs[1],
+                           layer=Dense(rnn_dim, activation=oact, W_regularizer=l2(c['l2reg'])))
         if make_S2:
             model.add_node(name='scoreS2', input=final_outputs[1],
                            layer=Dense(rnn_dim, activation=oact, W_regularizer=l2(c['l2reg'])))
     else:
-        next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_', **kwargs)
-        model.add_node(name='scoreS1', input=next_input, layer=Activation(oact))
+        if make_S1:
+            next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S1_', **kwargs_S1)
+            model.add_node(name='scoreS1', input=next_input, layer=Activation(oact))
         if make_S2:
-            next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S2_', **kwargs)
+            next_input = c['ptscorer'](model, final_outputs, c['Ddim'], N, c['l2reg'], pfx='S2_', **kwargs_S2)
             model.add_node(name='scoreS2', input=next_input, layer=Activation(oact))
 
 
@@ -321,6 +345,9 @@ def build_model(glove, vocab, module_prep_model, c):
         model.add_node(Reshape_((s1pad, nlp.flagsdim)), 'f1', input='f14d')
     model.add_input('mask', (max_sentences,))
     model.add_node(Reshape_((max_sentences, 1)), 'mask1', input='mask')
+    for inp in c.get('f_add', []):
+        model.add_input(inp+'3d', input_shape=(c['max_sentences'], 1))  # assumed scalar
+        model.add_node(Reshape_((1,)), inp, input=inp+'3d')  # disperse to individual pairs
 
     # ===================== reshape to (batch_size * max_sentences, s_pad)
     model.add_node(Reshape_((s0pad,)), 'si0', input='si03d')
@@ -328,19 +355,23 @@ def build_model(glove, vocab, module_prep_model, c):
     model.add_node(Reshape_((s0pad, glove.N)), 'se0', input='se03d')
     model.add_node(Reshape_((s1pad, glove.N)), 'se1', input='se13d')
 
-    # ===================== outputs from sts
-    _prep_model(model, glove, vocab, module_prep_model, c, c['oact'], s0pad, s1pad, rnn_dim, c['use_relevance'])  # out = ['scoreS1', 'scoreS2']
+    # ===================== outputs from sts  # out = ['scoreS1', 'scoreS2']
+    _prep_model(model, glove, vocab, module_prep_model, c,
+                c['oact'], s0pad, s1pad, rnn_dim,
+                c['class_mode'] == 'scoreS1', c['rel_mode'] == 'scoreS2')
     # ===================== reshape (batch_size * max_sentences,) -> (batch_size, max_sentences, rnn_dim)
-    model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in1', input='scoreS1')
-    if c['use_relevance']:
-        model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in2', input='scoreS2')
+    if c['class_mode']:
+        model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in1', input=c['class_mode'])
+    if c['rel_mode']:
+        model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in2', input=c['rel_mode'])
 
     # ===================== [w_full_dim, q_full_dim] -> [class, rel]
-    model.add_node(TimeDistributedDense(1, activation='sigmoid',
-                                        W_regularizer=l2(c['l2reg']),
-                                        b_regularizer=l2(c['l2reg'])),
-                   'c', input='sts_in1')
-    if c['use_relevance']:
+    if c['class_mode']:
+        model.add_node(TimeDistributedDense(1, activation='sigmoid',
+                                            W_regularizer=l2(c['l2reg']),
+                                            b_regularizer=l2(c['l2reg'])),
+                       'c', input='sts_in1')
+    if c['rel_mode']:
         model.add_node(TimeDistributedDense(1, activation='sigmoid',
                                             W_regularizer=l2(c['l2reg']),
                                             b_regularizer=l2(c['l2reg'])),
@@ -348,12 +379,8 @@ def build_model(glove, vocab, module_prep_model, c):
 
     #model.add_node(SumMask(), 'mask', input='si03d')  # XXX: needs to take se03d into account too
     # ===================== mean of class over rel
-    if c['use_relevance']:
-        model.add_node(WeightedMean(max_sentences=max_sentences),
-                       name='weighted_mean', inputs=['c', 'r', 'mask1'])
-    else:
-        model.add_node(WeightedMean(max_sentences=max_sentences),
-                       name='weighted_mean', inputs=['c', 'mask1', 'mask1'])
+    model.add_node(WeightedMean(max_sentences=max_sentences),
+                   name='weighted_mean', inputs=['c' if c['class_mode'] else 'mask1', 'r' if c['rel_mode'] else 'mask1', 'mask1'])
     model.add_output(name='score', input='weighted_mean')
     return model
 
