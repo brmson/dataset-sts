@@ -12,7 +12,7 @@ of CK12 textbooks.  Extra token annotations are included, denoting matches
 of named entities linked from the sentences.  This all is produced using
 the Chios framework:
 
-	https://github.com/brmson/dataset-sts
+	https://github.com/brmson/aristo-chios
 
 This is a very hard dataset, perhaps one of the ultimate tests for our models.
 Moreover, while the lower bound of accuracy is 0.25, the upper bound is much
