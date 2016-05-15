@@ -10,6 +10,7 @@ from keras.layers.core import Activation, Dense, Dropout, Flatten, LambdaMerge
 from keras.layers.embeddings import Embedding
 from keras.layers.recurrent import GRU
 from keras.regularizers import l2
+from keras import backend as K
 
 import pysts.nlp as nlp
 
@@ -252,9 +253,9 @@ def cat_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', extra_inp=[]):
     return pfx+'cat'
 
 
-
-def absdiff_merge(model, inputs, pfx="out", layer_name="absdiff"):
-    """ Merging two layers into one, via element-wise subtraction and then taking absolute value.
+def absdiff_merge(model, inputs, pfx="out", layer_name="absdiff", abs_=True):
+    """ Merging two layers into one, via element-wise subtraction, and then
+    (by default) taking absolute value
 
     Example of usage: layer_name = absdiff_merge(model, inputs=["e0_", "e1_"])
 
@@ -263,8 +264,12 @@ def absdiff_merge(model, inputs, pfx="out", layer_name="absdiff"):
     if len(inputs) != 2:
         raise ValueError("absdiff_merge has to got exactly 2 inputs")
 
-    def diff(X):
-        return K.abs(X[0] - X[1])
+    if abs_:
+        def diff(X):
+            return K.abs(X[0] - X[1])
+    else:
+        def diff(X):
+            return X[0] - X[1]
 
     def output_shape(input_shapes):
         return input_shapes[0]

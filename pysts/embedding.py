@@ -10,13 +10,6 @@ Skip-thoughts use unigram/bigram information from the Children Book dataset.
 from __future__ import print_function
 
 import numpy as np
-import os
-
-try:
-    import skipthoughts
-    skipthoughts_available = True
-except ImportError:
-    skipthoughts_available = False
 
 
 class Embedder(object):
@@ -101,39 +94,60 @@ class Word2Vec(Embedder):
 
 
 class SkipThought(Embedder):
-    def __init__(self, datadir, uni_bi="combined"):
-        """ Embed Skip_Thought vectors, using precomputed model in npy format.
+    """Embedding of sentences, using precomputed skip-thought model [1506.06726].
+    To set up:
+    * Get skipthoughts.py file from https://github.com/ryankiros/skip-thoughts
+    * Execute the "Getting started" wgets in its README
+    * set up config['skipthoughts_datadir'] with path to dir where these files
+        were downloaded
+    
+    Skip-thoughts use embeddings build from the Children Book dataset.
 
-        Args:
-            uni_bi: possible values are "uni", "bi" or "combined" determining what kind of embedding should be used.
+    Config:
+    * config['skipthoughts_uni_bi'] = 'uni' or 'bi' or 'combined'; Two different 
+        skipthought versions, or their combination (see original paper for details)"""
 
-
-        todo: is argument ndim working properly?
-        """
+    def __init__(self, c=None):
+        """Load precomputed model."""
+        if not c:
+            c = {}
+        self.c = c
 
         import skipthoughts
         self.encode = skipthoughts.encode
 
-        if datadir is None:
-            datadir = os.path.realpath('__file__')
-        self.datadir = self.datadir
+        if self.c.get("skipthoughts_datadir"):
+            datadir = self.c["skipthoughts_datadir"]
+        else:
+            raise KeyError("config['skipthoughts_datadir'] is not set")
 
         # table for memoizing embeddings
         self.cache_table = {}
 
-        self.uni_bi = uni_bi
-        if uni_bi in ("uni", "bi"):
+        self.uni_bi = self.c["skipthoughts_uni_bi"]
+        if self.uni_bi in ("uni", "bi"):
             self.N = 2400
-        elif uni_bi == "combined":
+        elif self.uni_bi == "combined":
             self.N = 4800
         else:
-            raise ValueError("uni_bi has invalid value. Valid values: 'uni', 'bi', 'combined'")
+            raise KeyError("config['skipthoughts_uni_bi'] has invalid value. Possible values: 'uni', 'bi', 'combined'")
 
-        self.skipthoughts.path_to_models = self.datadir
-        self.skipthoughts.path_to_tables = self.datadir
-        self.skipthoughts.path_to_umodel = skipthoughts.path_to_models + 'uni_skip.npz'
-        self.skipthoughts.path_to_bmodel = skipthoughts.path_to_models + 'bi_skip.npz'
+        skipthoughts.path_to_models = datadir
+        skipthoughts.path_to_tables = datadir
+        skipthoughts.path_to_umodel = skipthoughts.path_to_models + 'uni_skip.npz'
+        skipthoughts.path_to_bmodel = skipthoughts.path_to_models + 'bi_skip.npz'
         self.st = skipthoughts.load_model()
+
+    def batch_embedding(self, sentences):
+        """Precompute batch embeddings of sentences, and remember them for use 
+        later (during this run; ie: without saving into file).
+        sentences is list of strings."""
+
+        new_sentences = list(set(sentences) - set(self.cache_table.keys()))
+        new_sentences = filter(lambda sen: len(sen) > 0, new_sentences)
+        embeddings = self.encode(self.st, new_sentences, verbose=False, use_eos=self.c.get("use_eos"))
+        assert len(new_sentences) == len(embeddings)
+        self.cache_table.update(zip(new_sentences, embeddings))
 
     def map_tokens(self, tokens, ndim=2):
         """
@@ -151,4 +165,13 @@ class SkipThought(Embedder):
         else:
             output_vector, = self.encode(self.st, [sentence, ], verbose=False)
             self.cache_table[sentence] = output_vector
-        return output_vector
+        if self.uni_bi == 'combined':
+            return output_vector
+        elif self.uni_bi == 'uni':
+            return output_vector[:self.N]
+        elif self.uni_bi == 'bi':
+            return output_vector[self.N:]
+        else:
+            raise ValueError("skipthoughts_uni_bi has invalid value")
+
+

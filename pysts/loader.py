@@ -285,10 +285,15 @@ def balance_dataset(ds):
     with random classifier giving 50%.
 
     This makes sense only for datasets with crisp 0/1 labels! """
-    # FIXME: we assume 1-labelled < 0-labelled
     y = ds[2]
     class1 = np.where(y == 1)[0]
     n_imbal = np.sum(y == 0) - np.sum(y == 1)
+
+    if n_imbal < 0:
+        smaller_class = np.where(y == 0)[0]
+        n_imbal = - n_imbal
+    else:
+        smaller_class = class1
 
     s0 = list(ds[0])
     s1 = list(ds[1])
@@ -296,7 +301,8 @@ def balance_dataset(ds):
     has_toklabels = len(ds) > 3
     if has_toklabels:
         toklabels = list(ds[3]) if ds[3] is not None else None
-    for i in np.random.choice(class1, size=n_imbal):
+
+    for i in np.random.choice(smaller_class, size=n_imbal):
         s0.append(ds[0][i])
         s1.append(ds[1][i])
         labels.append(ds[2][i])
