@@ -123,14 +123,23 @@ class HypEvTask(AbstractTask):
                 save_cache = True
 
         if '/mc' in fname:
-            s0, s1, y, qids = loader.load_mctest(fname, self.c['mcqtypes'])
+            s0, s1, y, qids, types = loader.load_mctest(fname)
         else:
             s0, s1, y, qids = loader.load_hypev(fname)
+            types = None
 
         if self.vocab is None:
             vocab = Vocabulary(s0 + s1, prune_N=self.c['embprune'], icase=self.c['embicase'])
         else:
             vocab = self.vocab
+
+        # mcqtypes pruning must happen *after* Vocabulary has been constructed!
+        if types is not None:
+            s0 = [x for x, t in zip(s0, types) if t in self.c['mcqtypes']]
+            s1 = [x for x, t in zip(s1, types) if t in self.c['mcqtypes']]
+            y = [x for x, t in zip(y, types) if t in self.c['mcqtypes']]
+            qids = [x for x, t in zip(qids, types) if t in self.c['mcqtypes']]
+            print('Retained %d questions, %d hypotheses (%s types)' % (len(set(qids)), len(set([' '.join(s) for s in s0])), self.c['mcqtypes']))
 
         si0, sj0 = vocab.vectorize(s0, self.emb, spad=self.s0pad)
         si1, sj1 = vocab.vectorize(s1, self.emb, spad=self.s1pad)
