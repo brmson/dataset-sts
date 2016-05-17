@@ -286,7 +286,9 @@ class HypEvTask(AbstractTask):
                 'sj03d': np.array(sj03d), 'sj13d': np.array(sj13d),
                 'f04d': np.array(f04d), 'f14d': np.array(f14d),
                 'mask': np.array(mask),
-                'score': y}
+                'score': y,
+                's0': gr['s0'], 's1': gr['s1']}
+        gr3d['c'] = containers
 
         if 'qids' in gr and gr['qids'] is not None:
             gr3d['qids'] = [c.qid for c in containers]
