@@ -228,6 +228,8 @@ them are plain CC-BY, others may be heavily restricted e.g. for non-commercial
 use only.  Default licence for anything else in this repository is ASLv2 for
 the code, CC-BY 4.0 for data.
 
-There should be a paper on this conglomerate of datasets (and comparison of
-*f_2* metrics) to cite soon!  (As of Jan 2016.)  Watch this space for the
-reference when it's done.
+Work on this project has been in part kindly sponsored by the Medialab
+foundation (http://medialab.cz/), a Czech Technical University incubator.
+The rest of contributions by Petr Baudiš is licenced as open source via
+Ailao (http://ailao.eu/).  (Ailao also provides commercial consulting,
+customization, deployment and support services.)
