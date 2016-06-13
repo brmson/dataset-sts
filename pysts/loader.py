@@ -16,6 +16,7 @@ import gzip
 from nltk.tokenize import word_tokenize
 import numpy as np
 import json
+import re
 
 
 def load_anssel(dsfile, subsample0=1, skip_oneclass=True):
@@ -121,6 +122,26 @@ def load_hypev(dsfile):
             s0.append(htext.split(' '))
             s1.append(mtext.split(' '))
     return (s0, s1, np.array(labels), qids if qids else None)
+
+
+def load_hypev_xtra(basename):
+    """ load an auxiliary feature dataset in the argus format.
+    This dataset contains a vector of extra features per each
+    hypothesis pair, which can then be appended for training. """
+    dsfile = re.sub('\.([^.]*)$', '_aux.\1', basename)  # train.tsv -> train_aux.tsv
+    xtra = {'#': [], '@': []}
+    with open(dsfile) as f:
+        c = csv.DictReader(f, delimiter='\t')
+        for l in c:
+            xtra1 = {'#': [], '@': []}
+            for k, v in l.items():
+                if k.startswith('#'):
+                    xtra1['#'].append(v)
+                elif k.startswith('@'):
+                    xtra1['@'].append(v)
+            xtra['#'].append(xtra1['#'])
+            xtra['@'].append(xtra1['@'])
+    return xtra
 
 
 def load_mctest(basename, qtypes):

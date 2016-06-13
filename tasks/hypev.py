@@ -34,7 +34,7 @@ from . import AbstractTask
 
 class Container:
     """Container for merging question's sentences together."""
-    def __init__(self, q_text, s0, s1, si0, si1, sj0, sj1, f0, f1, y, qid):
+    def __init__(self, q_text, s0, s1, si0, si1, sj0, sj1, f0, f1, y, qid, xc, xr):
         self.q_text = q_text  # str of question
         self.s0 = s0
         self.s1 = s1
@@ -46,6 +46,8 @@ class Container:
         self.f1 = f1
         self.y = y
         self.qid = qid
+        self.xc = xc
+        self.xr = xr
 
 
 class HypEvTask(AbstractTask):
@@ -95,10 +97,15 @@ class HypEvTask(AbstractTask):
             except (IOError, TypeError, KeyError):
                 save_cache = True
 
+        xtra = None
         if '/mc' in fname:
             s0, s1, y, qids = loader.load_mctest(fname, self.c['mcqtypes'])
         else:
             s0, s1, y, qids = loader.load_hypev(fname)
+            try:
+                xtra = loader.load_hypev_xtra(fname)
+            except:
+                pass  # okay to fail if no extra data available
 
         if self.vocab is None:
             vocab = Vocabulary(s0 + s1, prune_N=self.c['embprune'], icase=self.c['embicase'])
@@ -111,6 +118,9 @@ class HypEvTask(AbstractTask):
         gr = graph_input_anssel(si0, si1, sj0, sj1, None, None, y, f0, f1, s0, s1)
         if qids is not None:
             gr['qids'] = qids
+        if xtra is not None:
+            gr['#'] = xtra['#']
+            gr['@'] = xtra['@']
         gr, y = self.merge_questions(gr)
         if save_cache:
             with open(cache_filename, "wb") as f:
@@ -143,8 +153,10 @@ class HypEvTask(AbstractTask):
             traceback.print_exc()
 
     def build_model(self, module_prep_model, do_compile=True):
+        xcdim = np.size(self.gr['xc'], axis=1) if 'xc' in self.gr else None
+        xrdim = np.size(self.gr['xr'], axis=1) if 'xr' in self.gr else None
 
-        model = build_model(self.emb, self.vocab, module_prep_model, self.c)
+        model = build_model(self.emb, self.vocab, module_prep_model, self.c, xcdim, xrdim)
 
         for lname in self.c['fix_layers']:
             model.nodes[lname].trainable = False
@@ -201,10 +213,12 @@ class HypEvTask(AbstractTask):
                                   gr['si0'][i:i_], gr['si1'][i:i_],
                                   gr['sj0'][i:i_], gr['sj1'][i:i_],
                                   gr['f0'][i:i_], gr['f1'][i:i_], gr['score'][i],
-                                  gr['qids'][i] if 'qids' in gr else None)
+                                  gr['qids'][i] if 'qids' in gr else None,
+                                  gr['#'][i] if '#' in gr else None,
+                                  gr['@'][i] if '@' in gr else None)
             containers.append(container)
 
-        si03d, si13d, sj03d, sj13d, f04d, f14d, mask = [], [], [], [], [], [], []
+        si03d, si13d, sj03d, sj13d, f04d, f14d, xc3d, xr3d, mask = [], [], [], [], [], [], []
         for c in containers:
             si0 = prep.pad_sequences(c.si0.T, maxlen=self.c['max_sentences'],
                                      padding='post', truncating='post').T
@@ -229,6 +243,14 @@ class HypEvTask(AbstractTask):
             f04d.append(f0)
             f14d.append(f1)
 
+            if c.xc is not None:
+                xc = prep.pad_sequences(c.xc.T, maxlen=self.c['max_sentences'],
+                                        padding='post', truncating='post').T
+                xr = prep.pad_sequences(c.xr.T, maxlen=self.c['max_sentences'],
+                                        padding='post', truncating='post').T
+                xc3d.append(xc)
+                xr3d.append(xr)
+
             m = np.where(np.sum(si1 + sj1, axis=1) > 0, 1., 0.)
             mask.append(m)
 
@@ -236,6 +258,7 @@ class HypEvTask(AbstractTask):
         gr3d = {'si03d': np.array(si03d), 'si13d': np.array(si13d),
                 'sj03d': np.array(sj03d), 'sj13d': np.array(sj13d),
                 'f04d': np.array(f04d), 'f14d': np.array(f14d),
+                'xc3d': np.array(xc3d), 'xr3d': np.array(xr3d),
                 'mask': np.array(mask),
                 'score': y}
 
@@ -264,7 +287,7 @@ def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, r
         model.add_node(name='scoreS2', input=next_input, layer=Activation(oact))
 
 
-def build_model(glove, vocab, module_prep_model, c):
+def build_model(glove, vocab, module_prep_model, c, xcdim=None, xrdim=None):
     s0pad = s1pad = c['spad']
     max_sentences = c['max_sentences']
     rnn_dim = 1
@@ -294,16 +317,27 @@ def build_model(glove, vocab, module_prep_model, c):
     # ===================== reshape (batch_size * max_sentences,) -> (batch_size, max_sentences, rnn_dim)
     model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in1', input='scoreS1')
     model.add_node(Reshape_((max_sentences, rnn_dim)), 'sts_in2', input='scoreS2')
+    c_full = 'sts_in1'
+    r_full = 'sts_in2'
+
+    # ===================== append auxiliary features
+    if xcdim is not None:
+        model.add_input('xc3d', (max_sentences, xcdim))
+        model.add_input('xr3d', (max_sentences, xrdim))
+        model.add_node(Activation('linear'), 'c_full', inputs=[c_full, 'xc3d'], merge_mode='concat', concat_axis=-1)
+        model.add_node(Activation('linear'), 'r_full', inputs=[r_full, 'xr3d'], merge_mode='concat', concat_axis=-1)
+        c_full = 'c_full'
+        r_full = 'r_full'
 
     # ===================== [w_full_dim, q_full_dim] -> [class, rel]
     model.add_node(TimeDistributedDense(1, activation='sigmoid',
                                         W_regularizer=l2(c['l2reg']),
                                         b_regularizer=l2(c['l2reg'])),
-                   'c', input='sts_in1')
+                   'c', input=c_full)
     model.add_node(TimeDistributedDense(1, activation='sigmoid',
                                         W_regularizer=l2(c['l2reg']),
                                         b_regularizer=l2(c['l2reg'])),
-                   'r', input='sts_in2')
+                   'r', input=r_full)
 
     #model.add_node(SumMask(), 'mask', input='si03d')  # XXX: needs to take se03d into account too
     # ===================== mean of class over rel
