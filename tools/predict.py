@@ -3,13 +3,12 @@
 """
 Predict labels on a data set using pre-trained KeraSTS model instances (training runs)
 
-Usage: tools/predict.py MODEL TASK TRAINDATA VALDATA TESTDATA WEIGHTFILES... [vocabf='VOCABF'] [PARAM=VALUE]...
+Usage: tools/predict.py MODEL TASK TRAINDATA PREDICTDATA WEIGHTFILE [vocabf='VOCABF'] [PARAM=VALUE]...
 
 Example:
-    tools/predict.py cnn para \
-            data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv data/para/msr/msr-para-test.tsv \
-            weights-para-avg--2e2c031f78c95c8c-00-bestval.h5 weights-para-avg--2e2c031f78c95c8c-01-bestval.h5 \
-            inp_e_dropout=1/2
+    tools/predict.py rnn para \
+            data/para/msr/msr-para-train.tsv data/para/msr/msr-para-val.tsv \
+            weights-para-rnn-15b0d5aa0607105c-00-bestval.h5
 
 This works on whatever tools/train.py produced (weight files), loading
 them and evaluating them on a given task + model + dataset.  Model parameters
@@ -54,16 +53,8 @@ def stat(niter, fname, qty, r, alpha=0.95, bonferroni=1.):
 
 
 if __name__ == "__main__":
-    modelname, taskname, trainf, valf, testf = sys.argv[1:6]
-    g = ([], [])
-    g_i = 0
-    for p in sys.argv[6:]:
-        if '=' in p:  # config param
-            g_i = 1
-        g[g_i].append(p)
-    weightfs, params = g
-    if testf == '-':
-        testf = None
+    modelname, taskname, trainf, valf, weightf = sys.argv[1:6]
+    params = sys.argv[6:]
 
     model_module = importlib.import_module('.'+modelname, 'models')
     task_module = importlib.import_module('.'+taskname, 'tasks')
@@ -88,23 +79,20 @@ if __name__ == "__main__":
             task.vocab = taskv.vocab
         else:
             task.load_vocab(conf['vocabf'])
-    task.load_data(trainf, valf, testf)
+    task.load_data(trainf, valf, None)
 
     # Collect eval results
-    res = {trainf: [], valf: [], testf: []}
-    for weightf in weightfs:
-        print('Model')
-        model = task.build_model(model_module.prep_model)
+    print('Model')
+    model = task.build_model(model_module.prep_model)
 
-        print(weightf)
-        model.load_weights(weightf)
+    print(weightf)
+    model.load_weights(weightf)
 
-        print('Predict&Eval (best val epoch)')
-        resv = task.predict(model, task.gr_v)
-        res[valf].append(resv)
-        print()
+    print('Predict&Eval (best val epoch)')
+    ypred = task.predict(model, task.grv)
+    print()
 
-    for i, ypred in enumerate(res.values()):
+    for i in range(len(ypred)):
         s0 = ' '.join(task.grv['s0'][i])
         s1 = ' '.join(task.grv['s1'][i])
         y = task.grv['score'][i]
