@@ -124,6 +124,28 @@ def load_hypev(dsfile):
     return (s0, s1, np.array(labels), qids if qids else None)
 
 
+hypev_xtra_c = [
+    '#Question sentiment',
+    '#Sentence sentiment',
+    '#@Subject match',
+    '#@Object match',
+    '#@Verb similarity (spacy)',
+    '#@Verb similarity (WordNet)',
+    '#Match score',
+    '#@Antonyms',
+    '#@Verb similarity (WordNetBinary)',
+]
+hypev_xtra_r = [
+    '#@Subject match',
+    '#@Object match',
+    '#@Verb similarity (spacy)',
+    '#@Verb similarity (WordNet)',
+    '@Date relevance',
+    '@Elastic score',
+    '#@Antonyms',
+    '#@Verb similarity (WordNetBinary)',
+]
+
 def load_hypev_xtra(basename):
     """ load an auxiliary feature dataset in the argus format.
     This dataset contains a vector of extra features per each
@@ -133,12 +155,12 @@ def load_hypev_xtra(basename):
     with open(dsfile) as f:
         c = csv.DictReader(f, delimiter='\t')
         for l in c:
-            xtra1 = {'#': [], '@': []}
+            xtra1 = {'#': np.zeros(len(hypev_xtra_c)), '@': np.zeros(len(hypev_xtra_r))}
             for k, v in l.items():
                 if '#' in k:
-                    xtra1['#'].append(v)
+                    xtra1['#'][hypev_xtra_c.index(k)] = v
                 elif '@' in k:
-                    xtra1['@'].append(v)
+                    xtra1['@'][hypev_xtra_r.index(k)] = v
             xtra['#'].append(xtra1['#'])
             xtra['@'].append(xtra1['@'])
     return xtra
