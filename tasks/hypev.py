@@ -27,9 +27,11 @@ not imply MLP input by itself, contrary to other tasks).
 from __future__ import division
 from __future__ import print_function
 
+import csv
 import numpy as np
 import pickle
 import random
+import re
 import traceback
 
 import keras.preprocessing.sequence as prep
@@ -109,7 +111,7 @@ class HypEvTask(AbstractTask):
         # which question classes of mctest to load
         c['mcqtypes'] = ['one', 'multiple']
 
-    def load_set(self, fname, cache_dir=None):
+    def load_set(self, fname, cache_dir=None, lists=None):
         # TODO: Make the cache-handling generic,
         # and offer a way to actually pass cache_dir
         save_cache = False
@@ -124,16 +126,22 @@ class HypEvTask(AbstractTask):
             except (IOError, TypeError, KeyError):
                 save_cache = True
 
-        xtra = None
-        if '/mc' in fname:
-            s0, s1, y, qids, types = loader.load_mctest(fname)
+        if lists is not None:
+            s0, s1, y, qids, xtra, types = lists
         else:
-            s0, s1, y, qids = loader.load_hypev(fname)
-            try:
-                xtra = loader.load_hypev_xtra(fname)
-            except:
-                pass  # okay to fail if no extra data available
-            types = None
+            xtra = None
+            if '/mc' in fname:
+                s0, s1, y, qids, types = loader.load_mctest(fname)
+            else:
+                s0, s1, y, qids = loader.load_hypev(fname)
+                try:
+                    dsfile = re.sub('\.([^.]*)$', '_aux.\1', fname)  # train.tsv -> train_aux.tsv
+                    with open(dsfile) as f:
+                        rows = csv.DictReader(f, delimiter='\t')
+                        xtra = loader.load_hypev_xtra(rows)
+                except:
+                    pass  # okay to fail if no extra data available
+                types = None
 
         if self.vocab is None:
             vocab = Vocabulary(s0 + s1, prune_N=self.c['embprune'], icase=self.c['embicase'])

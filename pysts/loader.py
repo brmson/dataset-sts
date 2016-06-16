@@ -16,7 +16,6 @@ import gzip
 from nltk.tokenize import word_tokenize
 import numpy as np
 import json
-import re
 
 
 def load_anssel(dsfile, subsample0=1, skip_oneclass=True):
@@ -146,23 +145,27 @@ hypev_xtra_r = [
     '#@Verb similarity (WordNetBinary)',
 ]
 
-def load_hypev_xtra(basename):
+def load_hypev_xtra(rows):
     """ load an auxiliary feature dataset in the argus format.
     This dataset contains a vector of extra features per each
-    hypothesis pair, which can then be appended for training. """
+    hypothesis pair, which can then be appended for training.
+
+    Normally:
     dsfile = re.sub('\.([^.]*)$', '_aux.\1', basename)  # train.tsv -> train_aux.tsv
-    xtra = {'#': [], '@': []}
     with open(dsfile) as f:
         c = csv.DictReader(f, delimiter='\t')
-        for l in c:
-            xtra1 = {'#': np.zeros(len(hypev_xtra_c)), '@': np.zeros(len(hypev_xtra_r))}
-            for k, v in l.items():
-                if '#' in k:
-                    xtra1['#'][hypev_xtra_c.index(k)] = v
-                elif '@' in k:
-                    xtra1['@'][hypev_xtra_r.index(k)] = v
-            xtra['#'].append(xtra1['#'])
-            xtra['@'].append(xtra1['@'])
+        xtra = load_hypev_xtra(c)
+    """
+    xtra = {'#': [], '@': []}
+    for l in rows:
+        xtra1 = {'#': np.zeros(len(hypev_xtra_c)), '@': np.zeros(len(hypev_xtra_r))}
+        for k, v in l.items():
+            if '#' in k:
+                xtra1['#'][hypev_xtra_c.index(k)] = v
+            elif '@' in k:
+                xtra1['@'][hypev_xtra_r.index(k)] = v
+        xtra['#'].append(xtra1['#'])
+        xtra['@'].append(xtra1['@'])
     return xtra
 
 
