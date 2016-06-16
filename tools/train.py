@@ -60,56 +60,7 @@ import tasks
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
 import pysts.kerasts.blocks as B
-
-
-def default_config(model_config, task_config):
-    # TODO: Move this to AbstractTask()?
-    c = dict()
-    c['embdim'] = 300
-    c['embprune'] = 100
-    c['embicase'] = False
-    c['inp_e_dropout'] = 1/2
-    c['inp_w_dropout'] = 0
-    c['e_add_flags'] = True
-
-    c['ptscorer'] = B.mlp_ptscorer
-    c['mlpsum'] = 'sum'
-    c['Ddim'] = 2
-    c['f_add_kw'] = False
-
-    c['loss'] = 'mse'  # you really want to override this in each task's config()
-    c['balance_class'] = False
-
-    c['opt'] = 'adam'
-    c['fix_layers'] = []  # mainly useful for transfer learning, or 'emb' to fix embeddings
-    c['batch_size'] = 160
-    c['nb_epoch'] = 16
-    c['nb_runs'] = 1
-    c['epoch_fract'] = 1
-
-    c['prescoring'] = None
-    c['prescoring_prune'] = None
-    c['prescoring_input'] = None
-
-    task_config(c)
-    if c.get('task>model', False):  # task config has higher priority than model
-        model_config(c)
-        task_config(c)
-    else:
-        model_config(c)
-    return c
-
-
-def prescoring_setup(c, task_config):
-    """ Based on c prescoring entry, produce a model instance """
-
-    c['prescoring_model'] = importlib.import_module('.'+c['prescoring'], 'models')
-
-    # XXX: prescoring_conf is the original parameter dict,
-    # prescoring_c is the final conf dict
-    c['prescoring_c'] = default_config(c['prescoring_model'].config, task_config)
-    for k, v in c.get('prescoring_conf', {}).items():
-        c['prescoring_c'][k] = v
+from tasks import default_config
 
 
 def config(model_config, task_config, params):
@@ -120,11 +71,6 @@ def config(model_config, task_config, params):
         c[k] = eval(v)
 
     ps, h = hash_params(c)
-
-    # post-ps,h c-munging - only things that are redundant to whatever
-    # is user-visible
-    if c['prescoring'] is not None:
-        prescoring_setup(c, task_config)
 
     return c, ps, h
 

@@ -75,3 +75,71 @@ def graph_input_slice(gr, sl):
     for k, v in gr.items():
         grs[k] = v[sl]
     return grs
+
+
+def graph_input_prune(gr, ypred, N, skip_oneclass=False):
+    """ Given a gr and a given scoring, keep only top N s1 for each s0,
+    and stash the others away to _x-suffixed keys (for potential recovery). """
+    def prune_filter(ypred, N):
+        """ yield (index, passed) tuples """
+        ys = sorted(enumerate(ypred), key=lambda yy: yy[1], reverse=True)
+        i = 0
+        for n, y in ys:
+            yield n, (i < N)
+            i += 1
+
+    # Go through (s0, s1), keeping track of the beginning of the current
+    # s0 block, and appending pruned versions
+    i = 0
+    grp = dict([(k, []) for k in gr.keys()] + [(k+'_x', []) for k in gr.keys()])
+    for j in range(len(gr['si0']) + 1):
+        if j < len(gr['si0']) and (j == 0 or np.all(gr['si0'][j]+gr['sj0'][j] == gr['si0'][j-1]+gr['sj0'][j-1])):
+            # within same-s0 block, carry on
+            continue
+        # block boundary
+
+        # possibly check if we have both classes picked (for training)
+        if skip_oneclass:
+            n_picked = 0
+            for n, passed in prune_filter(ypred[i:j], N):
+                if not passed:
+                    break
+                n_picked += gr['score'][i + n] > 0
+            if n_picked == 0:
+                # only false; tough luck, prune everything for this s0
+                for k in gr.keys():
+                    grp[k+'_x'] += list(gr[k][i:j])
+                i = j
+                continue
+
+        # append pruned subset
+        for n, passed in prune_filter(ypred[i:j], N):
+            for k in gr.keys():
+                if passed:
+                    grp[k].append(gr[k][i + n])
+                else:
+                    grp[k+'_x'].append(gr[k][i + n])
+
+        i = j
+
+    return graph_nparray_anssel(grp)
+
+
+def graph_input_unprune(gro, grp, ypred, xval):
+    """ Reconstruct original graph gro from a pruned graph grp,
+    with predictions set to always False for the filtered out samples.
+    (xval denotes how the False is represented) """
+    if 'score_x' not in grp:
+        return grp, ypred  # not actually pruned
+
+    gru = dict([(k, list(grp[k])) for k in gro.keys()])
+
+    # XXX: this will generate non-continuous s0 blocks,
+    # hopefully okay for all ev tools
+    for k in gro.keys():
+        gru[k] += grp[k+'_x']
+    ypred = list(ypred)
+    ypred += [xval for i in grp['score_x']]
+    ypred = np.array(ypred)
+
+    return graph_nparray_anssel(gru), ypred
