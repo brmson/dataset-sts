@@ -69,17 +69,15 @@ def get_score():
     lists = l_s0, l_s1, l_y, l_qids, l_xtra, l_types
 
     s0, s1, y, qids, xtra, types = lists
-    gr, y, _ = task.load_set(None, lists)
+    gr, y, _ = task.load_set(None, lists=lists)
 
-    sc = task.predict(model, gr)
+    sc = task.predict(model, gr)[0]
     return jsonify({'score': sc}), 200
 
 
 if __name__ == "__main__":
     modelname, taskname, vocabf, weightsf = sys.argv[1:5]
     params = sys.argv[5:]
-
-    load_s1texts(s1f)
 
     model_module = importlib.import_module('.'+modelname, 'models')
     task_module = importlib.import_module('.'+taskname, 'tasks')

@@ -79,6 +79,7 @@ class HypEvTask(AbstractTask):
         self.name = 'hypev'
         self.emb = None
         self.vocab = None
+        self.gr = None
 
         # Prescore individual htext,mtext pairs using anssel model.
         self.prescoring_task = AnsSelTask
@@ -197,8 +198,8 @@ class HypEvTask(AbstractTask):
             traceback.print_exc()
 
     def build_model(self, module_prep_model, do_compile=True):
-        xcdim = len(loader.hypev_xtra_c) if 'xc' in self.gr else None
-        xrdim = len(loader.hypev_xtra_r) if 'xr' in self.gr else None
+        xcdim = len(loader.hypev_xtra_c) if self.gr is not None and 'xc' in self.gr else None
+        xrdim = len(loader.hypev_xtra_r) if self.gr is not None and 'xr' in self.gr else None
 
         model = build_model(self.emb, self.vocab, module_prep_model, self.c, xcdim, xrdim)
 
@@ -266,7 +267,7 @@ class HypEvTask(AbstractTask):
                                   dict([(k, gr[k][i:i_]) for k in self.c.get('f_add', [])]))
             containers.append(container)
 
-        si03d, si13d, sj03d, sj13d, f04d, f14d, xc3d, xr3d, mask = [], [], [], [], [], [], []
+        si03d, si13d, sj03d, sj13d, f04d, f14d, xc3d, xr3d, mask = [], [], [], [], [], [], [], [], []
         gr_extra = dict()
         for k in self.c.get('f_add', []):
             gr_extra[k] = []
