@@ -4,7 +4,7 @@
 # evaluation and starts REST API for scoring hypotheses based on evidence
 #
 # Usage:   ./tools/hypev-api.py MODEL TASK VOCAB WEIGHTS [PARAM=VALUE]...
-# Example: ./tools/hypev-api.py rnn hypev data/hypev/argus/argus_train.csv hypev-attn1511--9df6b60f36f5b00-05
+# Example: ./tools/hypev-api.py attn1511 hypev data/hypev/argus/argus_train.csv weights-hypev-attn1511--9df6b60f36f5b00-05.h5
 #
 # The script listens on given (as "port" config parameter) or default (5052)
 # port and accepts JSON (on http://address:port/score) in the following format:
@@ -76,8 +76,8 @@ def get_score():
 
 
 if __name__ == "__main__":
-    modelname, taskname, vocabf, weightsf, s1f = sys.argv[1:6]
-    params = sys.argv[6:]
+    modelname, taskname, vocabf, weightsf = sys.argv[1:5]
+    params = sys.argv[5:]
 
     load_s1texts(s1f)
 
