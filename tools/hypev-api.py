@@ -17,7 +17,7 @@
 # for training.
 # Example (FIXME):
 #
-#    curl -H "Content-Type: application/json" -X POST -d '{"s0":"how much it pays","k":3}' http://localhost:5051/score
+#    curl -H "Content-Type: application/json" -X POST -d '{"s0":"how much it pays","k":3}' http://localhost:5052/score
 #
 # The response is JSON object
 #    {"score":SCORE}
