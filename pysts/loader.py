@@ -135,9 +135,9 @@ def load_hypev_xtra(basename):
         for l in c:
             xtra1 = {'#': [], '@': []}
             for k, v in l.items():
-                if k.startswith('#'):
+                if '#' in k:
                     xtra1['#'].append(v)
-                elif k.startswith('@'):
+                elif '@' in k:
                     xtra1['@'].append(v)
             xtra['#'].append(xtra1['#'])
             xtra['@'].append(xtra1['@'])
