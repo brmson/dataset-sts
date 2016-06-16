@@ -197,8 +197,8 @@ class HypEvTask(AbstractTask):
             traceback.print_exc()
 
     def build_model(self, module_prep_model, do_compile=True):
-        xcdim = np.size(self.gr['xc'], axis=1) if 'xc' in self.gr else None
-        xrdim = np.size(self.gr['xr'], axis=1) if 'xr' in self.gr else None
+        xcdim = len(loader.hypev_xtra_c) if 'xc' in self.gr else None
+        xrdim = len(loader.hypev_xtra_r) if 'xr' in self.gr else None
 
         model = build_model(self.emb, self.vocab, module_prep_model, self.c, xcdim, xrdim)
 
