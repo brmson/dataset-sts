@@ -191,11 +191,15 @@ class AbstractTask(object):
         return model
 
     def fit_model(self, model, **kwargs):
+        if self.c['ptscorer'] is None:
+            return model.fit(self.gr, **kwargs)
         batch_size = kwargs.pop('batch_size')
         kwargs['callbacks'] = self.fit_callbacks(kwargs.pop('weightsf'))
         return model.fit_generator(self.sample_pairs(self.gr, batch_size), **kwargs)
 
     def predict(self, model, gr):
+        if self.c['ptscorer'] is None:
+            return model.predict(gr)
         batch_size = 16384  # XXX: hardcoded
         ypred = []
         for ogr in self.sample_pairs(gr, batch_size, shuffle=False, once=True):

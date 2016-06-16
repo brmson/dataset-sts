@@ -62,7 +62,7 @@ class Vocabulary:
                 if t in self.word_idx:
                     si.append(self.word_idx[t])
                     sj.append(0)
-                elif t in emb.w:
+                elif emb is not None and t in emb.w:
                     si.append(0)
                     sj.append(emb.w[t])
                 else:
