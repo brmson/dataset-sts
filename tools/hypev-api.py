@@ -95,7 +95,13 @@ if __name__ == "__main__":
         task.emb = None
 
     print('Dataset')
-    task.load_vocab(vocabf)
+    if 'vocabt' in conf:
+        taskv_module = importlib.import_module('.'+conf['vocabt'], 'tasks')
+        taskv = taskv_module.task()
+        taskv.load_vocab(vocabf)
+        task.vocab = taskv.vocab
+    else:
+        task.load_vocab(vocabf)
 
     print('Model')
     task.c['skip_oneclass'] = False  # load_samples() returns oneclass
