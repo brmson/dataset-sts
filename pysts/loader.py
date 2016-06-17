@@ -158,6 +158,8 @@ def load_hypev_xtra(rows):
     """
     xtra = {'#': [], '@': []}
     for l in rows:
+        if l['Class_GS'] == 'Class_GS':
+            continue
         xtra1 = {'#': np.zeros(len(hypev_xtra_c)), '@': np.zeros(len(hypev_xtra_r))}
         for k, v in l.items():
             if '#' in k:
@@ -166,6 +168,8 @@ def load_hypev_xtra(rows):
                 xtra1['@'][hypev_xtra_r.index(k)] = v
         xtra['#'].append(xtra1['#'])
         xtra['@'].append(xtra1['@'])
+    xtra['#'] = np.array(xtra['#'])
+    xtra['@'] = np.array(xtra['@'])
     return xtra
 
 

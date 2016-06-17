@@ -90,6 +90,8 @@ class HypEvTask(AbstractTask):
         c['max_sentences'] = 50
         c['class_mode'] = 'scoreS1'
         c['rel_mode'] = 'scoreS2'
+        c['aux_c'] = False
+        c['aux_r'] = False
         c['spad'] = 60
         c['embdim'] = 50
         c['embicase'] = True
@@ -136,12 +138,14 @@ class HypEvTask(AbstractTask):
             else:
                 s0, s1, y, qids = loader.load_hypev(fname)
                 try:
-                    dsfile = re.sub('\.([^.]*)$', '_aux.\1', fname)  # train.tsv -> train_aux.tsv
+                    dsfile = re.sub('\.([^.]*)$', '_aux.tsv', fname)  # train.tsv -> train_aux.tsv
                     with open(dsfile) as f:
                         rows = csv.DictReader(f, delimiter='\t')
                         xtra = loader.load_hypev_xtra(rows)
-                except:
-                    pass  # okay to fail if no extra data available
+                        print(dsfile + ' loaded and available')
+                except Exception as e:
+                    if self.c['aux_r'] or self.c['aux_c']:
+                        raise e
                 types = None
 
         if self.vocab is None:
@@ -186,6 +190,9 @@ class HypEvTask(AbstractTask):
                 for i in ids:
                     sl = slice(i * batch_size, (i+1) * batch_size)
                     ogr = graph_input_slice(gr, sl)
+                    # s0, s1 are larger than the rest, unnerving keras
+                    ogr.pop('s0', None)
+                    ogr.pop('s1', None)
                     ogr['se03d'] = self.emb.map_jset(ogr['sj03d'])
                     ogr['se13d'] = self.emb.map_jset(ogr['sj13d'])
                     # print(sl)
@@ -198,8 +205,8 @@ class HypEvTask(AbstractTask):
             traceback.print_exc()
 
     def build_model(self, module_prep_model, do_compile=True):
-        xcdim = len(loader.hypev_xtra_c) if self.gr is not None and 'xc' in self.gr else None
-        xrdim = len(loader.hypev_xtra_r) if self.gr is not None and 'xr' in self.gr else None
+        xcdim = len(loader.hypev_xtra_c) if self.c['aux_c'] else None
+        xrdim = len(loader.hypev_xtra_r) if self.c['aux_r'] else None
 
         model = build_model(self.emb, self.vocab, module_prep_model, self.c, xcdim, xrdim)
 
@@ -262,8 +269,8 @@ class HypEvTask(AbstractTask):
                                   gr['sj0'][i:i_], gr['sj1'][i:i_],
                                   gr['f0'][i:i_], gr['f1'][i:i_], gr['score'][i],
                                   gr['qids'][i] if 'qids' in gr else None,
-                                  gr['#'][i] if '#' in gr else None,
-                                  gr['@'][i] if '@' in gr else None,
+                                  gr['#'][i:i_] if '#' in gr else None,
+                                  gr['@'][i:i_] if '@' in gr else None,
                                   dict([(k, gr[k][i:i_]) for k in self.c.get('f_add', [])]))
             containers.append(container)
 
@@ -297,6 +304,7 @@ class HypEvTask(AbstractTask):
             f14d.append(f1)
 
             if c.xc is not None:
+                #print(c.xc, c.xc.T.shape)
                 xc = prep.pad_sequences(c.xc.T, maxlen=self.c['max_sentences'],
                                         padding='post', truncating='post').T
                 xr = prep.pad_sequences(c.xr.T, maxlen=self.c['max_sentences'],
@@ -316,11 +324,17 @@ class HypEvTask(AbstractTask):
         gr3d = {'si03d': np.array(si03d), 'si13d': np.array(si13d),
                 'sj03d': np.array(sj03d), 'sj13d': np.array(sj13d),
                 'f04d': np.array(f04d), 'f14d': np.array(f14d),
-                'xc3d': np.array(xc3d), 'xr3d': np.array(xr3d),
                 'mask': np.array(mask),
                 'score': y,
                 's0': gr['s0'], 's1': gr['s1']}
         gr3d['c'] = containers
+
+        if self.c['aux_c']:
+            gr3d['xc3d'] = np.array(xc3d)
+            #print(gr3d['xc3d'].shape, gr3d['si03d'].shape)
+        if self.c['aux_r']:
+            gr3d['xr3d'] = np.array(xr3d)
+            #print(gr3d['xr3d'].shape)
 
         if 'qids' in gr and gr['qids'] is not None:
             gr3d['qids'] = [c.qid for c in containers]
@@ -416,6 +430,7 @@ def build_model(glove, vocab, module_prep_model, c, xcdim=None, xrdim=None):
             model.add_input('xc3d', (max_sentences, xcdim))
             model.add_node(Activation('linear'), 'c_full', inputs=[c_full, 'xc3d'], merge_mode='concat', concat_axis=-1)
             c_full = 'c_full'
+    if xrdim is not None:
         if c['rel_mode']:
             model.add_input('xr3d', (max_sentences, xrdim))
             model.add_node(Activation('linear'), 'r_full', inputs=[r_full, 'xr3d'], merge_mode='concat', concat_axis=-1)
