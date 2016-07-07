@@ -98,3 +98,5 @@ REST API
   * **retrieval-api.py** is analogous REST API but accepts just a single
     sentence, matching a hard-coded dataset of *s1* sentences and returning
     the best *k* matches.  para-specific at the moment.
+
+  * **hypev-api.py** is also analogous, but specific to the hypev task.
