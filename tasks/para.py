@@ -36,8 +36,11 @@ class ParaphrasingTask(AbstractTask):
         c['loss'] = 'binary_crossentropy'
         c['nb_epoch'] = 32
 
-    def load_set(self, fname):
-        s0, s1, y = loader.load_msrpara(fname)
+    def load_set(self, fname, lists=None):
+        if lists:
+            s0, s1, y = lists
+        else:
+            s0, s1, y = loader.load_msrpara(fname)
 
         if self.vocab is None:
             vocab = Vocabulary(s0 + s1, prune_N=self.c['embprune'], icase=self.c['embicase'])

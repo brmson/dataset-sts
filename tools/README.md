@@ -90,13 +90,11 @@ please contribute them back. :)
 REST API
 --------
 
-RESTful API for scoring sentence pairs based on a given model is provided.
+  * **scoring-api.py** is a RESTful API for scoring provided sentence pairs
+    based on a given model.
+    For an example and details, see the header of the script.  This is a work
+    in progress, the API may not be stable.  anssel-specific at the moment.
 
-Usage: ``tools/scoring-api.py MODEL TASK VOCAB WEIGHTS S1SET [PARAM=VALUE]...``
-
-For an example and details, see the header of the script.  This is a work
-in progress, the API may not be stable.  anssel-specific at the moment.
-
-There is also **retrieval-api.py** which is analogous but accepts just
-a single sentence, matching a hard-coded dataset of *s1* sentences and
-returning the best k matches.
+  * **retrieval-api.py** is analogous REST API but accepts just a single
+    sentence, matching a hard-coded dataset of *s1* sentences and returning
+    the best *k* matches.  para-specific at the moment.
