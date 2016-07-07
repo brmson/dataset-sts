@@ -50,6 +50,13 @@ s1texts = []
 s1toks = []
 
 
+@app.route('/weights/<node_name>')
+def get_weights(node_name):
+    W = model.nodes[node_name].get_weights()[0]
+    print(W)
+    return jsonify({node_name: [float(x) for x in W[:, 0]]}), 200
+
+
 @app.route('/score', methods=['POST'])
 def get_score():
     if not request.json['s0']:
