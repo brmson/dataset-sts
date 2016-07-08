@@ -5,6 +5,7 @@
 #
 # Usage:   ./tools/hypev-api.py MODEL TASK VOCAB WEIGHTS [PARAM=VALUE]...
 # Example: ./tools/hypev-api.py attn1511 hypev data/hypev/argus/argus_train.csv weights-hypev-attn1511--2f4946b5cbace063-00-bestval.h5 "focus_act='sigmoid/maxnorm'" "cnnact='relu'" nb_runs=4 aux_c=True aux_r=True
+# Example: ./tools/hypev-api.py rnn hypev data/anssel/ubuntu/v2-vocab.pickle weights-ubuntu-hypev-rnn-19a300a6532a4345-bestval.h5 "vocabt='ubuntu'" pdim=1 ptscorer=B.mlp_ptscorer aux_c=True aux_r=True
 #
 # The script listens on given (as "port" config parameter) or default (5052)
 # port and accepts JSON (on http://address:port/score) in the following format:
