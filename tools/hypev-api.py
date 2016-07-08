@@ -79,8 +79,12 @@ def get_score():
     s0, s1, y, qids, xtra, types = lists
     gr, y, _ = task.load_set(None, lists=lists)
 
-    sc = task.predict(model, gr)[0]
-    return jsonify({'score': sc}), 200
+    cl, rel, sc = [], [], []
+    for ogr in task.sample_pairs(gr, 16384, shuffle=False, once=True):
+        cl += list(model.predict(ogr)['class'])
+        rel += list(model.predict(ogr)['rel'])
+        sc += list(model.predict(ogr)['score'])
+    return jsonify({'score': sc[0].tolist()[0], 'class': [x[0] for x in cl[0].tolist()], 'rel': [x[0] for x in rel[0].tolist()]}), 200
 
 
 if __name__ == "__main__":
@@ -113,7 +117,7 @@ if __name__ == "__main__":
 
     print('Model')
     task.c['skip_oneclass'] = False  # load_samples() returns oneclass
-    model = task.build_model(model_module.prep_model)
+    model = task.build_model(model_module.prep_model, classrel_outputs=True)
 
     print(weightsf)
     model.load_weights(weightsf)

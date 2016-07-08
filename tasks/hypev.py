@@ -204,17 +204,21 @@ class HypEvTask(AbstractTask):
         except Exception:
             traceback.print_exc()
 
-    def build_model(self, module_prep_model, do_compile=True):
+    def build_model(self, module_prep_model, do_compile=True, classrel_outputs=False):
         xcdim = len(loader.hypev_xtra_c) if self.c['aux_c'] else None
         xrdim = len(loader.hypev_xtra_r) if self.c['aux_r'] else None
 
-        model = build_model(self.emb, self.vocab, module_prep_model, self.c, xcdim, xrdim)
+        model = build_model(self.emb, self.vocab, module_prep_model, self.c, xcdim, xrdim, classrel_outputs)
 
         for lname in self.c['fix_layers']:
             model.nodes[lname].trainable = False
 
         if do_compile:
-            model.compile(loss={'score': self.c['loss']}, optimizer=self.c['opt'])
+            xloss = {}
+            if classrel_outputs:
+                xloss['class'] = self.c['loss']
+                xloss['rel'] = self.c['loss']
+            model.compile(loss=dict(score=self.c['loss'], **xloss), optimizer=self.c['opt'])
         return model
 
     def fit_callbacks(self, weightsf):
@@ -384,7 +388,7 @@ def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, r
             model.add_node(name='scoreS2', input=next_input, layer=Activation(oact))
 
 
-def build_model(glove, vocab, module_prep_model, c, xcdim=None, xrdim=None):
+def build_model(glove, vocab, module_prep_model, c, xcdim=None, xrdim=None, classrel_outputs=False):
     s0pad = s1pad = c['spad']
     max_sentences = c['max_sentences']
     rnn_dim = 1
@@ -442,11 +446,15 @@ def build_model(glove, vocab, module_prep_model, c, xcdim=None, xrdim=None):
                                             W_regularizer=l2(c['l2reg']),
                                             b_regularizer=l2(c['l2reg'])),
                        'c', input=c_full)
+        if classrel_outputs:
+            model.add_output(name='class', input='c')
     if c['rel_mode']:
         model.add_node(TimeDistributedDense(1, activation='sigmoid',
                                             W_regularizer=l2(c['l2reg']),
                                             b_regularizer=l2(c['l2reg'])),
                        'r', input=r_full)
+        if classrel_outputs:
+            model.add_output(name='rel', input='r')
 
     #model.add_node(SumMask(), 'mask', input='si03d')  # XXX: needs to take se03d into account too
     # ===================== mean of class over rel
