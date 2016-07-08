@@ -158,8 +158,9 @@ def load_hypev_xtra(rows):
     """
     xtra = {'#': [], '@': []}
     for l in rows:
-        if l['Class_GS'] == 'Class_GS':
+        if l.get('Class_GS', None) == 'Class_GS':
             continue
+        # TODO: ==0 features
         xtra1 = {'#': np.zeros(len(hypev_xtra_c)), '@': np.zeros(len(hypev_xtra_r))}
         for k, v in l.items():
             if '#' in k:

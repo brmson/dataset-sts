@@ -31,6 +31,7 @@ import importlib
 import sys
 
 import pysts.embedding as emb
+from pysts import loader
 
 from train import config
 import models  # importlib python3 compatibility requirement
@@ -69,7 +70,7 @@ def get_score():
     l_y = [0.5 for s1 in s1toks]
     l_qids = [0 for s1 in s1toks]
     if len(request.json['s1'][0]) > 1:
-        l_xtra = [loader.load_hypev_xtra(s1) for s1 in request.json['s1']]
+        l_xtra = loader.load_hypev_xtra(request.json['s1'])
     else:
         l_xtra = None
     l_types = None
