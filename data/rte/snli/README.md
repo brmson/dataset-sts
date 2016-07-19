@@ -30,6 +30,8 @@ Note that NO DROPOUT is applied for any of the models.
 |                          |±0.010214 |±0.005646 |±0.002769 |
 | rnn                      | 0.784382 | 0.754344 | 0.748651 | ``dropout=0`` ``inp_e_dropout=0``
 |                          |±0.019295 |±0.006224 |±0.009505 |
+| cnn                      | 0.837948 | 0.781701 | 0.776135 | ``inp_w_dropout=0`` ``dropout=0`` ``inp_e_dropout=0``
+|                          |±0.008889 |±0.004660 |±0.003057 |
 | rnncnn                   | 0.810825 | 0.761075 | 0.752748 | ``dropout=0`` ``inp_e_dropout=0``
 |                          |±0.037068 |±0.012773 |±0.008269 |
 | attn1511                 | 0.828611 | 0.781472 | 0.773921 | ``dropout=0`` ``inp_e_dropout=0``
