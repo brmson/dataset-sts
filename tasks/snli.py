@@ -50,8 +50,8 @@ class SnliTask(RTETask):
         return self.vocab
 
     def load_set(self, fname):
-        si0, si1, f0, f1, labels = pickle.load(open(fname, "rb"))
-        gr = graph_input_anssel(si0, si1, labels, f0, f1)
+        si0, si1, sj0, sj1, f0_, f1_, labels = pickle.load(open(fname, "rb"))
+        gr = graph_input_anssel(si0, si1, sj0, sj1, None, None, labels, f0_, f1_)
         return (gr, labels, self.vocab)
 
 

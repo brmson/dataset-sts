@@ -69,11 +69,12 @@ class STSPearsonCB(Callback):
 
 class RTECB(Callback):
     """ A callback that monitors RTE validation accuracy after each epoch """
-    def __init__(self, val_gr):
-        self.val_gr = val_gr  # graph_input()
+    def __init__(self, task):
+        self.task = task
 
     def on_epoch_end(self, epoch, logs={}):
-        ypred = self.model.predict(self.val_gr)['score']
-        acc, cls_acc = ev.multiclass_accuracy(self.val_gr['score'], ypred)
+        ogr = self.task.sample_pairs(self.task.grv, batch_size=len(self.task.grv['score']), shuffle=False, once=True)
+        ypred = np.array(self.model.predict(ogr)['score'])
+        acc, cls_acc = ev.multiclass_accuracy(self.task.grv['score'], ypred)
         print('                                                       val acc %f' % (acc,))
         logs['acc'] = acc
