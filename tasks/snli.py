@@ -40,7 +40,7 @@ class SnliTask(RTETask):
 
     def config(self, c):
         c['loss'] = 'categorical_crossentropy'
-        c['nb_epoch'] = 32
+        c['nb_epoch'] = 4
         c['batch_size'] = 196
         c['epoch_fract'] = 1/4
 

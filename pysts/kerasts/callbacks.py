@@ -73,8 +73,10 @@ class RTECB(Callback):
         self.task = task
 
     def on_epoch_end(self, epoch, logs={}):
-        ogr = self.task.sample_pairs(self.task.grv, batch_size=len(self.task.grv['score']), shuffle=False, once=True)
-        ypred = np.array(self.model.predict(ogr)['score'])
+        ypred=[]
+        for ogr in self.task.sample_pairs(self.task.grv, batch_size=len(self.task.grv['score']), shuffle=False, once=True):
+            ypred += list(self.model.predict(ogr)['score'])
+        ypred = np.array(ypred)
         acc, cls_acc = ev.multiclass_accuracy(self.task.grv['score'], ypred)
         print('                                                       val acc %f' % (acc,))
         logs['acc'] = acc

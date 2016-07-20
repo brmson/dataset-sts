@@ -103,7 +103,7 @@ class RTETask(AbstractTask):
         return model
 
     def fit_callbacks(self, weightsf):
-        return [RTECB(self.grv),
+        return [RTECB(self),
                 ModelCheckpoint(weightsf, save_best_only=True, monitor='acc', mode='max'),
                 EarlyStopping(monitor='acc', mode='max', patience=6)]
 
@@ -113,7 +113,10 @@ class RTETask(AbstractTask):
             if gr is None:
                 res.append(None)
                 continue
-            ypred = model.predict(gr)['score']
+	    ypred=[]
+            for ogr in self.sample_pairs(gr, batch_size=len(gr), shuffle=False, once=True):
+                ypred +=  list(model.predict(ogr)['score'])
+            ypred = np.array(ypred)
             res.append(ev.eval_rte(ypred, gr['score'], fname))
         return tuple(res)
 
