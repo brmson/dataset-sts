@@ -39,6 +39,7 @@ def config(c):
     c['project'] = True
     c['pdim'] = 2
     c['pact'] = 'tanh'
+    c['pinit'] = 'glorot_uniform'
 
     # model-external:
     c['inp_e_dropout'] = 4/5
@@ -59,7 +60,7 @@ def prep_model(model, N, s0pad, s1pad, c):
     # Projection
     if c['project']:
         model.add_shared_node(name='proj', inputs=['e0s_', 'e1s_'], outputs=['e0p', 'e1p'],
-                              layer=Dense(input_dim=int(N*c['sdim']), output_dim=int(N*c['pdim']),
+                              layer=Dense(input_dim=int(N*c['sdim']), output_dim=int(N*c['pdim']), init=c['pinit'],
                                           W_regularizer=l2(c['l2reg']), activation=c['pact']))
         # This dropout is controversial; it might be harmful to apply,
         # or at least isn't a clear win.
