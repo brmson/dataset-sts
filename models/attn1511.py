@@ -188,13 +188,26 @@ def focus(model, N, input_aggreg, input_seq, orig_seq, attn_name, output_name,
         model.add_node(name=attn_name+'[1]',
                        layer=B.dot_time_distributed_merge(model, [input_aggreg+'[rep]', input_seq],
                                                           cos_norm=(attn_mode == 'cos')))
-    else:
+    elif attn_mode == 'sum':
         # traditional attention model from Hermann et al., 2015 and Tan et al., 2015
         # we want to model attention as w*tanh(e0a + e1sa[i])
         model.add_node(name=attn_name+'[0]', inputs=[input_aggreg+'[rep]', input_seq], merge_mode='sum',
                        layer=Activation('tanh'))
         model.add_node(name=attn_name+'[1]', input=attn_name+'[0]',
                        layer=TimeDistributedDense(input_dim=awidth, output_dim=1, W_regularizer=l2(l2reg)))
+    elif attn_mode == 'bilinear':
+        # MemNNs popularize bilinear form attention s(e0a W e1sa[i]^T).
+        # This is algebraically equivalent to (e0a W) * (e1sa[i] W)^T,
+        # actually this is the same as our "projection" layer.
+        # (The sigmoid is focus_act.)
+        model.add_shared_node(name=attn_name+'[0]',
+                              inputs=[input_aggreg+'[rep]', input_seq],
+                              outputs=[input_aggreg+'[rep][P]', input_seq+'[P]'],
+                              layer=TimeDistributedDense(input_dim=awidth, output_dim=awidth, W_regularizer=l2(l2reg)))
+        model.add_node(name=attn_name+'[1]',
+                       layer=B.dot_time_distributed_merge(model, [input_aggreg+'[rep][P]', input_seq+'[P]']))
+    else:
+        raise ValueError('unsupported attn_mode %s' % (attn_mode,))
     model.add_node(name=attn_name+'[2]', input=attn_name+'[1]',
                    layer=Flatten(input_shape=(s1pad, 1)))
 
