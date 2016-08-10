@@ -33,6 +33,9 @@ a function...
 
 The contents of dataset-sts and baseline results are described in the
 paper [Sentence Pair Scoring: Towards Unified Framework for Text Comprehension](http://arxiv.org/abs/1603.06127).
+Hypothesis evaluation task is described in the paper
+[Joint Learning of Sentence Embeddings for Relevance and Entailment](https://arxiv.org/abs/1605.04655)
+presented at the repl4nlp workshop at ACL2016 [(poster)](http://pasky.or.cz/cp/poster-repl4nlp2016.pdf).
 
 **Pull requests welcome that extend the datasets, or add important comments,
 references or attributions.  Please let us know if we misread some licence
