@@ -76,6 +76,7 @@ class RTETask(AbstractTask):
         kwargs = dict()
         if ptscorer == B.mlp_ptscorer:
             kwargs['sum_mode'] = self.c['mlpsum']
+            kwargs['Dinit'] = self.c['Dinit']
 
         model.add_node(name='scoreS0', input=ptscorer(model, final_outputs, self.c['Ddim'], N, self.c['l2reg'], pfx="out0", **kwargs),
                        layer=Activation('sigmoid'))

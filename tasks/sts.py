@@ -86,6 +86,7 @@ class STSTask(AbstractTask):
         kwargs = dict()
         if ptscorer == B.mlp_ptscorer:
             kwargs['sum_mode'] = self.c['mlpsum']
+            kwargs['Dinit'] = self.c['Dinit']
         model.add_node(name='scoreS', input=ptscorer(model, final_outputs, self.c['Ddim'], N, self.c['l2reg'], **kwargs),
                        layer=Activation('linear'))
 

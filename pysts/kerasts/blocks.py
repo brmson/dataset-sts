@@ -212,7 +212,7 @@ def cos_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', extra_inp=[]):
         return pfx+'cos'
 
 
-def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra_inp=[]):
+def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', Dinit='glorot_uniform', sum_mode='sum', extra_inp=[]):
     """ Element-wise features from the pair fed to an MLP. """
     if sum_mode == 'absdiff':
         # model.add_node(name=pfx+'sum', layer=absdiff_merge(model, inputs))
@@ -242,7 +242,7 @@ def mlp_ptscorer(model, inputs, Ddim, N, l2reg, pfx='out', sum_mode='sum', extra
     if Ddim:
         for i, D in enumerate(Ddim):
             model.add_node(name=pfx+'hdn[%d]'%(i,),
-                           layer=Dense(output_dim=int(N*D), W_regularizer=l2(l2reg), activation='tanh', init='identity'),
+                           layer=Dense(output_dim=int(N*D), W_regularizer=l2(l2reg), activation='tanh', init=Dinit),
                            **mlp_args(mlp_inputs))
             mlp_inputs = [pfx+'hdn[%d]'%(i,)]
 

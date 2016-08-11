@@ -26,6 +26,7 @@ def default_config(model_config, task_config):
     c['ptscorer'] = B.mlp_ptscorer
     c['mlpsum'] = 'sum'
     c['Ddim'] = 2
+    c['Dinit'] = 'glorot_uniform'
     c['f_add_kw'] = False
 
     c['loss'] = 'mse'  # you really want to override this in each task's config()
@@ -181,6 +182,7 @@ class AbstractTask(object):
         kwargs = dict()
         if ptscorer == B.mlp_ptscorer:
             kwargs['sum_mode'] = self.c['mlpsum']
+            kwargs['Dinit'] = self.c['Dinit']
         if 'f_add' in self.c:
             for inp in self.c['f_add']:
                 model.add_input(inp, input_shape=(1,))  # assumed scalar

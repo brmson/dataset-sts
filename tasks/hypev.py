@@ -364,7 +364,9 @@ def _prep_model(model, glove, vocab, module_prep_model, c, oact, s0pad, s1pad, r
     kwargs_S2 = dict()
     if c['ptscorer'] == B.mlp_ptscorer:
         kwargs_S1['sum_mode'] = c['mlpsum']
-        kwargs_S1['sum_mode'] = c['mlpsum']
+        kwargs_S2['sum_mode'] = c['mlpsum']
+        kwargs_S1['Dinit'] = c['Dinit']
+        kwargs_S2['Dinit'] = c['Dinit']
     if 'f_add_S1' in c:
         kwargs_S1['extra_inp'] = c['f_add_S1']
     if 'f_add_S2' in c:
