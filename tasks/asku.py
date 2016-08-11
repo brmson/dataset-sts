@@ -70,7 +70,7 @@ class AskUTask(ParaphrasingTask):
 
     def load_vocab(self, vocabf):
         self.texts = loader.load_askubuntu_texts(vocabf)
-        self.vocab = Vocabulary(self.texts.values())
+        self.vocab = Vocabulary(self.texts.values(), prune_N=self.c['embprune'], icase=self.c['embicase'])
         return self.vocab
 
     def load_set(self, fname, cache_dir=None):
@@ -99,11 +99,11 @@ class AskUTask(ParaphrasingTask):
             s1 += s1l
             labels += labelsl
 
-        si0 = self.vocab.vectorize(s0, spad=self.s0pad)
-        si1 = self.vocab.vectorize(s1, spad=self.s1pad)
+        si0, sj0 = self.vocab.vectorize(s0, self.emb, spad=self.s0pad)
+        si1, sj1 = self.vocab.vectorize(s1, self.emb, spad=self.s1pad)
         f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
 
-        gr = graph_input_anssel(si0, si1, np.array(labels), f0, f1)
+        gr = graph_input_anssel(si0, si1, sj0, sj1, None, None, np.array(labels), f0, f1, s0, s1)
         return gr
 
     def load_data(self, trainf, valf, testf=None):

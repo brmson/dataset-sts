@@ -42,14 +42,14 @@ class RTETask(AbstractTask):
         s0, s1, y = loader.load_sick2014(fname, mode='entailment')
 
         if self.vocab is None:
-            vocab = Vocabulary(s0 + s1)
+            vocab = Vocabulary(s0 + s1, prune_N=self.c['embprune'], icase=self.c['embicase'])
         else:
             vocab = self.vocab
 
-        si0 = vocab.vectorize(s0, spad=self.s0pad)
-        si1 = vocab.vectorize(s1, spad=self.s1pad)
+        si0, sj0 = vocab.vectorize(s0, self.emb, spad=self.s0pad)
+        si1, sj1 = vocab.vectorize(s1, self.emb, spad=self.s1pad)
         f0, f1 = nlp.sentence_flags(s0, s1, self.s0pad, self.s1pad)
-        gr = graph_input_anssel(si0, si1, y, f0, f1, s0, s1)
+        gr = graph_input_anssel(si0, si1, sj0, sj1, None, None, y, f0, f1, s0, s1)
 
         return (gr, y, vocab)
 
@@ -113,9 +113,9 @@ class RTETask(AbstractTask):
             if gr is None:
                 res.append(None)
                 continue
-	    ypred=[]
+            ypred = []
             for ogr in self.sample_pairs(gr, batch_size=len(gr), shuffle=False, once=True):
-                ypred +=  list(model.predict(ogr)['score'])
+                ypred += list(model.predict(ogr)['score'])
             ypred = np.array(ypred)
             res.append(ev.eval_rte(ypred, gr['score'], fname))
         return tuple(res)
