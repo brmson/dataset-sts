@@ -15,6 +15,8 @@ Model Comparison
 
 For randomized models, 95% confidence intervals (t-distribution) are reported.
 
+Also NOTE THAT THESE RESULTS ARE OBSOLETE because they predate the f/bigvocab port.
+
 | Model                    | train acc | train F1 | val acc  | val F1   | test acc | test F1  | settings
 |--------------------------|-----------|----------|----------|----------|----------|----------|---------
 | always y=1               | 0.673378  | 0.804748 | 0.694000 | 0.818935 | 0.665507 | 0.799025 | (defaults)

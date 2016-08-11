@@ -16,6 +16,8 @@ STS Model Comparison
 For randomized models, 95% confidence intervals (t-distribution) are reported.
 t. mean is the same as test (artifact of sts-semeval oriented evaluation).
 
+Also NOTE THAT THESE RESULTS ARE OBSOLETE because they predate the f/bigvocab port.
+
 | Model                    | train    | trial    | test     | settings
 |--------------------------|----------|----------|----------|---------
 | termfreq TF-IDF #w       | 0.479906 | 0.456354 | 0.478802 | ``freq_mode='tf'``

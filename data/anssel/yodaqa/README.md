@@ -44,6 +44,8 @@ Model Comparison
 
 For randomized models, 95% confidence intervals (t-distribution) are reported.
 
+Also NOTE THAT THESE RESULTS ARE OBSOLETE because they predate the f/bigvocab port.
+
 curatedv2:
 
 | Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings

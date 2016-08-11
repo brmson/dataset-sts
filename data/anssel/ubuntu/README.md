@@ -25,6 +25,8 @@ For randomized models, 95% confidence intervals (t-distribution) are reported.
 Note that NO DROPOUT is applied for any of the models.  In case of DAN, that
 also means inp_w_dropout=0.
 
+Also NOTE THAT THESE RESULTS ARE OBSOLETE because they predate the f/bigvocab port.
+
 | Model                    | valMRR   | val-2R@1 | val-10R@2 | testMRR  | test-2R@1 | test-10R@2 | settings
 |--------------------------|----------|----------|-----------|----------|-----------|------------|---------
 | TF-IDF (Ryan Lowe)       |          |          |           |          | 0.749260  | 0.587315   | personal communication

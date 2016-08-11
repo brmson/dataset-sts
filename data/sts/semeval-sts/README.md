@@ -31,6 +31,8 @@ Because SemEval 2016 competition results weren't published at the test time,
 we train on -2014 and test on 2015.  We use 2014.tweet-news as a validation
 set.
 
+Also NOTE THAT THESE RESULTS ARE OBSOLETE because they predate the f/bigvocab port.
+
 | Model                    | train    | val      | ans.for. | ans.stud | belief   | headline | images   | t. mean  | settings
 |--------------------------|----------|----------|----------|----------|----------|----------|----------|----------|---------
 | termfreq TF-IDF #w       | 0.497085 | 0.651653 | 0.607226 | 0.676746 | 0.622920 | 0.725578 | 0.714331 | 0.669360 | ``freq_mode='tf'``

@@ -19,6 +19,8 @@ For third-party measurements, see
 All models are trained on train-all.  For randomized models, 95% confidence
 intervals (t-distribution) are reported.
 
+Also NOTE THAT THESE RESULTS ARE OBSOLETE because they predate the f/bigvocab port.
+
 | Model                    | trainAllMRR | devMRR   | testMAP  | testMRR  | settings
 |--------------------------|-------------|----------|----------|----------|---------
 | termfreq TF-IDF #w       | 0.714169    | 0.725217 | 0.578200 | 0.708957 | ``freq_mode='tf'``
