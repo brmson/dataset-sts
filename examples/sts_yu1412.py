@@ -41,7 +41,7 @@ import argparse
 import glob
 
 from keras.models import Sequential
-from keras.layers.core import Activation, Dense, Dropout, Flatten, Merge, RepeatVector
+from keras.layers import Activation, Dense, Dropout, Flatten, Merge, RepeatVector
 from keras.regularizers import l2
 
 import pysts.embedding as emb

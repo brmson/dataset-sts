@@ -31,8 +31,8 @@ from __future__ import print_function
 
 import argparse
 
-from keras.models import Graph
-from keras.layers.core import Activation, Dense, Dropout
+from keras.models import Model
+from keras.layers import Dense, Dropout, Input, merge
 from keras.regularizers import l2
 
 import pysts.embedding as emb
@@ -48,33 +48,22 @@ def load_set(glove, fname, balance=False, subsample0=3):
 
 
 def prep_model(glove, dropout=1/2, l2reg=1e-4):
-    model = Graph()
-
     # Process sentence embeddings
-    model.add_input(name='e0', input_shape=(glove.N,))
-    model.add_input(name='e1', input_shape=(glove.N,))
-    model.add_node(name='e0_', input='e0',
-                   layer=Dropout(dropout))
-    model.add_node(name='e1_', input='e1',
-                   layer=Dropout(dropout))
+    e0 = Input(shape=(glove.N,), name='e0')
+    e1 = Input(shape=(glove.N,), name='e1')
+    # dropout here triggers keras error, wtf?
 
     # Generate element-wise features from the pair
     # (the Activation is a nop, merge_mode is the important part)
-    model.add_node(name='sum', inputs=['e0_', 'e1_'], layer=Activation('linear'), merge_mode='sum')
-    model.add_node(name='mul', inputs=['e0_', 'e1_'], layer=Activation('linear'), merge_mode='mul')
+    ew_sum = merge([e0, e1], mode='sum')
+    ew_mul = merge([e0, e1], mode='mul')
+    ew = merge([ew_sum, ew_mul], mode='concat', concat_axis=-1)
 
     # Use MLP to generate classes
-    model.add_node(name='hidden', inputs=['sum', 'mul'], merge_mode='concat',
-                   layer=Dense(50, W_regularizer=l2(l2reg)))
-    model.add_node(name='hiddenS', input='hidden',
-                   layer=Activation('sigmoid'))
-    model.add_node(name='out', input='hiddenS',
-                   layer=Dense(1, W_regularizer=l2(l2reg)))
-    model.add_node(name='outS', input='out',
-                   layer=Activation('sigmoid'))
+    hidden = Dense(glove.N*2, activation='sigmoid', W_regularizer=l2(l2reg), init='identity')(Dropout(dropout)(ew))
+    score = Dense(1, activation='sigmoid', W_regularizer=l2(l2reg), name='score')(hidden)
 
-    model.add_output(name='score', input='outS')
-    return model
+    return Model(input=[e0, e1], output=score)
 
 
 if __name__ == "__main__":
@@ -93,9 +82,9 @@ if __name__ == "__main__":
         Xtest, ytest = load_set(glove, 'data/anssel/yodaqa/curatedv1-val.csv', subsample0=1)
 
     model = prep_model(glove)
-    model.compile(loss={'score': 'binary_crossentropy'}, optimizer='adam')
-    model.fit({'e0': Xtrain[0], 'e1': Xtrain[1], 'score': ytrain},
+    model.compile(loss={'score': 'binary_crossentropy'}, optimizer='adam', metrics=['accuracy'])
+    model.fit({'e0': Xtrain[0], 'e1': Xtrain[1]}, {'score': ytrain},
               batch_size=20, nb_epoch=2000,
-              validation_data={'e0': Xtest[0], 'e1': Xtest[1], 'score': ytest})
-    ev.eval_anssel(model.predict({'e0': Xtrain[0], 'e1': Xtrain[1]})['score'][:, 0], Xtrain[0], Xtrain[1], ytrain, 'Train')
-    ev.eval_anssel(model.predict({'e0': Xtest[0], 'e1': Xtest[1]})['score'][:, 0], Xtest[0], Xtest[1], ytest, 'Test')
+              validation_data=({'e0': Xtest[0], 'e1': Xtest[1]}, {'score': ytest}))
+    ev.eval_anssel(model.predict({'e0': Xtrain[0], 'e1': Xtrain[1]})[:, 0], Xtrain[0], Xtrain[1], ytrain, 'Train')
+    ev.eval_anssel(model.predict({'e0': Xtest[0], 'e1': Xtest[1]})[:, 0], Xtest[0], Xtest[1], ytest, 'Test')

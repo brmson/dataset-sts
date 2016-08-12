@@ -23,15 +23,14 @@ import argparse
 import pickle
 import os
 
-from keras.models import Graph
-from keras.layers.core import Activation, Dense, Dropout
+from keras.models import Model
+from keras.layers import Dense, Dropout, Input, merge
 from keras.regularizers import l2
 from keras.optimizers import Adam
 
 import pysts.embedding as emb
 import pysts.eval as ev
 import pysts.loader as loader
-import pysts.kerasts.blocks as B
 
 def load_set(fname, emb, cache_dir=None):
     save_cache = False
@@ -56,39 +55,22 @@ def load_set(fname, emb, cache_dir=None):
 
 
 def prep_model(N, dropout=0, l2reg=1e-4):
-    model = Graph()
+    # Process sentence embeddings
+    e0 = Input(shape=(N,), name='e0')
+    e1 = Input(shape=(N,), name='e1')
+    # dropout here triggers keras error, wtf?
 
-    model.add_input(name='e0', input_shape=(N,))
-    model.add_input(name='e1', input_shape=(N,))
+    # Generate element-wise features from the pair
+    # (the Activation is a nop, merge_mode is the important part)
+    ew_sum = merge([e0, e1], mode='sum')
+    ew_mul = merge([e0, e1], mode='mul')
+    ew = Dropout(dropout)(merge([ew_sum, ew_mul], mode='concat', concat_axis=-1))
 
-    model.add_node(name='e0_', input='e0',
-                   layer=Activation('linear'))
-    model.add_node(name='e1_', input='e1',
-                   layer=Activation('linear'))
+    # Use MLP to generate classes
+    hidden = Dense(50, activation='sigmoid', W_regularizer=l2(l2reg))(Dropout(dropout)(ew))
+    score = Dense(1, activation='sigmoid', W_regularizer=l2(l2reg), name='score')(hidden)
 
-    model.add_node(name='mul', inputs=['e0_', 'e1_'], layer=Activation('linear'), merge_mode='mul')
-    model.add_node(name='sum', inputs=['e0_', 'e1_'], layer=Activation('linear'), merge_mode='sum')
-
-    # absdiff_name = B.absdiff_merge(model, ["e0_", "e1_"], pfx="", layer_name="absdiff")
-
-
-    model.add_node(name="mul_", input="mul", layer=Dropout(dropout))
-    model.add_node(name="sum_", input="sum", layer=Dropout(dropout))
-
-    model.add_node(name='hiddenA', inputs=['mul_', 'sum_'], merge_mode='concat',
-                   layer=Dense(50, W_regularizer=l2(l2reg)))
-
-    model.add_node(name='hiddenAS', input='hiddenA',
-                   layer=Activation('sigmoid'))
-
-    model.add_node(name='out', input='hiddenAS',
-                   layer=Dense(1, W_regularizer=l2(l2reg)))
-
-    model.add_node(name='outS', input='out',
-                   layer=Activation('sigmoid'))
-
-    model.add_output(name='score', input='outS')
-    return model
+    return Model(input=[e0, e1], output=score)
 
 if __name__ == "__main__":
     #todo: add all possible arguments (inspire in other examples)
@@ -118,10 +100,10 @@ if __name__ == "__main__":
 
     model = prep_model(N)
 
-    model.compile(loss={'score': 'binary_crossentropy'}, optimizer=Adam(lr=0.001))
-    hist = model.fit({'e0': e0, 'e1': e1, 'score': y},
+    model.compile(loss={'score': 'binary_crossentropy'}, optimizer=Adam(lr=0.001), metrics=['accuracy'])
+    hist = model.fit({'e0': e0, 'e1': e1}, {'score': y},
                      batch_size=20, nb_epoch=2000,
-                     validation_data={'e0': e0t, 'e1': e1t, 'score': yt})
+                     validation_data=({'e0': e0t, 'e1': e1t}, {'score': yt}))
 
     ev.eval_anssel(model.predict({'e0': e0, 'e1': e1})['score'][:, 0], e0, e1, yt, 'Train')
     ev.eval_anssel(model.predict({'e0': e0t, 'e1': e1t})['score'][:, 0], e0t, e1t, yt, 'Test')
