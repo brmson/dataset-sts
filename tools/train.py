@@ -58,6 +58,7 @@ import tasks
 
 # Unused imports for evaluating commandline params
 from keras.layers.recurrent import SimpleRNN, GRU, LSTM
+from keras.optimizers import *
 from pysts.kerasts.objectives import ranknet, ranksvm, cicerons_1504
 import pysts.kerasts.blocks as B
 from tasks import default_config
