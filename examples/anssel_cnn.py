@@ -127,8 +127,7 @@ if __name__ == "__main__":
     model = prep_model(glove, vocab, oact='linear', **kwargs)
     model.compile(loss={'score': ranknet}, optimizer='adam')  # for 'binary_crossentropy', drop the custom oact
     model.fit(gr, gr, validation_data=(grt, grt),
-              callbacks=[AnsSelCB(s0t, grt),
-                         ModelCheckpoint('weights-cnn-bestval.h5', save_best_only=True, monitor='mrr', mode='max')],
+              callbacks=[ModelCheckpoint('weights-cnn-bestval.h5', save_best_only=True, monitor='mrr', mode='max')],
               batch_size=160, nb_epoch=8)
     model.save_weights('weights-cnn-final.h5', overwrite=True)
     ev.eval_anssel(model.predict(gr)[:,0], s0, s1, y, 'Train')
