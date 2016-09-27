@@ -44,10 +44,8 @@ from __future__ import division
 import argparse
 
 from keras.callbacks import ModelCheckpoint
-from keras.layers.core import Activation, Dense, Dropout
-from keras.layers.recurrent import SimpleRNN, GRU, LSTM
-from keras.models import Graph
-from keras.regularizers import l2
+from keras.layers.core import Activation
+from keras.models import Model
 
 import pysts.embedding as emb
 import pysts.eval as ev
@@ -57,12 +55,12 @@ from pysts.vocab import Vocabulary
 
 from pysts.kerasts import graph_input_anssel
 import pysts.kerasts.blocks as B
+import pysts.kerasts.scoring as S
 from pysts.kerasts.callbacks import AnsSelCB
 from pysts.kerasts.objectives import ranknet
 
 
-s0pad = 60
-s1pad = 60
+spad = 60
 
 
 def load_set(fname, emb, vocab=None):
@@ -75,7 +73,7 @@ def load_set(fname, emb, vocab=None):
     si1, sj1 = vocab.vectorize(s1, emb)
     se0 = emb.map_jset(sj0)
     se1 = emb.map_jset(sj1)
-    f0, f1 = nlp.sentence_flags(s0, s1, s0pad, s1pad)
+    f0, f1 = nlp.sentence_flags(s0, s1, spad, spad)
     gr = graph_input_anssel(si0, si1, sj0, sj1, se0, se1, y, f0, f1)
 
     # XXX: Pre-generating the whole (se0, se1) produces a *big* memory footprint
@@ -87,38 +85,26 @@ def load_set(fname, emb, vocab=None):
 
 def prep_model(glove, vocab, dropout=1/2, dropout_w=0, dropout_in=4/5, l2reg=1e-4,
                cnnact='tanh', cnninit='glorot_uniform', cdim={1: 1, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2},
-               project=True, pdim=2.5,
-               ptscorer=B.mlp_ptscorer, mlpsum='sum', Ddim=1,
+               ptscorer=S.MLPPtScorer, ptargs={'pdim': 2.5, 'Ddim': 1},
                oact='sigmoid'):
-    model = Graph()
-    N = B.embedding(model, glove, vocab, s0pad, s1pad, dropout, dropout_w)
+    s0, s1 = B.inputs_pair(glove, spad)
+
+    emb = B.WordsEmbedding(spad, glove, vocab, dropout, dropout_w)
+    e0, e1 = emb(s0), emb(s1)
 
     if dropout_in is None:
         dropout_in = dropout
 
-    Nc = B.cnnsum_input(model, N, s0pad, dropout=dropout_in, l2reg=l2reg,
-                        cnninit=cnninit, cnnact=cnnact, cdim=cdim)
-
-    # Projection
-    if project:
-        model.add_shared_node(name='proj', inputs=['e0s_', 'e1s_'], outputs=['e0p', 'e1p'],
-                              layer=Dense(input_dim=Nc, output_dim=int(N*pdim), W_regularizer=l2(l2reg)))
-        # This dropout is controversial; it might be harmful to apply,
-        # or at least isn't a clear win.
-        # model.add_shared_node(name='projdrop', inputs=['e0p', 'e1p'], outputs=['e0p_', 'e1p_'],
-        #                       layer=Dropout(dropout_in, input_shape=(N,)))
-        # final_outputs = ['e0p_', 'e1p_']
-        final_outputs = ['e0p', 'e1p']
-    else:
-        final_outputs = ['e0s_', 'e1s_']
+    #B.cnnsum_input(model, spad, N, dropout=dropout_in, l2reg=l2reg,
+    #               cnninit=cnninit, cnnact=cnnact, cdim=cdim)
+    srnn = B.SentenceRNN(spad, emb.N, dropout=dropout_in)
+    se0, se1 = srnn(e0), srnn(e1)
 
     # Measurement
-    kwargs = dict()
-    if ptscorer == B.mlp_ptscorer:
-        kwargs['sum_mode'] = mlpsum
-    model.add_node(name='scoreS', input=ptscorer(model, final_outputs, Ddim, N, l2reg, **kwargs),
-                   layer=Activation(oact))
-    model.add_output(name='score', input='scoreS')
+    scoreS = ptscorer(srnn.N, l2reg=l2reg, **ptargs)(se0, se1)
+    score = Activation(oact, name='score')(scoreS)
+
+    model = Model(input=s0.inputs + s1.inputs, output=score)
     return model
 
 
@@ -131,7 +117,7 @@ if __name__ == "__main__":
 
     glove = emb.GloVe(N=args.N)
     if args.wang == 1:
-        s0, s1, y, vocab, gr = load_set('data/anssel/wang/train-all.csv', glove)
+        s0, s1, y, vocab, gr = load_set('data/anssel/wang/train.csv', glove)
         s0t, s1t, yt, _, grt = load_set('data/anssel/wang/dev.csv', glove, vocab)
     else:
         s0, s1, y, vocab, gr = load_set('data/anssel/yodaqa/curatedv1-training.csv', glove)
@@ -140,10 +126,10 @@ if __name__ == "__main__":
     kwargs = eval('dict(' + args.params + ')')
     model = prep_model(glove, vocab, oact='linear', **kwargs)
     model.compile(loss={'score': ranknet}, optimizer='adam')  # for 'binary_crossentropy', drop the custom oact
-    model.fit(gr, validation_data=grt,
+    model.fit(gr, gr, validation_data=(grt, grt),
               callbacks=[AnsSelCB(s0t, grt),
                          ModelCheckpoint('weights-cnn-bestval.h5', save_best_only=True, monitor='mrr', mode='max')],
               batch_size=160, nb_epoch=8)
     model.save_weights('weights-cnn-final.h5', overwrite=True)
-    ev.eval_anssel(model.predict(gr)['score'][:,0], s0, s1, y, 'Train')
-    ev.eval_anssel(model.predict(grt)['score'][:,0], s0t, s1t, yt, 'Val')
+    ev.eval_anssel(model.predict(gr)[:,0], s0, s1, y, 'Train')
+    ev.eval_anssel(model.predict(grt)[:,0], s0t, s1t, yt, 'Val')
