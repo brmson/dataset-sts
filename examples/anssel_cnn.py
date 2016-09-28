@@ -95,13 +95,12 @@ def prep_model(glove, vocab, dropout=1/2, dropout_w=0, dropout_in=4/5, l2reg=1e-
     if dropout_in is None:
         dropout_in = dropout
 
-    #B.cnnsum_input(model, spad, N, dropout=dropout_in, l2reg=l2reg,
-    #               cnninit=cnninit, cnnact=cnnact, cdim=cdim)
-    srnn = B.SentenceRNN(spad, emb.N, dropout=dropout_in)
-    se0, se1 = srnn(e0), srnn(e1)
+    scnn = B.SentenceCNN(spad, emb.N, dropout=dropout_in, l2reg=l2reg,
+                         cnninit=cnninit, cnnact=cnnact, cdim=cdim)
+    se0, se1 = scnn(e0), scnn(e1)
 
     # Measurement
-    scoreS = ptscorer(srnn.N, l2reg=l2reg, **ptargs)(se0, se1)
+    scoreS = ptscorer(scnn.N, l2reg=l2reg, **ptargs)(se0, se1)
     score = Activation(oact, name='score')(scoreS)
 
     model = Model(input=s0.inputs + s1.inputs, output=score)

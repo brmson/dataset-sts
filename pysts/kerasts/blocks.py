@@ -10,7 +10,8 @@ from __future__ import division
 from __future__ import print_function
 
 from keras.layers import Input, merge
-from keras.layers.core import Dropout
+from keras.layers.convolutional import Convolution1D, MaxPooling1D
+from keras.layers.core import Dropout, Flatten
 from keras.layers.embeddings import Embedding
 from keras.layers.recurrent import GRU
 from keras.layers.wrappers import Bidirectional
@@ -18,7 +19,6 @@ from keras.models import Model
 from keras.regularizers import l2
 
 
-#from keras.layers.convolutional import Convolution1D, MaxPooling1D
 #from keras.layers.core import Activation, Dense, Dropout, Flatten, LambdaMerge
 
 import pysts.nlp as nlp
@@ -142,23 +142,8 @@ class SentenceRNN(object):
         return self.model(x)
 
 
-def add_multi_node(model, name, inputs, outputs, layer_class,
-        layer_args, siamese=True, **kwargs):
-    if siamese:
-        layer = layer_class(**layer_args)
-        model.add_shared_node(name=name, inputs=inputs, outputs=outputs,
-                layer=layer, **kwargs)
-    else:
-        for inp, outp in zip(inputs, outputs):
-            layer = layer_class(**layer_args)
-            model.add_node(name=outp, input=inp, layer=layer, **kwargs)
-
-
-def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
-                 cnninit='glorot_uniform', cnnact='tanh',
-                 cdim={1: 1/2, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2},
-                 inputs=['e0', 'e1'], pfx='', siamese=True):
-    """ An CNN pooling layer that takes sequence of embeddings e0, e1 and
+class SentenceCNN(object):
+    """ An CNN pooling layer that takes sequence of word embeddings and
     processes them using a CNN + max-pooling to produce a single "summary
     embedding" (*NOT* a sequence of embeddings).
 
@@ -167,42 +152,31 @@ def cnnsum_input(model, N, spad, dropout=3/4, l2reg=1e-4,
     and containing the number of filters.  The resulting summary embedding
     dimensionality is sum of N*cdim values (the convolutions are concatenated),
     returned by this function for your convenience.
-
-    The output layers are e0s_, e1s_.
     """
-    Nc = 0
-    for fl, cd in cdim.items():
-        nb_filter = int(N*cd)
-        add_multi_node(model, name=pfx+'aconv%d'%(fl,), siamese=siamese,
-                              inputs=inputs, outputs=[pfx+'e0c%d'%(fl,), pfx+'e1c%d'%(fl,)],
-                              layer_class=Convolution1D,
-                              layer_args={'input_shape':(spad, N),
-                                  'nb_filter':nb_filter,
-                                  'filter_length':fl,
-                                  'activation':cnnact,
-                                  'W_regularizer':l2(l2reg),
-                                  'init':cnninit})
-        add_multi_node(model, name=pfx+'apool%d[0]'%(fl,), siamese=siamese,
-                              inputs=[pfx+'e0c%d'%(fl,), pfx+'e1c%d'%(fl,)],
-                              outputs=[pfx+'e0s%d[0]'%(fl,), pfx+'e1s%d[0]'%(fl,)],
-                              layer_class=MaxPooling1D,
-                              layer_args={'pool_length':int(spad - fl + 1)})
-        add_multi_node(model, name=pfx+'apool%d[1]'%(fl,), siamese=siamese,
-                              inputs=[pfx+'e0s%d[0]'%(fl,), pfx+'e1s%s[0]'%(fl,)],
-                              outputs=[pfx+'e0s%d'%(fl,), pfx+'e1s%d'%(fl,)],
-                              layer_class=Flatten, layer_args={'input_shape':(1, nb_filter)})
-        Nc += nb_filter
+    def __init__(self, spad, N, dropout=3/4, l2reg=1e-4,
+                 cnninit='glorot_uniform', cnnact='tanh',
+                 cdim={1: 1/2, 2: 1/2, 3: 1/2, 4: 1/2, 5: 1/2}):
+        e = Input(shape=(spad, N))
 
-    if len(cdim) > 1:
-        model.add_node(name=pfx+'e0s', inputs=[pfx+'e0s%d'%(fl,) for fl in cdim.keys()], merge_mode='concat', layer=Activation('linear'))
-        model.add_node(name=pfx+'e1s', inputs=[pfx+'e1s%d'%(fl,) for fl in cdim.keys()], merge_mode='concat', layer=Activation('linear'))
-    else:
-        model.add_node(name=pfx+'e0s', input=pfx+'e0s%d'%(cdim.keys()[0],), layer=Activation('linear'))
-        model.add_node(name=pfx+'e1s', input=pfx+'e1s%d'%(cdim.keys()[0],), layer=Activation('linear'))
-    model.add_node(name=pfx+'e0s_', input=pfx+'e0s', layer=Dropout(dropout))
-    model.add_node(name=pfx+'e1s_', input=pfx+'e1s', layer=Dropout(dropout))
+        self.N = 0
+        aout = []
+        for fl, cd in cdim.items():
+            nb_filter = int(N*cd)
+            aconv = Convolution1D(nb_filter=nb_filter, filter_length=fl,
+                                  activation=cnnact, init=cnninit,
+                                  W_regularizer=l2(l2reg))(e)
+            apool = Flatten()(MaxPooling1D(pool_length=int(spad - fl + 1))(aconv))
+            aout.append(apool)
+            self.N += nb_filter
 
-    return Nc
+        out = merge(aout, mode='concat') if len(aout) > 1 else aout[0]
+        out = Dropout(dropout)(out)
+
+        self.model = Model(input=e, output=out)
+
+    def __call__(self, x):
+        assert x._keras_shape == self.model.inputs[0]._keras_shape, '%s != %s' % (x._keras_shape, self.model.inputs[0]._keras_shape)
+        return self.model(x)
 
 
 def absdiff_merge(model, inputs, pfx="out", layer_name="absdiff"):
